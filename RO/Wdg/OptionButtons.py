@@ -27,7 +27,6 @@ History:
 2004-09-14 ROwen	Modified to use helpURLPrefix as help url for header.
 					Bug fix: was incorrectly importing Button.
 					Bug fix: test code enable button was broken.
-2004-12-13 ROwen	Renamed doEnable to setEnable for modified RO.InputCont.
 """
 __all__ = ['OptionButtons']
 
@@ -180,13 +179,13 @@ if __name__ == "__main__":
 	def doPrint():
 		print "getString() = %r" % (optFrame.getString(),)
 	
-	def setEnable(wdg=None):
-		optFrame.setEnable(enableButton.getBool())
+	def doEnable(wdg=None):
+		optFrame.doEnable(enableButton.getBool())
 
 	enableButton = Checkbutton.Checkbutton (
 		master = root,
 		defValue = True,
-		callFunc = setEnable,
+		callFunc = doEnable,
 		text = "Enable",
 	)
 	enableButton.pack()

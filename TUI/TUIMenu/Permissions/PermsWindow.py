@@ -7,7 +7,6 @@
 					and changed to visible by default.
 2004-07-29 ROwen	Added read-only support.
 					Updated for new RO.KeyVariable
-2005-01-05 ROwen	Added Read Only button to test code.
 """
 import Tkinter
 import RO.KeyVariable
@@ -49,15 +48,15 @@ class PermsWdg(Tkinter.Frame):
 			vscroll = True,
 		)
 		
-		self.inputWdg = PermsInputWdg.PermsInputWdg(
+		self._authInputWdg = PermsInputWdg.PermsInputWdg(
 			master = self._scrollWdg.getWdgParent(),
 			statusBar = self._statusBar,
 			titleFrame = self._titleFrame,
 			readOnlyCallback = self.doReadOnly,
 		)
 		self._scrollWdg.setWdg(
-			wdg = self.inputWdg,
-			vincr = self.inputWdg.getVertMeasWdg(),
+			wdg = self._authInputWdg,
+			vincr = self._authInputWdg.getVertMeasWdg(),
 		)
 
 		self._scrollWdg.grid(row=1, sticky="ns")
@@ -82,7 +81,7 @@ class PermsWdg(Tkinter.Frame):
 		purgeWdg = RO.Wdg.Button(
 			master = self.butFrame,
 			text = "Purge",
-			command = self.inputWdg.purge,
+			command = self._authInputWdg.purge,
 			helpText = "Purge unregistered programs",
 			helpURL = _HelpPrefix + "Purge",
 		)
@@ -91,7 +90,7 @@ class PermsWdg(Tkinter.Frame):
 		sortWdg = RO.Wdg.Button(
 			master = self.butFrame,
 			text = "Sort",
-			command = self.inputWdg.sort,
+			command = self._authInputWdg.sort,
 			helpText = "Sort list by program name",
 			helpURL = _HelpPrefix + "Sort",
 		)
@@ -138,19 +137,9 @@ if __name__ == "__main__":
 	
 	testFrame = PermsWdg(master=root)
 	testFrame.pack(side="top", expand=True, fill="both")
+	
+	Tkinter.Button(root, text="Demo", command=TestData.animate).pack(side="top")
 
-	def doReadOnly(but):
-		readOnly = but.getBool()
-		testFrame.inputWdg._setReadOnly(readOnly)
-	
-	butFrame = Tkinter.Frame(root)
-	
-	Tkinter.Button(butFrame, text="Demo", command=TestData.animate).pack(side="left")
-	
-	RO.Wdg.Checkbutton(butFrame, text="Read Only", callFunc=doReadOnly).pack(side="left")
-
-	butFrame.pack(side="top")
-	
 	TestData.start()
 
 	root.mainloop()

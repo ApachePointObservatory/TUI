@@ -33,9 +33,8 @@ History:
 					Added playCmdDone, playCmdFailed methods.
 					Modified to use st_Normal, etc. constants for message level.
 					Define __all__ to restrict import.
-2004-09-03 ROwen	Modified for RO.Wdg.sev... -> RO.Constants.sev...
+2004-09-03 ROwen	Modified for RO.Wdg.st_... -> RO.Constants.st_...
 2004-10-01 ROwen	Bug fix: width arg was being ignored.
-2005-01-05 ROwen	setMsg: changed level to severity.
 """
 __all__ = ['StatusBar']
 
@@ -52,13 +51,13 @@ import Entry
 # category dictionary
 # keys are the category name, as provided in the message dictionary
 # items are a tuple:
-# - message severity (one of RO.Constants.sevNormal, sevWarning or sevError)
+# - message level (one of RO.Constants.st_Normal, st_Warning or st_Error)
 # - default color
 # - name of color preference
 _CatDict = {
-	"Information": (RO.Constants.sevNormal,  "black", "Text Color"),
-	"Warning":     (RO.Constants.sevWarning, "blue2", "Warning Color"),
-	"Error":       (RO.Constants.sevError,   "red",   "Error Color"),
+	"Information": (RO.Constants.st_Normal,  "black", "Text Color"),
+	"Warning":     (RO.Constants.st_Warning, "blue2", "Warning Color"),
+	"Error":       (RO.Constants.st_Error,   "red",   "Error Color"),
 }
 
 def _getSound(playCmdSounds, prefs, prefName):
@@ -149,8 +148,8 @@ class StatusBar(Tkinter.Frame, CtxMenu.CtxMenu):
 		"""
 		self.displayWdg.set("")
 		self.tempMsg = None
-		self._setCurrLevel(RO.Constants.sevNormal)
-		self.permLevel = RO.Constants.sevNormal
+		self._setCurrLevel(RO.Constants.st_Normal)
+		self.permLevel = RO.Constants.st_Normal
 		self.permMsg = None
 		self.currID = None
 		self.tempID = 0
@@ -211,7 +210,7 @@ class StatusBar(Tkinter.Frame, CtxMenu.CtxMenu):
 		if msgStr:
 			self.entryErrorID = self.setMsg(
 				msgStr = msgStr,
-				severity = RO.Constants.sevWarning,
+				level = RO.Constants.st_Warning,
 				isTemp = True,
 			)
 			self.bell()
@@ -227,7 +226,7 @@ class StatusBar(Tkinter.Frame, CtxMenu.CtxMenu):
 		except AttributeError:
 			return
 		if msgStr:
-			self.helpID = self.setMsg(msgStr, severity=RO.Constants.sevNormal, isTemp=True)
+			self.helpID = self.setMsg(msgStr, level=RO.Constants.st_Normal, isTemp=True)
 	
 	def handleLeave(self, evt):
 		"""Handle the <Leave> event to erase help.
@@ -245,12 +244,12 @@ class StatusBar(Tkinter.Frame, CtxMenu.CtxMenu):
 		"""
 		self.cmdFailedSound.play()
 
-	def setMsg(self, msgStr, severity=RO.Constants.sevNormal, isTemp=False, duration=None):
+	def setMsg(self, msgStr, level=RO.Constants.st_Normal, isTemp=False, duration=None):
 		"""Display a new message.
 		
 		Inputs:
 		- msgStr	the new string to display
-		- severity	one of RO.Constants.sevNormal (default), sevWarning or sevError
+		- level		one of RO.Constants.st_Normal (default), st_Warning or st_Error
 		- isTemp	if true, message is temporary and can be cleared with clearTempMsg;
 					if false, any existing temp info is ditched
 		- duration	the amount of time (msec?) to leave a temporary message;
@@ -259,9 +258,9 @@ class StatusBar(Tkinter.Frame, CtxMenu.CtxMenu):
 		
 		Returns None if a permanent message, else a unique positive message ID.
 		"""
-		if self.currLevel != severity:
+		if self.currLevel != level:
 			self.displayWdg.set("")
-			self._setCurrLevel(severity)
+			self._setCurrLevel(level)
 		self.displayWdg.set(msgStr)
 		if isTemp:
 			self.tempID += 1
@@ -284,7 +283,7 @@ class StatusBar(Tkinter.Frame, CtxMenu.CtxMenu):
 		if msgType == ":":
 			# command finished; omit associated text
 			# but append "with warnings" if there were warnings
-			if msgLevel == RO.Constants.sevWarning:
+			if msgLevel == RO.Constants.st_Warning:
 				msgDescr += " with warnings"
 			infoText = "%s %s" % (
 				self.cmdSummary,
@@ -303,14 +302,14 @@ class StatusBar(Tkinter.Frame, CtxMenu.CtxMenu):
 		self.setMsg(infoText, msgLevel)
 
 	def _colorPrefChanged(self, msgLevel, newColor, colorPref):
-		"""Update the current color if the message severity matches.
+		"""Update the current color if the message level matches.
 		Call if a color preference changes.
 		"""
 		if self.currLevel == msgLevel:
 			self._setCurrLevel(msgLevel)
 	
-	def _setCurrLevel(self, severity):
-		"""Set the current message severity.
+	def _setCurrLevel(self, level):
+		"""Set the current message level.
 		"""
-		self.currLevel = severity
-		self.displayWdg["fg"] = self.currLevelColorDict[severity].getValue()
+		self.currLevel = level
+		self.displayWdg["fg"] = self.currLevelColorDict[level].getValue()

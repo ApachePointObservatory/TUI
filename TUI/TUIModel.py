@@ -27,8 +27,6 @@ History:
 2004-08-11 ROwen	Modified to use RO.Constants.
 2004-09-03 ROwen	Modified for RO.Wdg._setHelpURLBase -> RO.Constants._setHelpURLBase.
 2004-09-08 ROwen	Added logMsg method.
-2005-01-05 ROwen	Changed logMsg state -> severity.
-					Bug fix: logMsg was misusing severity (formerly state).
 """
 import os
 import sys
@@ -44,12 +42,6 @@ import TUI.Help
 import TUI.TUIPrefs
 
 _theModel = None
-
-_SeverityTypeDict = {
-	RO.Constants.sevNormal: "Information",
-	RO.Constants.sevWarning: "Warning",
-	RO.Constants.sevError: "Error",
-}
 
 def _getGeomFile():
 	geomDir = RO.OS.getPrefsDir()
@@ -128,7 +120,7 @@ class _Model (object):
 	
 	def logMsg(self,
 		msgStr,
-		severity = RO.Constants.sevNormal,
+		state = RO.Constants.st_Normal,
 		copyStdErr = False,
 		doTraceback = False,
 	):
@@ -137,13 +129,12 @@ class _Model (object):
 		
 		Inputs:
 		- msgStr	message to display; a final \n is appended
-		- severity		one of RO.Constants.sevNormal, sevWarning or sevError
+		- state		one of RO.Constants.st_Normal, st_Warning or st_Error
 		- copyStdErr	write copy to standard error?
 		- doTraceback	write traceback to standard error?
 						(if True then a copy of msgStr is always written to std error)
 		"""
-		typeCategory = _SeverityTypeDict[severity]
-		self.dispatcher.logMsg(msgStr, typeCategory = typeCategory)
+		self.dispatcher.logMsg(msgStr, typeCategory=state)
 		
 		if copyStdErr or doTraceback:
 			sys.stderr.write (msgStr + "\n")

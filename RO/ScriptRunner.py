@@ -40,9 +40,6 @@ History:
 					leading to false "You forgot the 'yield'" errors.
 2004-10-01 ROwen	Bug fix: waitKeyVar was totally broken.
 2004-10-08 ROwen	Bug fix: waitThread could fail if the thread was too short.
-2004-12-16 ROwen	Added a debug mode that prints diagnostics to stdout
-					and does not wait for commands or keyword variables.
-2005-01-05 ROwen	showMsg: changed level to severity.
 """
 import sys
 import threading
@@ -111,11 +108,7 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 	- statusBar		status bar, if available. Used by showMsg
 	- cmdStatusBar	command status bar; if omitted, defaults to statusBar.
 					Used to show the status of executing commands.
-	- debug			if True, startCmd and wait... print diagnostic messages to stdout
-					and	thre is no waiting for commands or keyword variables. Thus:
-					- waitCmd and waitCmdVars return success immediately
-					- waitKeyVar returns defVal (or None if not specified) immediately
-
+	
 	All functions (runFunc, initFunc, endFunc and stateFunc) receive one argument: sr,
 	this ScriptRunner object. The functions can pass information using sr.globals,
 	an initially empty object (to which you can add instance variables and set or read them).
@@ -151,7 +144,6 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 		startNow = False,
 		statusBar = None,
 		cmdStatusBar = None,
-		debug = False,
 	):
 		if not callable(runFunc):
 			raise ValueError("runFunc=%r not callable" % (runFunc,))
@@ -162,7 +154,6 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 		self.dispatcher = dispatcher
 		self.initFunc = initFunc
 		self.endFunc = endFunc
-		self.debug = bool(debug)
 		self._statusBar = statusBar
 		self._cmdStatusBar = cmdStatusBar or statusBar
 		
@@ -314,32 +305,19 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 		- defVal	value to return if value cannot be determined
 					(if omitted, the script halts)
 		"""
-		if self.debug:
-			argList = ["keyVar=%s" % (keyVar,)]
-			if ind != 0:
-				argList.append("ind=%s" % (ind,))
-			if defVal != Exception:
-				argList.append("defVal=%r" % (defVal,))
-			if defVal == Exception:
-				defVal = None
-
 		currVal, isCurrent = keyVar.get()
 		if isCurrent:
 			if ind != None:
-				retVal = currVal[ind]
+				return currVal[ind]
 			else:
-				retVal = currVal
+				return currVal
 		else:
 			if defVal==Exception:
 				raise ScriptError("Value of %s invalid" % (keyVar,))
 			else:
-				retVal = defVal
-
-		if self.debug:
-			print "getKeyVar(%s); returning %r" % (", ".join(argList), retVal)
-		return retVal
+				return defVal
 	
-	def showMsg(self, msg, severity=RO.Constants.sevNormal):
+	def showMsg(self, msg, level=RO.Constants.st_Normal):
 		"""Display a message--on the status bar, if available,
 		else sys.stdout.
 
@@ -347,10 +325,10 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 		
 		Inputs:
 		- msg: string to display, without a final \n
-		- severity: one of RO.Constants.sevNormal (default), sevWarning or sevError
+		- level: one of RO.Constants.st_Normal (default), st_Warning or st_Error
 		"""
 		if self._statusBar:
-			self._statusBar.setMsg(msg, severity)
+			self._statusBar.setMsg(msg, level)
 		else:
 			print msg
 	
@@ -389,22 +367,6 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 				callFunc = self._cmdFailCallback,
 				callTypes = RO.KeyVariable.FailTypes,
 			)
-		if self.debug:
-			argList = ["actor=%r, cmdStr=%r" % (actor, cmdStr)]
-			if timeLim != 0:
-				argList.append("timeLim=%s" % (timeLim,))
-			if callFunc != None:
-				argList.append("callFunc=%r" % (callFunc,))
-			if callTypes != RO.KeyVariable.DoneTypes:
-				argList.append("callTypes=%r" % (callTypes,))
-			if timeLimKeyword != None:
-				argList.append("timeLimKeyword=%r" % (timeLimKeyword,))
-			if abortCmdStr != None:
-				argList.append("abortCmdStr=%r" % (abortCmdStr,))
-			if checkFail != True:
-				argList.append("checkFail=%r" % (checkFail,))
-			print "startCmd(%s)" % ", ".join(argList)
-						
 		if self._cmdStatusBar:
 			self._cmdStatusBar.doCmd(cmdVar)
 		else:
@@ -458,24 +420,6 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 		# so it remains correct as long as possible.
 		oldNumWaits = self._numWaits
 		self._waitPrep()
-		
-		if self.debug:
-			argList = ["actor=%r, cmdStr=%r" % (actor, cmdStr)]
-			if timeLim != 0:
-				argList.append("timeLim=%s" % (timeLim,))
-			if callFunc != None:
-				argList.append("callFunc=%r" % (callFunc,))
-			if callTypes != RO.KeyVariable.DoneTypes:
-				argList.append("callTypes=%r" % (callTypes,))
-			if timeLimKeyword != None:
-				argList.append("timeLimKeyword=%r" % (timeLimKeyword,))
-			if abortCmdStr != None:
-				argList.append("abortCmdStr=%r" % (abortCmdStr,))
-			
-			print "waitCmd(%s)" % ", ".join(argList)
-		
-			self.master.after(1, self._continue, self._numWaits)
-			return
 
 		cmdVar = self.startCmd (
 			actor = actor,
@@ -543,9 +487,6 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 		Inputs:
 		- msec	number of milliseconds to pause
 		"""
-		if self.debug:
-			print "waitMS(msec=%s)" % (msec,)
-
 		_WaitMS(self, msec)
 	
 	def waitThread(self, func, *args, **kargs):
@@ -559,9 +500,6 @@ class ScriptRunner(RO.AddCallback.BaseMixin):
 		(The only thing I'm sure a background thread can safely do with Tkinter
 		is generate an event, a technique that is used to detect end of thread).
 		"""
-		if self.debug:
-			print "waitThread(func=%r, args=%s, keyArgs=%s)" % (func, args, kargs)
-
 		_WaitThread(self, func, *args, **kargs)
 		
 	# private methods
@@ -771,8 +709,6 @@ class _WaitBase:
 		"""Call to resume execution."""
 		self.cleanup()
 		self.scriptRunner._cancelFuncs.remove(self.cancelWait)
-		if self.scriptRunner.debug and val != None:
-			print "wait returns %r" % (val,)
 		self.scriptRunner._continue(self._numWaits, val)
 
 
@@ -799,9 +735,6 @@ class _WaitCmdVars(_WaitBase):
 		if self.getState()[0] != 0:
 			# no need to wait; commands are already done or one has failed
 			# schedule a callback for asap
-			self.master.after(1, self.varCallback)
-		elif self.scriptRunner.debug:
-			print "waitCmdVars(cmdVars=%s)" % (cmdVars,)
 			self.master.after(1, self.varCallback)
 		else:
 			# need to wait; add self as callback to each cmdVar
@@ -884,22 +817,6 @@ class _WaitKeyVar(_WaitBase):
 		if self.keyVar.isCurrent() and not self.waitNext:
 			# no need to wait; value already known
 			# schedule a wakeup for asap
-			self.master.after(1, self.varCallback)
-		elif self.scriptRunner.debug:
-			# display message
-			argList = ["keyVar=%s" % (keyVar,)]
-			if ind != 0:
-				argList.append("ind=%s" % (ind,))
-			if defVal != Exception:
-				argList.append("defVal=%r" % (defVal,))
-			if waitNext != False:
-				argList.append("waitNext=%r" % (waitNext,))
-			print "waitKeyVar(%s)" % ", ".join(argList)
-
-			# prevent the call from failing by using None instead of Exception
-			if self.defVal == Exception:
-				self.defVal = None
-
 			self.master.after(1, self.varCallback)
 		else:
 			# need to wait; set self as a callback

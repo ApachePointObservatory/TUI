@@ -25,13 +25,6 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-"""Note from Russell Owen 2004-12-01 for RO.Future.subprocess.py:
-This is subprocess.py from Python 2.4 with this note plus
-one other change: I modified the line with comment:
-  # <-- change this to use pywin32 instead of the _subprocess driver
-so that pywin32 is used.
-"""
-
 r"""subprocess - Subprocesses with accessible I/O streams
 
 This module allows you to spawn processes, connect to their
@@ -373,7 +366,7 @@ import traceback
 if mswindows:
     import threading
     import msvcrt
-    if True: # <-- change this to use pywin32 instead of the _subprocess driver
+    if 0: # <-- change this to use pywin32 instead of the _subprocess driver
         import pywintypes
         from win32api import GetStdHandle, STD_INPUT_HANDLE, \
                              STD_OUTPUT_HANDLE, STD_ERROR_HANDLE

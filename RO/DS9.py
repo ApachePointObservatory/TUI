@@ -57,6 +57,12 @@ to ds9 on a remote host.
 
 For a list of local servers try % xpaget xpans
 
+Note on subprocess module:
+I plan to use the new subprocess module once Python 2.4 is released
+(I will include subprocess in RO.Futures). It has a much better
+error handling than os.popen... and os.spawn... The code is all there
+and tested, it is simply commented out for now.
+
 History:
 2004-04-15 ROwen	First release.
 2004-04-20 ROwen	showarry improvements:
@@ -78,25 +84,18 @@ History:
 					Changed order of indices for 3-d images from (y,x,z) to (z,y,x).
 2004-11-17 ROwen	Corrected a bug in the subprocess version of xpaget.
 					Updated header comments for big-fixed version of subprocess.
-2004-12-01 ROwen	Bug fix in xpaset: terminate data with \n if not already done.
-					Modified to use subprocess module (imported from RO.Future
-					if Python is old enough not to include it).
-					Added __all__.
-2004-12-13 ROwen	Bug fix in DS9Win; the previous version was missing
-					the code that waited for DS9 to launch.
 """
-__all__ = ["xpaget", "xpaset", "DS9Win"]
 import numarray as num
 import os
 import time
 import RO.OS
-try:
-	import subprocess
-except ImportError:
-	import RO.Future.subprocess as subprocess
+#try:
+#	import subprocess
+#except ImportError:
+#	import RO.Future.subprocess as subprocess
 
 _DS9Exec = "ds9"	# path to ds9 executable; "ds9" if can be found automatically
-_XPADir = None		# dir for xpa executables; None if they can be found automatically
+_XPADir = ""		# dir for xpa executables; "" if they can be found automatically
 if RO.OS.PlatformName == "win":
 	import win32api
 
@@ -156,24 +155,48 @@ def xpaget(cmd, template=_DefTemplate):
 	fullCmd = 'xpaget %s %s' % (template, cmd,)
 #	print fullCmd
 
-	p = subprocess.Popen(
-		args = fullCmd,
-		shell = True,
-		stdin = subprocess.PIPE,
-		stdout = subprocess.PIPE,
-		stderr = subprocess.PIPE,
-		cwd = _XPADir,
-	)
+# use the following once subprocess is released
+#	p = subprocess.Popen(
+#		args = fullCmd,
+#		shell = True,
+#		stdin = subprocess.PIPE,
+#		stdout = subprocess.PIPE,
+#		stderr = subprocess.PIPE,
+#		cwd = _XPADir,
+#	)
+#	try:
+#		p.stdin.close()
+#		errMsg = p.stderr.read()
+#		if errMsg:
+#			raise RuntimeError('%r failed: %s' % (fullCmd, errMsg))
+#		return p.stdout.read()
+#	finally:
+#		p.stdout.close()
+#		p.stderr.close()
+
+	if _XPADir:
+		# work around a Windows bug in os.popen3 (and in Python 2.41b subprocess)
+		# whereby if the path to the executable has spaces, the command fails
+		# if there are cmd-line arguments, even if you put the path in double quotes
+		currDir = os.getcwd()
+		try:
+			os.chdir(_XPADir)
+			toShell, fromShell, errShell = os.popen3(fullCmd)
+		finally:
+			os.chdir(currDir)
+	else:
+		toShell, fromShell, errShell = os.popen3(fullCmd)
+
 	try:
-		p.stdin.close()
-		errMsg = p.stderr.read()
+		toShell.close()
+		errMsg = errShell.read()
 		if errMsg:
 			raise RuntimeError('%r failed: %s' % (fullCmd, errMsg))
-		return p.stdout.read()
+		reply = fromShell.read()
+		return reply
 	finally:
-		p.stdout.close()
-		p.stderr.close()
-
+		fromShell.close()
+		errShell.close()
 
 def xpaset(cmd, data=None, dataFunc=None, template=_DefTemplate):
 	"""Executes a simple xpaset command:
@@ -185,11 +208,9 @@ def xpaset(cmd, data=None, dataFunc=None, template=_DefTemplate):
 	
 	Inputs:
 	- cmd		command to execute
-	- data		data to write to xpaset's stdin; ignored if dataFunc specified.
-				If data[-1] is not \n then a final \n is appended.
+	- data		data to write to xpaset's stdin; ignored if dataFunc specified
 	- dataFunc	a function that takes one argument, a file-like object,
 				and writes data to that file. If specified, data is ignored.
-				Warning: if a final \n is needed, dataFunc must supply it.
 	- template	xpa template; can be the ds9 window title
 				(as specified in the -title command-line option)
 				host:port, etc.
@@ -202,27 +223,52 @@ def xpaset(cmd, data=None, dataFunc=None, template=_DefTemplate):
 		fullCmd = 'xpaset -p %s %s' % (template, cmd)
 #	print fullCmd
 
-	p = subprocess.Popen(
-		args = fullCmd,
-		shell = True,
-		stdin = subprocess.PIPE,
-		stdout = subprocess.PIPE,
-		stderr = subprocess.STDOUT,
-	)
+# use the following once subprocess is released
+#	p = subprocess.Popen(
+#		args = fullCmd,
+#		shell = True,
+#		stdin = subprocess.PIPE,
+#		stdout = subprocess.PIPE,
+#		stderr = subprocess.STDOUT,
+#	)
+#	try:
+#		if dataFunc:
+#			dataFunc(p.stdin)
+#		elif data:
+#			p.stdin.write(data)
+#		p.stdin.close()
+#		reply = p.stdout.read()
+#		if reply:
+#			raise RuntimeError("%r failed: %s" % (fullCmd, reply.strip()))
+#	finally:
+#		p.stdin.close() # redundant
+#		p.stdout.close()
+
+	if _XPADir:
+		# work around a Windows bug in os.popen3 (and in Python 2.41b subprocess)
+		# whereby if the path to the executable has spaces, the command fails
+		# if there are cmd-line arguments, even if you put the path in double quotes
+		currDir = os.getcwd()
+		try:
+			os.chdir(_XPADir)
+			toShell, fromShell = os.popen4(fullCmd)
+		finally:
+			os.chdir(currDir)
+	else:
+		toShell, fromShell = os.popen4(fullCmd)
+
 	try:
 		if dataFunc:
-			dataFunc(p.stdin)
+			dataFunc(toShell)
 		elif data:
-			p.stdin.write(data)
-			if data[-1] != '\n':
-				p.stdin.write('\n')
-		p.stdin.close()
-		reply = p.stdout.read()
+			toShell.write(data)
+		toShell.close()
+		reply = fromShell.read()
 		if reply:
 			raise RuntimeError("%r failed: %s" % (fullCmd, reply.strip()))
 	finally:
-		p.stdin.close() # redundant
-		p.stdout.close()
+		toShell.close() # redundant
+		fromShell.close()
 
 
 def _computeCnvDict():
@@ -247,7 +293,6 @@ def _computeCnvDict():
 _CnvDict = _computeCnvDict()
 _FloatTypes = (num.Float32, num.Float64)
 _ComplexTypes = (num.Complex32, num.Complex64)
-
 
 def _expandPath(fname, extraArgs=""):
 	"""Expand a file path and protect it such that spaces are allowed.
@@ -306,11 +351,29 @@ class DS9Win:
 		if self.isOpen():
 			return
 
-		subprocess.Popen(
-			executable = _DS9Exec,
-			args = ('ds9', '-title', self.template, '-port', "0"),
-			cwd = _XPADir,
-		)
+# use the following once subprocess is released
+#		if _XPADir:
+#			tempDir = _XPADir
+#		else:
+#			tempDir = None
+#		subprocess.Popen(
+#			executable = _DS9Exec,
+#			args = ('ds9', '-title', self.template, '-port', "0"),
+#			cwd = tempDir,
+#		)
+
+		args = ('ds9', '-title', self.template, '-port', "0")
+		if RO.OS.PlatformName == "win":
+			# switch to xpadir while launching ds9 so ds9 can find xpans
+			# this works around a stupid ds9 bug
+			currDir = os.getcwd()
+			try:
+				os.chdir(_XPADir)
+				os.spawnv(os.P_NOWAIT, _DS9Exec, args)
+			finally:
+				os.chdir(currDir)
+		else:
+			os.spawnvp(os.P_NOWAIT, _DS9Exec, args)
 
 		startTime = time.time()
 		while True:

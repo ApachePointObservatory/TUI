@@ -33,7 +33,6 @@ History:
 2004-09-03 ROwen	Modified for RO.Wdg.st_... -> RO.Constants.st_...
 2004-11-17 ROwen	Overhauled to use FTPGet instead of FTPGet.
 					Thus the getFile method has all new arguments.
-2005-01-05 ROwen	Changed display state to severity
 """
 __all__ = ['FTPLogWdg']
 
@@ -297,10 +296,10 @@ class FTPLogWdg(Tkinter.Frame):
 			# display text description of state
 			stateStr = ftpGet.getStateStr(state)
 			if state == FTPGet.Failed:
-				severity = RO.Constants.sevError
+				dispState = RO.Constants.st_Error
 			else:
-				severity = RO.Constants.sevNormal
-			stateLabel.set(stateStr, severity=severity)
+				dispState = RO.Constants.st_Normal
+			stateLabel.set(stateStr, state=dispState)
 	
 	def _updDetailStatus(self):
 		"""Update the detail status for self.selFTPGet"""

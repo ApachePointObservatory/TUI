@@ -37,12 +37,6 @@ History:
 					and fixed temperature units (temp. is in K, not C).
 					Improved environment error display: the limit that
 					has not been exceeded is shown in the normal color.
-2004-11-29 ROwen	Removed etalon response time display and controls.
-					Commented out etalon mode display and controls.
-2005-01-05 ROwen	Modified to use autoIsCurrent for input widgets.
-					Modified to use severity instead of state.
-					Fixed environment summary to show if info not current.
-2005-01-24 ROwen	Modified so environment show/hide doesn't shift config widgets.
 """
 import Tkinter
 import RO.Constants
@@ -57,7 +51,7 @@ _DataWidth = 8	# width of data columns
 _EnvWidth = 6 # width of environment value columns
 
 # category names
-_ConfigCat = RO.Wdg.StatusConfigGridder.ConfigCat
+_ConfigCat = 'config'
 _EtalonCat = 'etalon'
 _EnvironCat = 'environ'
 
@@ -94,8 +88,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			helpText = "requested filter",
 			helpURL = _HelpPrefix + "Filter",
 			defMenu = "Current",
-			autoIsCurrent = True,
-			isCurrent = False,
 		)
 
 		filtRow = gr.getNextRow()
@@ -139,10 +131,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			onvalue = "In",
 			offvalue = "Out",
 			showValue = True,
-			autoIsCurrent = True,
-			isCurrent = False,
 		)
-		fp = self.fpOPathUserWdg
 
 		fpOPathRow = gr.getNextRow()
 		gr.gridWdg (
@@ -162,9 +151,58 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
 		self.model.fpOPath.addIndexedCallback(self._updFPOPath)
 		self.model.fpTime.addIndexedCallback(self._updFPTime)
-		
-		# Fabry-Perot Etalon X and Y position
 
+		# Fabry-Perot Etalon mode
+
+		self.fpModeCurrWdg = RO.Wdg.StrLabel(self,
+			helpText = "current Etalon mode",
+			helpURL = _HelpPrefix + "EtalonMode",
+		)
+		
+		self.fpModeUserWdg = RO.Wdg.OptionMenu(self,
+			items = ("Balance", "Operate"),
+			helpText = "requested Etalon mode",
+			helpURL = _HelpPrefix + "EtalonMode",
+			width = _DataWidth,
+		)
+
+		gr.gridWdg (
+			label = 'Mode',
+			dataWdg = self.fpModeCurrWdg,
+			units = False,
+			cfgWdg = self.fpModeUserWdg,
+			colSpan = 2,
+			cat = _EtalonCat,
+		)
+
+		#
+		# Fabry-Perot Etalon advanced controls
+		# (probably want to hide these by default,
+		# but don't know the algorithm yet)
+		#
+		
+		self.fpRTimeCurrWdg = RO.Wdg.FloatLabel(self,
+			precision = 1,
+			helpText = "current Etalon response time",
+			helpURL = _HelpPrefix + "EtalonRTime",
+			anchor = "e",
+			width = _DataWidth,
+		)
+		
+		self.fpRTimeUserWdg = RO.Wdg.OptionMenu(self,
+			items = ("0.2", "0.5", "1.0", "2.0"),
+			helpText = "requested Etalon response time",
+			helpURL = _HelpPrefix + "EtalonRTime",
+		)
+
+		gr.gridWdg (
+			label = 'RTime',
+			dataWdg = self.fpRTimeCurrWdg,
+			units = "msec",
+			cfgWdg = self.fpRTimeUserWdg,
+			cat = _EtalonCat,
+		)
+		
 		self.fpXCurrWdg = RO.Wdg.IntLabel(self,
 			helpText = "current Etalon X parallelism",
 			helpURL = _HelpPrefix + "EtalonX",
@@ -180,8 +218,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			minMenu = "Minimum",
 			maxMenu = "Maximum",
 			width = _DataWidth,
-			autoIsCurrent = True,
-			isCurrent = False,
 		)
 
 		gr.gridWdg (
@@ -211,8 +247,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			minMenu = "Minimum",
 			maxMenu = "Maximum",
 			width = _DataWidth,
-			autoIsCurrent = True,
-			isCurrent = False,
 		)
 
 		gr.gridWdg (
@@ -245,8 +279,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			minMenu = "Minimum",
 			maxMenu = "Maximum",
 			width = _DataWidth,
-			autoIsCurrent = True,
-			isCurrent = False,
 		)
 
 		gr.gridWdg (
@@ -364,7 +396,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			label = False,
 			dataWdg = self.envFrameWdg,
 			cfgWdg = False,
-			colSpan = 5,
+			colSpan = 3,
 			sticky = "w",
 			cat = _EnvironCat,
 		)
@@ -378,6 +410,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 		self.model.filterNames.addCallback(self.filterUserWdg.setItems)
 		self.fpOPathUserWdg.addCallback(self._doShowHide, callNow = False)
 		self.environShowHideWdg.addCallback(self._doShowHide)
+		self.model.fpMode.addIndexedCallback(self._updFPMode)
+		self.model.fpRTime.addIndexedCallback(self._updFPRTime)
 		self.model.press.addCallback(self._updEnviron)
 		self.model.pressMax.addCallback(self._updEnviron)
 		self.model.temp.addCallback(self._updEnviron)
@@ -402,6 +436,16 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 				RO.InputCont.WdgCont (
 					name = 'fp setz',
 					wdgs = self.fpZUserWdg,
+					formatFunc = eqFmtFunc,
+				),
+				RO.InputCont.WdgCont (
+					name = 'fp mode',
+					wdgs = self.fpModeUserWdg,
+					formatFunc = eqFmtFunc,
+				),
+				RO.InputCont.WdgCont (
+					name = 'fp rtime',
+					wdgs = self.fpRTimeUserWdg,
 					formatFunc = eqFmtFunc,
 				),
 				RO.InputCont.WdgCont (
@@ -483,20 +527,18 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 		
 	def _updEnviron(self, *args, **kargs):
 		# handle pressure
-		isCurrent = True
 
 		press, pressCurr = self.model.press.getInd(0)
 		pressMax, pressMaxCurr = self.model.pressMax.getInd(0)
-		isCurrent = isCurrent and pressCurr and pressMaxCurr
 
-		pressSev = RO.Constants.sevNormal
+		pressState = RO.Constants.st_Normal
 		pressOK = True
 		if press != None and pressMax != None and press > pressMax:
-			pressSev = RO.Constants.sevError
+			pressState = RO.Constants.st_Error
 			pressOK = False
-		self.pressWdgSet[0].setSeverity(pressSev)
-		self.pressWdgSet[1].set(press, isCurrent = pressCurr, severity = pressSev)
-		self.pressWdgSet[3].set(pressMax, isCurrent = pressMaxCurr, severity = pressSev)
+		self.pressWdgSet[0].setState(pressState)
+		self.pressWdgSet[1].set(press, isCurrent = pressCurr, state = pressState)
+		self.pressWdgSet[3].set(pressMax, isCurrent = pressMaxCurr, state = pressState)
 		
 		# handle temperatures
 
@@ -504,8 +546,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 		temps, tempsCurr = self.model.temp.get()
 		tempMin, minCurr = self.model.tempMin.get()
 		tempMax, maxCurr = self.model.tempMax.get()
-		isCurrent = isCurrent and namesCurr and tempsCurr and minCurr and maxCurr
-
+		
 		if not (len(temps) == len(tempNames) == len(tempMin) == len(tempMax)):
 			# temp data not self-consistent
 			self.tuiModel.logMsg("NICFPS temperature data not self-consistent; cannot test temperature limits")
@@ -537,26 +578,17 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 					allTempsOK = False
 					okInd = 2
 			if okInd == None:
-				sevSet = [RO.Constants.sevNormal] * 4
+				stateSet = [RO.Constants.st_Normal] * 4
 			else:
-				sevSet = [RO.Constants.sevError] * 4
-				sevSet[okInd] = RO.Constants.sevNormal
+				stateSet = [RO.Constants.st_Error] * 4
+				stateSet[okInd] = RO.Constants.st_Normal
 
-			for wdg, info, isCurr, severity in zip(wdgSet, infoSet, isCurrSet, sevSet):
-				wdg.set(info, isCurrent = isCurr, severity = severity)
-
+			for wdg, info, isCurr, state in zip(wdgSet, infoSet, isCurrSet, stateSet):
+				wdg.set(info, isCurrent = isCurr, state = state)
 		if pressOK and allTempsOK:
-			self.environStatusWdg.set(
-				"OK",
-				isCurrent = isCurrent,
-				severity = RO.Constants.sevNormal,
-			)
+			self.environStatusWdg.set("OK", state=RO.Constants.st_Normal)
 		else:
-			self.environStatusWdg.set(
-				"Bad", 
-				isCurrent = isCurrent,
-				severity = RO.Constants.sevError,
-			)
+			self.environStatusWdg.set("Bad", state=RO.Constants.st_Error)
 	
 		# delete extra widgets, if any
 		for ind in range(len(tempSet), len(self.tempWdgSet)):
@@ -568,23 +600,16 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 	def _updFilter(self, filterName, isCurrent, keyVar=None):
 		self._showFilterTimer(False)
 		if filterName != None and filterName.lower() == "unknown":
-			severity = RO.Constants.sevError
-			self.filterUserWdg.setDefault(
-				None,
-				isCurrent = isCurrent,
-			)
+			state = RO.Constants.st_Error
 		else:
-			severity = RO.Constants.sevNormal
-			self.filterUserWdg.setDefault(
-				filterName,
-				isCurrent = isCurrent,
-			)
+			state = RO.Constants.st_Normal
 
 		self.filterCurrWdg.set(
 			filterName,
 			isCurrent = isCurrent,
-			severity = severity,
+			state = state,
 		)
+		self.filterUserWdg.setDefault(filterName)
 
 	def _updFilterTime(self, filterTime, isCurrent, keyVar=None):
 		if filterTime == None or not isCurrent:
@@ -597,15 +622,15 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 	def _updFPOPath(self, fpOPath, isCurrent, keyVar=None):
 		self._showFPTimer(False)
 		if fpOPath == '?':
-			severity = RO.Constants.sevError
+			state = RO.Constants.st_Error
 		else:
-			severity = RO.Constants.sevNormal
+			state = RO.Constants.st_Normal
 		
 		self.fpOPathCurrWdg.set(fpOPath,
 			isCurrent = isCurrent,
-			severity = severity,
+			state = state,
 		)
-		self.fpOPathUserWdg.setDefault(fpOPath, isCurrent)
+		self.fpOPathUserWdg.setDefault(fpOPath)
 	
 	def _updFPTime(self, fpTime, isCurrent, keyVar=None):
 		if fpTime == None or not isCurrent:
@@ -614,6 +639,22 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 		
 		self._showFPTimer(True)
 		self.fpTimerWdg.start(fpTime, newMax = fpTime)
+	
+	def _updFPMode(self, fpMode, isCurrent, keyVar=None):
+		if fpMode != None and fpMode.lower() != "balance":
+			state = RO.Constants.st_Warning
+		else:
+			state = RO.Constants.st_Normal
+		self.fpModeCurrWdg.set(fpMode, isCurrent = isCurrent, state = state)
+		self.fpModeUserWdg.setDefault(fpMode)
+	
+	def _updFPRTime(self, fpRTime, isCurrent, keyVar=None):
+		self.fpRTimeCurrWdg.set(fpRTime, isCurrent = isCurrent)
+		if fpRTime != None:
+			dispVal = "%.1f" % (fpRTime)
+		else:
+			dispVal = None
+		self.fpRTimeUserWdg.setDefault(dispVal)
 
 
 def fmtExp(num):
@@ -638,7 +679,7 @@ if __name__ == '__main__':
 
 	def printCmds():
 		try:
-			cmdList = testFrame.getStringList()
+			cmdList = testFrame.inputWdg.getStringList()
 		except ValueError, e:
 			print "Command error:", e
 			return
@@ -658,5 +699,5 @@ if __name__ == '__main__':
 	bf.pack()
 	
 	testFrame.gridder.addShowHideControl(_ConfigCat, cfgWdg)
-	
+
 	root.mainloop()

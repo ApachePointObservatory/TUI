@@ -8,20 +8,17 @@ History:
 2004-08-11 ROwen	Renamed StatusConfigGridSet->_StatusConfigGridSet.
 					Define __all__ to restrict import.
 2004-09-14 ROwen	Stopped importing RO.Wdg to avoid circular imports.
-2004-11-29 ROwen	Modified to include ConfigCat as a class constant.
-2005-01-05 ROwen	Got rid of the changed widget; use autoIsCurrent mode
-					in RO.Wdg widgets to indicate "changed", instead.
 """
 __all__ = ['StatusConfigGridder']
 
 import Tkinter
 import RO.MathUtil
+import ChangedIndicator
 import Gridder
 
 ConfigCat = "config"
 
 class StatusConfigGridder(Gridder.Gridder):
-	ConfigCat = ConfigCat
 	def __init__(self,
 		master,
 		row=0,
@@ -31,7 +28,8 @@ class StatusConfigGridder(Gridder.Gridder):
 		defMenu="Default",
 	):
 		"""Create an object that grids a set of status widgets
-		and possibly an associated set of configuration widgets.
+		and possibly an associated set of configuration widgets
+		with a changed indicator.
 		
 		Inputs:
 		- master	Master widget into which to grid
@@ -53,6 +51,7 @@ class StatusConfigGridder(Gridder.Gridder):
 		label = None,
 		dataWdg = None,
 		units = None,
+		changed = True,
 		cfgWdg = None,
 		cat = None,
 		clearMenu = None,
@@ -63,6 +62,7 @@ class StatusConfigGridder(Gridder.Gridder):
 		- dataWdg: one or more status widgets
 		- unitsWdg: units
 		(the following are all None if cfgWdg not specified):
+		- changedWdg: a "setting changed" widget
 		- cfgWdg: one or more config widgets
 		- cfgUnitsWdg: a config units label
 		
@@ -88,6 +88,7 @@ class StatusConfigGridder(Gridder.Gridder):
 			dataWdg = dataWdg,
 			cfgWdg = cfgWdg,
 			units = units,
+			changed = changed,
 			clearMenu = clearMenu,
 			defMenu = defMenu,
 		**basicArgs)
@@ -99,6 +100,7 @@ class StatusConfigGridder(Gridder.Gridder):
 		
 		# set show/hide category ConfigCat for configuration widgets
 		if cfgWdg:
+			self.addShowHideWdg(ConfigCat, gs.changedWdg)
 			self.addShowHideWdg(ConfigCat, gs.cfgWdg)
 			self.addShowHideWdg(ConfigCat, gs.cfgUnitsWdg)
 
@@ -111,6 +113,7 @@ class _StatusConfigGridSet(Gridder._BaseGridSet):
 		label = None,
 		dataWdg = None,
 		units = None,
+		changed = True,
 		cfgWdg = None,
 		cfgUnits = None,
 		row = 0,
@@ -127,6 +130,7 @@ class _StatusConfigGridSet(Gridder._BaseGridSet):
 		- dataWdg: one or more status widgets
 		- unitsWdg: units
 		(the following are all None if cfgWdg not specified):
+		- changedWdg: a "setting changed" widget
 		- cfgWdg: one or more config widgets
 		- cfgUnitsWdg: a config units label
 		
@@ -135,6 +139,9 @@ class _StatusConfigGridSet(Gridder._BaseGridSet):
 		- dataWdg		one or more status widgets
 		- units			units text, variable, widget or None;
 						if a widget then see Error Conditions below.
+		- changed		changed indicator widget or
+						True to auto-create or None for none;
+						ignored if cfgWdg == None
 		- cfgWdg		one or more configuration widgets
 		- cfgUnits		units for the config widget;
 						defaults to units;
@@ -186,6 +193,14 @@ class _StatusConfigGridSet(Gridder._BaseGridSet):
 		self._gridWdg(self.unitsWdg, sticky="w", colSpan=1)
 		
 		if cfgWdg:
+			self.changedWdg = self._makeChangedWdg(
+				changed = changed,
+				cfgWdg = cfgWdg,
+				clearMenu = clearMenu,
+				defMenu = defMenu,
+			)
+			self._gridWdg(self.changedWdg, sticky="", colSpan=1)
+
 			self.cfgWdg = cfgWdg
 			self._gridWdg(self.cfgWdg, sticky=cfgSticky, colSpan=cfgColSpan)
 			
@@ -194,6 +209,31 @@ class _StatusConfigGridSet(Gridder._BaseGridSet):
 				raise ValueError, "units must not be a widget"
 			self._gridWdg(self.cfgUnitsWdg, sticky="w", colSpan=1)
 		else:
+			self.changedWdg = None
 			self.cfgWdg = None
 			self.cfgUnitsWdg = None
-			self.nextCol = cfgColSpan + 1
+			self.nextCol = 1 + cfgColSpan + 1
+
+	def _makeChangedWdg(self,
+		changed,
+		cfgWdg,
+		clearMenu = None,
+		defMenu = None,
+	):
+		if not changed:
+			return None
+			
+		if isinstance(changed, Tkinter.Widget):
+			changedWdg = changed
+			if hasattr(changedWdg, "addWdg"):
+				changedWdg.addWdg(cfgWdg)
+		else:
+			changedWdg = ChangedIndicator.ChangedIndicator(
+				master = self.master,
+				wdgOrSet = cfgWdg,
+				helpURL=self.helpURL,
+				clearMenu = clearMenu,
+				defMenu = defMenu,
+			)
+		return changedWdg
+

@@ -9,9 +9,8 @@ cmdr = tuiModel.getCmdr()
 
 MainDataSet = (
 	{"actors": ("tcc", "grim", "dis", "echelle", "tlamps")},
-	{"programs": ("UW01", "CL01", "TU01")},
-	{"lockedActors": ("grim",)},
-	{"authList": ("TU01", "tcc", "grim", "echelle", "perms")},
+	{"programs": ("UW01", "CL01", "TU02")},
+	{"authList": ("TU02", "tcc", "grim", "echelle", "perms")},
 	{"authList": ("CL01", "tcc", "dis", "grim", "tlamps")},
 	{"authList": ("UW01", "tcc", "echelle")},
 )
@@ -20,7 +19,7 @@ MainDataSet = (
 AnimDataSet = (
 	{"authList": ("CL01", "tcc", "dis", "echelle", "grim", "tlamps")},
 	{"authList": ("UW02", "tcc", "grim", "tlamps")},
-	{"programs": ("TU01", "UW01")},
+	{"programs": ("UW01", "UW02", "CL01")},
 )
 
 BaseMsgDict = {"cmdr":cmdr, "cmdID":11, "actor":"perms", "type":":"}

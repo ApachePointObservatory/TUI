@@ -17,8 +17,6 @@ History:
 2004-05-18 ROwen	Bug fix: used sys for reporting errors but did not import it.
 2004-11-17 ROwen	Renamed from FTPGet and overhauled to use ftplib
 					and consequently an entirely different interface.
-2004-11-19 ROwen	Bug fix: was not setting TYPE I for binary.
-2004-12-14 ROwen	Minor change to a debug string.
 """
 __all__ = ['FTPGet'] # state constants added below
 
@@ -287,13 +285,6 @@ class FTPGet(RO.AddCallback.BaseMixin):
 			if _Debug:
 				print "FTPGet: open ftp connection to %r" % (self.host)
 			ftp = ftplib.FTP(self.host, self.username, self.password)
-			
-			if _Debug:
-				print "FTPGet: set connection isbinary=%r on %r" % (self.isBinary, self.host)
-			if self.isBinary:
-				ftp.voidcmd("TYPE I")
-			else:
-				ftp.voidcmd("TYPE A")
 
 			if _Debug:
 				print "FTPGet: open socket to %r on %r" % (self.fromPath, self.host)

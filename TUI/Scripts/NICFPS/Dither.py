@@ -8,17 +8,14 @@ the user to select which portions of the chip to visit.
 
 To do:
 - Fail unless NICFPS is in imaging mode.
+- Tune the pattern.
+- Ask if we should ditch pattern controls,
+  since quadrants are not likely to be "out".
+  But still display the info (what's been done, what remains).
 
 History:
 2004-10-19 ROwen	first cut; direct copy of GRIM:Square
-2005-01-24 ROwen	Changed order to ctr, UL, UR, LR, LL.
-					Changed Offset Size to Box Size (2x as big)
-					and made 20" the default box size.
-					Modified to record dither points in advance
-					(instead of allowing change 'on the fly').
-					Renamed from Dither.py to Dither/Point Source.py
 """
-import math
 import Tkinter
 import RO.Wdg
 import TUI.TCC.TCCModel
@@ -28,17 +25,14 @@ from TUI.Inst.ExposeInputWdg import ExposeInputWdg
 
 # constants
 InstName = "NICFPS"
-DefBoxSize = 20 # arcsec
 OffsetWaitMS = 2000
-HelpURL = "Scripts/BuiltInScripts/NICFPSDitherPointSource.html"
+HelpURL = "Scripts/BuiltInScripts/NICFPSDither.html"
 
 # global variables
 g_expWdg = None
 g_quadWdgSet = None
 g_begBoreXY = [None, None]
 g_didMove = False
-g_boxSizeWdg = None
-
 
 def init(sr):
 	"""The setup script; run once when the script runner
@@ -46,9 +40,6 @@ def init(sr):
 	"""
 	global InstName
 	global g_expWdg, g_quadWdgSet
-	global g_boxSizeWdg
-
-	tccModel = TUI.TCC.TCCModel.getModel()
 
 	row=0
 	
@@ -64,11 +55,11 @@ def init(sr):
 	# - name of quadrant
 	# - boresight offset multiplier in image x, image y
 	quadData = [
-		("Ctr", (0, 0)),
 		("UL", (-1, 1)),
 		("UR", (1, 1)),
-		("LR", (1, -1)),
+		("Ctr", (0, 0)),
 		("LL", (-1, -1)),
+		("LR", (1, -1)),
 	]
 	g_quadWdgSet = []
 	for name, boreOffMult in quadData:
@@ -100,15 +91,6 @@ def init(sr):
 	g_expWdg.grid(row=row, column=0, sticky="news")
 	row += 1
 
-	g_boxSizeWdg = RO.Wdg.IntEntry(
-		master = g_expWdg,
-		minValue = 0,
-		defValue = DefBoxSize,
-		helpText = "size of dither box",
-		helpURL = HelpURL,
-	)
-	g_expWdg.gridder.gridWdg("Box Size", g_boxSizeWdg, "arcsec")
-        
 def run(sr):
 	"""Take an exposure sequence.
 	"""
@@ -135,67 +117,65 @@ def run(sr):
 		raise sr.ScriptError("Current boresight position unknown")
 #	print "g_begBoreXY=%r" % g_begBoreXY
 	
+	# image scale is in unbinned pixels/deg
+	imScaleXY = sr.getKeyVar(tccModel.iimScale, ind=None)
+	
+	# limits are in unbinned pixels
+	imLimXY = sr.getKeyVar(tccModel.iimLim, ind=None)
+	
+	# half radius of image in x,y deg on the sky
+	# e.g. move to imhalfRadDeg to be in the center
+	# of the upper-right quadrant
+	imHalfRadDeg = [
+		(imLimXY[2] - imLimXY[0]) * 0.5 / imScaleXY[0],
+		(imLimXY[3] - imLimXY[1]) * 0.5 / imScaleXY[1],
+	]
+	
 	# exposure command without startNum and totNum
 	# get it now so that it will not change if the user messes
 	# with the controls while the script is running
 	numExp = g_expWdg.numExpWdg.getNum()
 	expCmdPrefix = g_expWdg.getString()
-	offsetSize =  g_boxSizeWdg.getNum() / 2.0
-	
-	# record which points to use in the dither pattern in advance
-	# (rather than allowing the user to change it during execution)
-	doPtArr = [wdg.getBool() for wdg in g_quadWdgSet]
-	
+
 	numExpTaken = 0
-	numPtsToGo = sum(doPtArr)
 	for ind in range(len(g_quadWdgSet)):
 		wdg = g_quadWdgSet[ind]
 		wdg["relief"] = "sunken"
 		
-		if not doPtArr[ind]:
-			continue
+		if wdg.getBool():
+			posName = str(wdg["text"])
 			
-		posName = str(wdg["text"])
-		
-		if ind > 0:
 			# slew telescope
 			sr.showMsg("Offset to %s position" % posName)
 			borePosXY = [
-				g_begBoreXY[0] + (wdg.boreOffMult[0] * (offsetSize / 3600.0)),
-				g_begBoreXY[1] + (wdg.boreOffMult[1] * (offsetSize / 3600.0)),
+				g_begBoreXY[0] + (wdg.boreOffMult[0] * imHalfRadDeg[0]),
+				g_begBoreXY[1] + (wdg.boreOffMult[1] * imHalfRadDeg[1]),
 			]
 			g_didMove = True
-			
-			# Figure out whether the move is small enough to safely jog the telescope
-			distance = math.sqrt(borePosXY[0] * borePosXY[0]  + borePosXY[1] * borePosXY[1])
-			if distance >= (20.0 / 3600.0):
-				computed = "/computed"
-			else:
-				computed = ""
-
 			yield sr.waitCmd(
 				actor = "tcc",
-				cmdStr = "offset boresight %.6f, %.6f%s/pabs" % (borePosXY[0], borePosXY[1], computed),
+				cmdStr = "offset boresight %.6f, %.6f" % tuple(borePosXY),
 			)
 			
-			if not computed:
-				yield sr.waitMS(OffsetWaitMS)
+			yield sr.waitMS(OffsetWaitMS)
 			
-		# compute # of exposures & format expose command
-		totNum = numExpTaken + (numPtsToGo * numExp)
-		startNum = numExpTaken + 1
-		
-		expCmdStr = "%s startNum=%d totNum=%d" % (expCmdPrefix, startNum, totNum)
-		
-		# take exposure sequence
-		sr.showMsg("Expose at %s position" % posName)
-		yield sr.waitCmd(
-			actor = expModel.actor,
-			cmdStr = expCmdStr,
-		)
+			# compute # of exposures & format expose command
+			numPtsToGo = 0
+			for wdg in g_quadWdgSet[ind:]:
+				numPtsToGo += wdg.getBool()
+			totNum = numExpTaken + (numPtsToGo * numExp)
+			startNum = numExpTaken + 1
+			
+			expCmdStr = "%s startNum=%d totNum=%d" % (expCmdPrefix, startNum, totNum)
+			
+			# take exposure sequence
+			sr.showMsg("Expose at %s position" % posName)
+			yield sr.waitCmd(
+				actor = expModel.actor,
+				cmdStr = expCmdStr,
+			)
 
-		numExpTaken += numExp
-		numPtsToGo -= 1
+			numExpTaken += numExp
 	
 	# slew back to starting position
 	if g_didMove:
@@ -228,4 +208,3 @@ def end(sr):
 			actor = "tcc",
 			cmdStr = tccCmdStr,
 		)
-

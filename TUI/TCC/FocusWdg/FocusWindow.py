@@ -9,17 +9,14 @@ History:
 					the mirror). Fixed by removing the time limit.
 2004-05-18 ROwen	Eliminated redundant import in test code.
 2004-06-22 ROwen	Modified for RO.Keyvariable.KeyCommand->CmdVar
-2005-01-05 ROwen	Overhauled to improve usability.
-2005-01-12 ROwen	Rewrote Set dialog to avoid a bug in tkSimpleDialog.
 """
 import Tkinter
 import RO.Wdg
+import InputWdg
 import TUI.TUIModel
-import RO.StringUtil
-import TUI.TCC.TCCModel
+import TUI.Sounds
 
-_HelpURL = "Telescope/FocusWin.html"
-_MaxFocus = 9999 # microns; this is a bit larger than the current total range of the secondary, hence a bit more than twice what it needs to be
+_HelpPrefix = "Telescope/FocusWin.html#"
 
 def addWindow(tlSet):
 	"""Create the window for TUI.
@@ -43,32 +40,11 @@ class SecFocusWdg(Tkinter.Frame):
 		"""
 		Tkinter.Frame.__init__(self, master, **kargs)
 
-		self.tccModel = TUI.TCC.TCCModel.getModel()
+		self.inputWdg = InputWdg.InputWdg(self)
+		self.inputWdg.pack(side="top", anchor="nw")
+		self.inputWdg.addCallback(self._applyEnableShim)
 		
 		tuiModel = TUI.TUIModel.getModel()
-
-		# current focus display
-		RO.Wdg.Label(self, text="Sec Focus").grid(row=0, column=0)
-		self.currFocus = RO.Wdg.FloatLabel(
-			master = self,
-			formatStr = "%.1f",
-			width = len(str(_MaxFocus)) + 3, # 3 is for "-.x"
-			helpText = "Current secondary focus",
-			helpURL = _HelpURL,
-		)
-		self.tccModel.secFocus.addROWdg(self.currFocus)
-		self.currFocus.grid(row=0, column=1)
-		RO.Wdg.Label(self, text=RO.StringUtil.MuStr + "m").grid(row=0, column=2)
-
-		self.timerWdg = RO.Wdg.TimeBar(
-			master = self,
-			autoStop = True,
-			helpText = "Estimated move time",
-			helpURL = _HelpURL,
-		)
-		self.timerWdg.grid(row=0, column=3, sticky="ew")
-		self.timerWdg.grid_remove()
-		self.grid_columnconfigure(3, weight=1)
 
 		# set up the command monitor
 		self.statusBar = RO.Wdg.StatusBar(
@@ -76,80 +52,46 @@ class SecFocusWdg(Tkinter.Frame):
 			dispatcher = tuiModel.dispatcher,
 			prefs = tuiModel.prefs,
 			playCmdSounds = True,
-			helpURL = _HelpURL,
+			helpURL = _HelpPrefix + "StatusBar",
 		)
-		self.statusBar.grid(row=2, column=0, columnspan=4, sticky="ew")
+		self.statusBar.pack(side="top", anchor="nw", expand="yes", fill="x")
 		
 		# command buttons
-		buttonFrame = Tkinter.Frame(self)
-				
-		self.setButton = RO.Wdg.Button(
-			master = buttonFrame,
-			text = "Set...",
-			callFunc = self.doSet,
-			helpText = "Set an absolute focus",
+		self.buttonFrame = Tkinter.Frame(self)
+		self.applyButton = RO.Wdg.Button(
+			master=self.buttonFrame,
+			text="Apply",
+			command=self.doFocus,
+			helpText = "Apply requested focus",
+			helpURL=_HelpPrefix + "ApplyButton",
 		)
-		self.setButton.pack(side="left")	
+		self.applyButton.pack(side="left")
 
-		self.decreaseButton = RO.Wdg.Button(
-			master=buttonFrame,
-			text = "-50",
-			width = 4,
-			callFunc = self.doDelta,
-			helpText = "Decrease focus",
-			helpURL = _HelpURL,
+		self.currButton = RO.Wdg.Button(
+			master=self.buttonFrame,
+			text="Current",
+			command=self.inputWdg.restoreDefault,
+			helpText = "Show current focus",
+			helpURL=_HelpPrefix + "CurrentButton",
 		)
-		self.decreaseButton.pack(side="left")
+		self.currButton.pack(side="left")
 
-		self.increaseButton = RO.Wdg.Button(
-			master=buttonFrame,
-			text = "+50",
-			width = 4,
-			callFunc = self.doDelta,
-			helpText = "Increase focus",
-			helpURL = _HelpURL,
-		)
-		self.increaseButton.pack(side="left")
-
-		self.deltaMenu = RO.Wdg.OptionMenu(
-			master = buttonFrame,
-			items = ("25", "50", "100"),
-			defValue = "50",
-			callFunc = self.doAdjIncr,
-			width = 4,
-			helpText = "Set focus increment",
-		)
-		self.deltaMenu.pack(side="left")
-
-		buttonFrame.grid(row=4, column=0, columnspan=5)
+		self.buttonFrame.pack(side="top", anchor="nw")
 		
-		# monitor some keywords for putting up a timer	
-		keyVarFact = RO.KeyVariable.KeyVarFactory(
-			actor = "tcc",
-			nval = 1,
-			converters = RO.CnvUtil.asFloatOrNone,
-			dispatcher = self.tccModel.dispatcher,
-		)
-		self.cmdDTimeVar = keyVarFact(
-			keyword = "CmdDTime",
-		)
-		self.cmdDTimeVar.addIndexedCallback(self._doCmdDTime)
-		self.secActMountVar = keyVarFact(
-			keyword = "SecActMount",
-			nval = (3, None),
-		)
-		self.secActMountVar.addCallback(self._doSecActMount)
-	
-	def doAdjIncr(self, mnu):
-		incr = mnu.getString()
-		self.decreaseButton["text"] = "-" + incr
-		self.increaseButton["text"] = "+" + incr
-		
-	def doDelta(self, btn):
+	def doFocus(self):
 		"""Adjust the focus.
 		"""
-		deltaFocus = int(btn["text"])
-		cmdStr = "set focus=%s/incr" % deltaFocus
+		self._applyEnable(False)
+		try:
+			cmdStr = self.inputWdg.getString()
+		except ValueError, e:
+			self.statusBar.setMsg(
+				"Rejected: %s" % e,
+				level = 2,
+				isTemp = True,
+			)
+			TUI.Sounds.cmdFailed()
+			return
 
 		cmdVar = RO.KeyVariable.CmdVar (
 			actor = "tcc",
@@ -157,100 +99,33 @@ class SecFocusWdg(Tkinter.Frame):
 			timeLim = 0,
 			timeLimKeyword="CmdDTime",
 			isRefresh = False,
+			callFunc = self._applyEnableShim,
 		)
 		self.statusBar.doCmd(cmdVar)
 	
-	def doSet(self, btn=None):
-		currFocus, isCurrent = self.tccModel.secFocus.getInd(0)
-		if isCurrent and currFocus != None:
-			default = currFocus
+	def _applyEnable(self, doEnable=True):
+		"""Enables or disables the Apply button
+		"""
+#		print "_applyEnable(%r)" % (doEnable,)
+		if doEnable:
+			self.applyButton["state"] = "normal"
 		else:
-			default = None
-
-		newFocus = FocusSetDialog(self, default).result
-		if newFocus == None:
-			return
-			
-		cmdStr = "set focus=%s" % newFocus
-
-		cmdVar = RO.KeyVariable.CmdVar (
-			actor = "tcc",
-			cmdStr = cmdStr,
-			timeLim = 0,
-			timeLimKeyword="CmdDTime",
-			isRefresh = False,
-		)
-		self.statusBar.doCmd(cmdVar)
-
-	def _doCmdDTime(self, cmdDTime, isCurrent, keyVar):
-		"""Called when CmdDTime seen, to put up a timer.
+			self.applyButton["state"] = "disabled"
+	
+	def _applyEnableShim(self, *args, **kargs):
+		"""Enable the Apply button.
+		Used as a callback shim. Ignores all arguments.
 		"""
-		if not isCurrent:
-			return
-		msgDict = keyVar.getMsgDict()
-		for key in msgDict["data"].keys():
-			if key.lower() == "seccmdmount":
-				self.timerWdg.grid()
-				self.timerWdg.start(newMax = cmdDTime)
-	
-	def _doSecActMount(self, secActMount, isCurrent, **kargs):
-		"""Called when SecActMount seen. Kill timer.
-		"""
-		if not isCurrent:
-			return
-		self.timerWdg.clear()
-		self.timerWdg.grid_remove()
+		self._applyEnable(True)
 
-
-class FocusSetDialog(RO.Wdg.ModalDialogBase):
-	def __init__(self, master, initValue):
-		self.initValue = initValue
-		RO.Wdg.ModalDialogBase.__init__(self,
-			master,
-			title="Set Focus",
-		)
-	def body(self, master):
-		l = Tkinter.Label(master, text="New Secondary Focus:")
-		l.pack(side="top", anchor="w")
-		
-		valFrame = Tkinter.Frame(master)
-		
-		self.valWdg = RO.Wdg.FloatEntry(valFrame,
-			minValue = -_MaxFocus,
-			maxValue = _MaxFocus,
-			defValue = self.initValue,
-			defMenu = "Default",
-			helpText = "secondary focus offset",
-		)
-		if RO.Wdg.getWindowingSystem() == RO.Wdg.WSysAqua:
-			# work around tk bug 1101854
-			self.valWdg.unbind("<<CtxMenu>>")
-		self.valWdg.selectAll()
-		self.valWdg.pack(side="left")
-		u = Tkinter.Label(valFrame,
-			text=RO.StringUtil.MuStr + "m",
-		)
-		u.pack(side="left")
-		valFrame.pack(side="top", anchor="w")
-		
-		s = RO.Wdg.StatusBar(master)
-		s.pack(side="top", expand=True, fill="x")
-		
-		self.okWdg.helpText = "Set secondary focus"
-		self.cancelWdg.helpText = "Cancel"
-		
-		return self.valWdg
-	
-	def setResult(self):
-		self.result = self.valWdg.getNum()
-	
 
 if __name__ == "__main__":
 	root = RO.Wdg.PythonTk()
 
-	tuiModel = TUI.TUIModel.getModel(True)
-	kd = tuiModel.dispatcher
-	addWindow(tuiModel.tlSet)
+	kd = TUI.TUIModel.getModel(True).dispatcher
+
+	testFrame = SecFocusWdg(root)
+	testFrame.pack(anchor="nw")
 
 	dataDict = {
 		"SecFocus": (325.0,),

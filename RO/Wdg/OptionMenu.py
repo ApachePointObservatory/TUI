@@ -4,15 +4,7 @@ the ability to change menu items and the ability to configure the menu.
 OptionMenu is essentially an RO.Wdg.Entry widget (though I don't promise
 that *all* methods are implemented).
 
-Note: I had to go mucking with internals, so some of this code is based on
-Tkinter's implementation of OptionMenu.
-
-To do:
-- Color menu items in autoIsCurrent mode.
-
-Warning: as of Tk 8.4.8, MacOS X has poor visual support for background color
-(isCurrent) and no support for foreground color (state) for OptionMenu
-(and MenuButtons in general).
+Note: I had to go mucking with internals, so some of this code is based on Tkinter's implementation of OptionMenu.
 
 History:
 2002-11-15 ROwen
@@ -56,10 +48,6 @@ History:
 2004-09-01 ROwen	Added checkDef argument to setItems; default is False (new behavior).
 2004-09-14 ROwen	Removed unused *args from _doCallback to make pychecker happy.
 					Improved the test code.
-2004-11-29 ROwen	Reordered a few methods into alphabetical order.
-2005-01-05 ROwen	Added autoIsCurrent, isCurrent and severity support.
-					Modified expandValue method arguments and return value.
-					Modified setDefault: the default for doCheck is now True.
 """
 __all__ = ['OptionMenu']
 
@@ -67,9 +55,7 @@ import Tkinter
 import RO.AddCallback
 import RO.Alg
 import RO.SeqUtil
-from CtxMenu import CtxMenuMixin
-from IsCurrentMixin import AutoIsCurrentMixin, IsCurrentActiveMixin
-from SeverityMixin import SeverityActiveMixin
+import CtxMenu
 
 class _DoItem:
 	def __init__(self, var, value):
@@ -78,8 +64,7 @@ class _DoItem:
 	def __call__(self):
 		self.var.set(self.value)
 
-class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
-	AutoIsCurrentMixin, IsCurrentActiveMixin, SeverityActiveMixin, CtxMenuMixin):
+class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin, CtxMenu.CtxMenuMixin):
 	"""A Tkinter OptionMenu that adds many features.
 	
 	Inputs:
@@ -107,15 +92,6 @@ class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
 				if True then unique abbreviations are allowed
 	- ignoreCase controls the behavior of set and setDefault;
 				if True then case is ignored
-	- autoIsCurrent	controls automatic isCurrent mode
-		- if false (manual mode), then is/isn't current if
-		  set or setIsCurrent is called with isCurrent true/false
-		- if true (auto mode), then is current only when all these are so:
-			- set or setIsCurrent is called with isCurrent true
-			- setDefValue is called with isCurrent true
-			- current value == default value
-	- isCurrent: is the value current?
-	- severity: one of: RO.Constants.sevNormal (the default), sevWarning or sevError
 	- all remaining keyword arguments are used to configure the Menu.
 				text and textvariable are ignored.
 	"""
@@ -131,9 +107,6 @@ class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
 		label = None,
 		abbrevOK = False,
 		ignoreCase = False,
-		autoIsCurrent = False,
-		isCurrent = True,
-		severity = RO.Constants.sevNormal,
 	**kargs):
 		if var == None:
 			var = Tkinter.StringVar()	
@@ -168,18 +141,12 @@ class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
 		# self.menuname = self._menu._w
 		
 		RO.AddCallback.TkVarMixin.__init__(self, var)
-		
-		# do after adding callback support
-		# and before setting default (which triggers a callback)
-		AutoIsCurrentMixin.__init__(self, autoIsCurrent)
-		IsCurrentActiveMixin.__init__(self)
-		SeverityActiveMixin.__init__(self, severity)
 
-		CtxMenuMixin.__init__(self, helpURL = helpURL)
+		CtxMenu.CtxMenuMixin.__init__(self, helpURL = helpURL)
 		
 		self.setItems(items, helpText=helpText)
 		
-		self.setDefault(defValue, isCurrent = isCurrent, doCheck = True)
+		self.setDefault(defValue, doCheck=True)
 		self.restoreDefault()
 
 		# add callback function after setting default
@@ -226,25 +193,30 @@ class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
 		Tkinter.Menubutton.destroy(self)
 		self._menu = None
 	
-	def expandValue(self, value):
-		"""Expand a value, unabbreviating and case correcting,
-		as appropriate.
+	def expandValue(self, value, doCheck=True, descr = "value"):
+		"""Return the value expanded (unabbreviated and with case corrected)
+		and checked, as appropriate.
 		
-		Returns:
-		- value: the expanded value, or the original value if None or invalid.
-			Expansion of abbreviations and correction of case
-			are controlled by the ignoreCase and abbrevOK flags
-			supplied when creating this menu.
-		- isOK	if False, the value was not valid and was not expanded.
-			Note that None is always valid, but never expanded.
+		Expansion of abbreviations and correction of case are controlled by
+		ignoreCase and abbrevOK, flags supplied to __init__.
+		
+		Inputs:
+		- value: the value to expand and check
+		- doCheck: if True, raises ValueError if no match found;
+			otherwise silently returns value
+		- descr: description of value; typically "value" or "default".
+		
+		If value == None then None is always returned.
 		"""
 		if value == None:
-			return None, True
+			return
 
 		try:
-			return self._matchItem.getUniqueMatch(value), True
+			value = self._matchItem.getUniqueMatch(value)
 		except ValueError, e:
-			return value, False
+			if doCheck:
+				raise ValueError("invalid %s: %s" % (descr, str(e)))
+		return value
 	
 	def getDefault(self):
 		"""Returns the default value.
@@ -257,6 +229,21 @@ class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
 		Enabled is defined as the state not being 'disabled'.
 		"""
 		return self["state"] != "disabled"
+
+	def setEnable(self, doEnable):
+		"""Changes the enable state.
+		"""
+		if doEnable:
+			self.configure(state="normal")
+		else:
+			self.configure(state="disabled")
+	
+	def getMenu(self):
+		"""Returns the Menu object from the OptionMenu;
+		handy if you want to modify it in some way but use sparingly
+		as you can easily manipulate it to foul up this widget
+		"""
+		return self._menu
 	
 	def getIndex(self, item=None):
 		"""Returns the index of the specified item,
@@ -278,13 +265,6 @@ class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
 			return self._items.index(item)
 		except ValueError:
 			return None
-	
-	def getMenu(self):
-		"""Returns the Menu object from the OptionMenu;
-		handy if you want to modify it in some way but use sparingly
-		as you can easily manipulate it to foul up this widget
-		"""
-		return self._menu
 	
 	def getString(self):
 		"""Returns the current value of the field, or the default if none selected.
@@ -320,20 +300,16 @@ class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
 		if newValue == None:
 			return
 		
-		newValue, isOK = self.expandValue(newValue)
-		if not isOK and doCheck:
-			raise ValueError("Value %r invalid" % newValue)
+		newValue = self.expandValue(newValue, doCheck=doCheck, descr="value")
 	
 		self._var.set(newValue)
 
-	def setDefault(self, newDefValue, isCurrent=None, doCheck=True, *args, **kargs):
+	def setDefault(self, newDefValue, doCheck=False, *args, **kargs):
 		"""Changes the default value. If the current value is None,
 		also sets the current value.
 
 		Inputs:
 		- newDefValue: the new default value
-		- isCurrent: if not None, set the _isCurrent flag accordingly.
-			Typically this is only useful in autoIsCurrent mode.
 		- doCheck: check that the new default value is in the menu
 			(ignored if newDefValue is None)
 
@@ -342,26 +318,14 @@ class OptionMenu (Tkinter.Menubutton, RO.AddCallback.TkVarMixin,
 		  if doCheck is True and if the new default value is neither in the list of values
 		  nor is None.
 		"""
-#		print "setDefault(newDeffValue=%r, isCurrent=%r, doCheck=%r)" % (newDefValue, isCurrent, doCheck)
-		newDefValue, isOK = self.expandValue(newDefValue)
-		if not isOK and doCheck:
-			raise ValueError("Default value %r invalid" % newDefValue)
-		self.defValue = newDefValue
-		if isCurrent != None:
-			self._isCurrent = isCurrent
+#		print "setDefault(newDeffValue=%r, doCheck=%r)" % (newDefValue, doCheck)
+		newDefValue = self.expandValue(newDefValue, doCheck=doCheck, descr="default")
 
+		self.defValue = newDefValue
 		if self._var.get() == "":
 			self.restoreDefault()
 		else:
 			self._doCallbacks()
-
-	def setEnable(self, doEnable):
-		"""Changes the enable state.
-		"""
-		if doEnable:
-			self.configure(state="normal")
-		else:
-			self.configure(state="disabled")
 	
 	def setItems(self, items, isCurrent=None, helpText=None, checkDef=False, **kargs):
 		"""Replaces the current set of items (but only if the new
@@ -436,15 +400,13 @@ if __name__ == "__main__":
 	def callFunc(wdg):
 		label.set(wdg.getString())
 
-	items = ("Earlier", "Now", "Later", None, "Never")
-	helpTexts = ("Help for Earlier", "Help for Now", "help for Later", "", "Help for Never")
+	items = ("Now", "Later", None, "Never")
+	helpTexts = ("Help for Now", "help for Later", "", "Help for Never")
 	menu = OptionMenu(root,
 		items = items,
-		defValue = "Now",
+		defValue = "Later",
 		callFunc = callFunc,
-		defMenu = "Default",
 		helpText = helpTexts,
-		autoIsCurrent = True,
 	)
 	menu.grid(row=0, column=0, sticky="w")
 

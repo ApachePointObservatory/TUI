@@ -5,7 +5,6 @@ History:
 2003-12-16 ROwen
 2004-08-11 ROwen	Define __all__ to restrict import.
 2004-09-14 ROwen	Tweaked the import in the test code.
-2004-11-22 ROwen	Corrected doc string for ScrolledWdg.
 """
 __all__ = ['ScrolledWdg']
 
@@ -21,6 +20,9 @@ class ScrolledWdg(Tkinter.Frame):
 	
 	Inputs:
 	- master	master widget
+	- wdg		widget to scroll (usually a frame);
+				wdg must have the same Toplevel as "master"
+				must have the same toplevel as "master".
 	- hscroll	scroll horizontally?
 				if not, frame will try to resize in width to show all
 	- vscroll	scroll vertically?

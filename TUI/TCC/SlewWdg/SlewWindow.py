@@ -46,8 +46,6 @@ History:
 					before updating the user model potential target.
 2004-10-11 ROwen	Made callbacks much more sensible to improve performance.
 2004-10-12 ROwen	Modified to take advantage of improvements in RO.InputCont.
-2004-12-13 ROwen	Changed doEnable to setEnable to match RO.Wdg widgets.
-2005-01-05 ROwen	Changed level to severity for RO.Wdg.StatusBar.
 """
 import Tkinter
 import RO.KeyVariable
@@ -91,9 +89,6 @@ class SlewWdg (Tkinter.Frame):
 		self.inputWdg = InputWdg.InputWdg(
 			master=self,
 		)
-		self.inputCont = self.inputWdg.inputCont
-		
-		self.enableInputCallback = True
 
 		# register local callback function
 		self.inputWdg.addCallback(self.inputChanged)
@@ -121,7 +116,7 @@ class SlewWdg (Tkinter.Frame):
 		self.enableButton = RO.Wdg.Button(
 			master=self.buttonFrame,
 			text="Enable",
-			command=self.setEnable,
+			command=self.doEnable,
 		)
 # don't display the enable button and see if users actually miss it; if not, ditch it!
 #		self.enableButton.pack(side="left")
@@ -202,7 +197,7 @@ class SlewWdg (Tkinter.Frame):
 		)
 		self.statusBar.doCmd(cmdVar)
 		
-	def setEnable(self):
+	def doEnable(self):
 		"""Enable the slew button.
 		Also toggle the Enable button's text appropriately.		
 		"""
@@ -216,7 +211,14 @@ class SlewWdg (Tkinter.Frame):
 		this function is used as a callback.
 		"""
 #		print "SlewWdg.setObjData"
-		self.inputWdg.setValueDict(valueDict)
+		# disable "input changed" callback while setting the data;
+		# otherwise the callback is called for each entry in valueDict
+		try:
+			self.inputWdg.removeCallback(self.inputChanged)
+			self.inputWdg.setValueDict(valueDict)
+		finally:
+			self.inputWdg.addCallback(self.inputChanged)
+			self.inputChanged()
 	
 	def doSlew(self):
 		"""Slew the telescope to the currently displayed position.
@@ -229,7 +231,7 @@ class SlewWdg (Tkinter.Frame):
 		except ValueError, e:
 			self.statusBar.setMsg(
 				"Rejected: %s" % (e,),
-				severity = RO.Constants.sevError,
+				level = 2,
 				isTemp = True,
 			)
 			TUI.Sounds.cmdFailed()
@@ -271,29 +273,32 @@ class SlewWdg (Tkinter.Frame):
 		"""
 #		print "SlewWdg._updTelPotential"
 		try:
-			self.enableInputCallback = False
+			self.inputWdg.inputCont.removeCallback(self.inputChanged)
 			telPotential = self.userModel.potentialTarget.get()
 			if telPotential:
 				valueDict = telPotential.getValueDict()
 				self.inputWdg.setValueDict(valueDict)
 		finally:
-			self.enableInputCallback = True
+			pass
+			self.inputWdg.inputCont.addCallback(self.inputChanged)
 
 	def inputChanged(self, inputCont=None):
 		"""Called whenever the user changes any input.
-		"""
+
+		Note: the argument is just the value that was changed,
+		not the entire input container.
+		."""
 #		print "SlewWdg.inputChanged"
 		self._slewEnable(True)
-
-		if not self.enableInputCallback:
-			return
+		if not inputCont:
+			inputCont = self.inputWdg.inputCont
 		
 		try:
-			self.inputWdg.getString()
+			inputCont.getString()
 		except ValueError:
 			telPotential = None
 		else:
-			valueDict = self.inputWdg.getValueDict()
+			valueDict = inputCont.getValueDict()
 #			print "valueDict=", valueDict
 			telPotential = TUI.TCC.TelTarget.TelTarget(valueDict)
 

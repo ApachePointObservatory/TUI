@@ -3,11 +3,6 @@ from __future__ import generators
 """Configuration input panel for Dual Imaging Spectrograph.
 
 To Do:
-- make window not current at startup (fix in the model, I suspect)
-- get rid of "!"
-- verify that a value will be changed if and only if a widget is not current;
-  it may be worth recoding containers to implement this.
-  (It probably works now, but I'd rather be certain!).
 - add a binning menu of common choices?
 - make window wide enough that changing the turret position doesn't change the window width (how? by setting menu bar width?)
 
@@ -48,9 +43,6 @@ History:
 2004-09-03 ROwen	Modified for RO.Wdg.st_... -> RO.Constants.st_...
 2004-09-23 ROwen	Modified to allow callNow as the default for keyVars.
 2004-11-15 ROwen	Modified to use RO.Wdg.Checkbutton's improved defaults.
-2005-01-04 ROwen	Modified to use autoIsCurrent for input widgets.
-					Corrected minimum bin factor; was 0, is now 1.
-2005-01-05 ROwen	Modified for RO.Wdg.Label state->severity and RO.Constants.st_... -> sev...
 """
 import Tkinter
 import RO.Constants
@@ -121,7 +113,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			helpText = "requested slit mask",
 			helpURL = _HelpPrefix + "Mask",
 			defMenu = "Current",
-			autoIsCurrent = True,
 		)
 #		self.model.maskNames.addCallback(self.maskNameUserWdg.setItems)
 #		self.model.maskName.addIndexedCallback(self.maskNameUserWdg.setDefault, 0)
@@ -146,7 +137,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			helpText = "requested filter set",
 			helpURL = _HelpPrefix + "Filter",
 			defMenu = "Current",
-			autoIsCurrent = True,
 		)
 #		self.model.filterNames.addCallback(self.filterNameUserWdg.setItems)
 #		self.model.filterName.addIndexedCallback(self.filterNameUserWdg.setDefault, 0)
@@ -175,7 +165,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			helpText = "requested pos. of grating turret",
 			helpURL = _HelpPrefix + "Turret",
 			defMenu = "Current",
-			autoIsCurrent = True,
 		)
 #		self.model.turretName.addIndexedCallback(self.turretNameUserWdg.setDefault, 0)
 		gr.gridWdg (
@@ -186,6 +175,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			sticky = "ew",
 			cfgSticky = "w",
 			colSpan = 3,
+			cfgColSpan = 4,
 		)
 		
 		# give the last column weight 1
@@ -242,6 +232,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			label = self.showDetailWdg,
 			dataWdg = colorLabelDict["data"],
 			cfgWdg = colorLabelDict["cfg"],
+			changed = None,
 			sticky = "",
 		)
 
@@ -278,6 +269,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 				label = None,
 				dataWdg = [None, None],
 				cfgWdg = gratingWdgSet,
+				changed = None,
 				cat = _GSCat[gsid],
 				row = -1,
 			)
@@ -316,6 +308,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 				dataWdg = [None, None],
 				cfgWdg = dispersionWdgSet,
 				cfgUnits = u"\u00c5/pix",
+				changed = None,
 				cat = _GSCat[gsid],
 				row = -1,
 			)
@@ -351,7 +344,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 					helpURL = _HelpPrefix + "Lambda",
 					clearMenu = None,
 					defMenu = "Current",
-					autoIsCurrent = True,
 				) for ii in range(2)
 			]
 			self.model.cmdLambdasByGSID.getKeyVarByID(gsid).addROWdgSet(
@@ -471,6 +463,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			label = None,
 			dataWdg = ccdLabelDict["data"],
 			cfgWdg = ccdLabelDict["cfg"],
+			changed = None,
 			sticky = "e",
 			cat = _CCDCat,
 			row = -1,
@@ -492,7 +485,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 		
 		self.ccdBinUserWdgSet = [
 			RO.Wdg.IntEntry(self,
-				minValue = 1,
+				minValue = 0,
 				maxValue = 99,
 				width = 2,
 				helpText = "requested bin factor in %s" % ccdDescr[ii],
@@ -500,7 +493,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 				clearMenu = None,
 				defMenu = "Current",
 				callFunc = self._userBinChanged,
-				autoIsCurrent = True,
 			)
 			for ii in range(2)
 		]		
@@ -541,8 +533,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 				minMenu = ("Mininum", "Minimum", None, None)[ii],
 				maxMenu = (None, None, "Maximum", "Maximum")[ii],
 				callFunc = self._userWindowChanged,
-				autoIsCurrent = True,
-				isCurrent = False,
 			) for ii in range(4)
 		]
 #		self.model.ccdUBWindow.addCallback(self._setCCDWindowWdgDef)
@@ -553,9 +543,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 			units = "LL bpix",
 			cat = _CCDCat,
 		)
+		wdgSet.changedWdg.addWdg(self.ccdWindowUserWdgSet[2:4])
 		gr.gridWdg (
 			label = None,
 			dataWdg = ccdWindowCurrWdgSet[2:4],
+			changed = None,
 			cfgWdg = self.ccdWindowUserWdgSet[2:4],
 			units = "UR bpix",
 			cat = _CCDCat,
@@ -581,6 +573,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 		wdgSet = gr.gridWdg (
 			label = "Image Size",
 			dataWdg = self.ccdImageSizeCurrWdgSet,
+			changed = None,
 			cfgWdg = self.ccdImageSizeUserWdgSet,
 			units = "bpix",
 			cat = _CCDCat,
@@ -605,7 +598,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 				helpURL = _HelpPrefix + "Overscan",
 				clearMenu = None,
 				defMenu = "Current",
-				autoIsCurrent = True,
 			)
 			for ii in range(2)
 		]
@@ -728,14 +720,10 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
 	def _doTurretName(self, turretName, isCurrent, **kargs):
 		if turretName != None and turretName.startswith("change"):
-			severity = RO.Constants.sevWarning
+			state = RO.Constants.st_Warning
 		else:
-			severity = RO.Constants.sevNormal
-		self.turretNameCurrWdg.set(
-			turretName,
-			isCurrent = isCurrent,
-			severity = severity,
-		)
+			state = RO.Constants.st_Normal
+		self.turretNameCurrWdg.set(turretName, isCurrent, state)
 	
 	def _saveCCDUBWindow(self):
 		"""Save user ccd window in unbinned pixels.
@@ -803,11 +791,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 	
 	def _updUserCCDWindow(self, doCurrValue = True):
 		"""Update user-set ccd window.
-		
-		Inputs:
-		- doCurrValue: if True, set current value and default;
-			otherwise just set default.
-		
 		The current value is set from the cached user's unbinned value
 		"""
 		self._freezeCCDUBWindow = True
@@ -844,8 +827,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 				
 				# set displayed and default value
 				if doCurrValue:
-					wdg.set(userWindow[ind], isCurrent)
-				wdg.setDefault(currWindow[ind], isCurrent)
+					wdg.set(userWindow[ind])
+				wdg.setDefault(currWindow[ind])
 				
 				# set correct range for this bin factor
 				wdg.setRange(

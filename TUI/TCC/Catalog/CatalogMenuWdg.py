@@ -21,7 +21,6 @@ History:
 2004-10-12 ROwen	Bug fix: if the catalog parser gave up, no error message
 					was printed and "Loading..." was shown indefinitely.
 					Also, if statusBar omitted, messages are printed to stderr.
-2005-01-05 ROwen	Changed level to severity.
 """
 import os
 import sys
@@ -146,7 +145,7 @@ class CatalogMenuWdg(Tkinter.Frame):
 		except Exception, e:
 			self.showMsg(
 				msgStr = "Could not load %s: %s" % (catFile, e),
-				severity = RO.Constants.sevError,
+				level=RO.Constants.st_Error,
 			)
 			return
 		
@@ -242,11 +241,11 @@ class CatalogMenuWdg(Tkinter.Frame):
 		"""
 		self._buildMenu()
 	
-	def showMsg(self, msgStr, severity=RO.Constants.sevNormal):
+	def showMsg(self, msgStr, level=RO.Constants.st_Normal):
 		if self.statusBar:
 			self.statusBar.setMsg(
 				msgStr = msgStr,
-				severity = severity,
+				level = level,
 			)
 		else:
 			sys.stderr.write(msgStr + "\n")

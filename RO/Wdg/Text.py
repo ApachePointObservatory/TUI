@@ -8,7 +8,6 @@ History:
 2004-08-11 ROwen
 2004-09-14 ROwen	Added support for isCurrent and auto-colored state tags.
 					Stopped importing unused modules os, re.
-2005-01-05 ROwen	Changed _statePrefDict to _sevPrefDict.
 """
 __all__ = ['Text']
 
@@ -32,7 +31,7 @@ class Text (Tkinter.Text, CtxMenu.CtxMenuMixin):
 				and the widget can still be updated via set, etc.
 				note that readOnly prevents any clear/default/etc menu items.
 	- isCurrent	sets isCurrent and thus the background color
-	- useStateTags	if True, tags for RO.Constant.sevNormal, etc. are set up with appropriate colors.
+	- useStateTags	if True, tags for RO.Constant.st_Normal, etc. are set up with appropriate colors.
 	- any additional keyword arguments are used to configure the widget;
 				the default width is 8
 				text and textvariable are silently ignored (use var instead of textvariable)
@@ -54,7 +53,7 @@ class Text (Tkinter.Text, CtxMenu.CtxMenuMixin):
 		CtxMenu.CtxMenuMixin.__init__(self, helpURL = helpURL)
 
 		self._prefDict = WdgPrefs.getWdgPrefDict()
-		self._sevPrefDict = WdgPrefs.getSevPrefDict()
+		self._statePrefDict = WdgPrefs.getWdgStatePrefDict()
 		
 		if self._readOnly:
 			Bindings.makeReadOnly(self)
@@ -67,8 +66,8 @@ class Text (Tkinter.Text, CtxMenu.CtxMenuMixin):
 			self._updateBGColor()
 		
 		if useStateTags:
-			for severity, pref in self._sevPrefDict.iteritems():
-				if severity == RO.Constants.sevNormal:
+			for state, pref in self._statePrefDict.iteritems():
+				if state == RO.Constants.st_Normal:
 					# normal foreground color is already automatically updated
 					continue
 				pref.addCallback(self._updateStateTagColors, callNow=False)
@@ -193,11 +192,11 @@ class Text (Tkinter.Text, CtxMenu.CtxMenuMixin):
 			self.configure(background=self._prefDict["Bad Background"].getValue())
 
 	def _updateStateTagColors(self, *args):
-		"""Update the colors for tags RO.Constants.sevNormal, sevWarning and sevError.
+		"""Update the colors for tags RO.Constants.st_Normal, st_Warning and st_Error.
 		Ignored unless useStateTags True at instantiation.
 		"""
-		for state in (RO.Constants.sevWarning, RO.Constants.sevError):
-			self.tag_configure(state, color = self._sevPrefDict[state].getValue())
+		for state in (RO.Constants.st_Warning, RO.Constants.st_Error):
+			self.tag_configure(state, color = self._statePrefDict[state].getValue())
 
 
 if __name__ == "__main__":

@@ -16,7 +16,6 @@ have no effect.
 History:
 2004-10-01 ROwen
 2004-10-19 ROwen	Removed a bit of unused code.
-2005-01-24 ROwen	Changed order to ctr, UL, UR, LR, LL.
 """
 import Tkinter
 import RO.Wdg
@@ -57,11 +56,11 @@ def init(sr):
 	# - name of quadrant
 	# - boresight offset multiplier in image x, image y
 	quadData = [
-		("Ctr", (0, 0)),
 		("UL", (-1, 1)),
 		("UR", (1, 1)),
-		("LR", (1, -1)),
+		("Ctr", (0, 0)),
 		("LL", (-1, -1)),
+		("LR", (1, -1)),
 	]
 	g_quadWdgSet = []
 	for name, boreOffMult in quadData:
@@ -144,12 +143,9 @@ def run(sr):
 		wdg = g_quadWdgSet[ind]
 		wdg["relief"] = "sunken"
 		
-		if not wdg.getBool():
-			continue
+		if wdg.getBool():
+			posName = str(wdg["text"])
 			
-		posName = str(wdg["text"])
-		
-		if ind > 0:
 			# slew telescope
 			sr.showMsg("Offset to %s position" % posName)
 			borePosXY = [
@@ -163,24 +159,24 @@ def run(sr):
 			)
 			
 			yield sr.waitMS(OffsetWaitMS)
-		
-		# compute # of exposures & format expose command
-		numPtsToGo = 0
-		for wdg in g_quadWdgSet[ind:]:
-			numPtsToGo += wdg.getBool()
-		totNum = numExpTaken + (numPtsToGo * numExp)
-		startNum = numExpTaken + 1
-		
-		expCmdStr = "%s startNum=%d totNum=%d" % (expCmdPrefix, startNum, totNum)
-		
-		# take exposure sequence
-		sr.showMsg("Expose at %s position" % posName)
-		yield sr.waitCmd(
-			actor = expModel.actor,
-			cmdStr = expCmdStr,
-		)
+			
+			# compute # of exposures & format expose command
+			numPtsToGo = 0
+			for wdg in g_quadWdgSet[ind:]:
+				numPtsToGo += wdg.getBool()
+			totNum = numExpTaken + (numPtsToGo * numExp)
+			startNum = numExpTaken + 1
+			
+			expCmdStr = "%s startNum=%d totNum=%d" % (expCmdPrefix, startNum, totNum)
+			
+			# take exposure sequence
+			sr.showMsg("Expose at %s position" % posName)
+			yield sr.waitCmd(
+				actor = expModel.actor,
+				cmdStr = expCmdStr,
+			)
 
-		numExpTaken += numExp
+			numExpTaken += numExp
 	
 	# slew back to starting position
 	if g_didMove:

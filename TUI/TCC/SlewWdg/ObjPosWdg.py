@@ -33,18 +33,17 @@ History:
 2004-09-24 ROwen	Added az, alt, airmass output.
 2004-10-11 ROwen	Mod. az/alt/airmass display to update itself
 					and to to handle invalid targets gracefully.
-2005-01-05 ROwen	Modified for RO.Wdg.Label state -> severity.
 """
 import Tkinter
 import RO.CoordSys
+import CoordSysWdg
 import RO.Constants
 import RO.InputCont
 import RO.StringUtil
 import RO.Wdg
+import RotWdg
 import TUI.TCC.UserModel
 import TUI.TCC.TCCModel
-import CoordSysWdg
-import RotWdg
 
 _HelpPrefix = "Telescope/SlewWin/index.html#"
 
@@ -301,14 +300,14 @@ class ObjPosWdg(RO.Wdg.InputContFrame):
 		az, alt = azalt
 		airmass = RO.Astro.Sph.airmass(alt)
 		altData, limCurrent = self.tccModel.altLim.get()
-		altSeverity = RO.Constants.sevNormal
+		altState = RO.Constants.st_Normal
 		minAlt = altData[0]
 		if minAlt != None:
 			if alt < minAlt:
-				altSeverity = RO.Constants.sevError
+				altState = RO.Constants.st_Error
 		
 		self.azWdg.set(az)
-		self.altWdg.set(alt, severity = altSeverity)
+		self.altWdg.set(alt, state = altState)
 		self.airmassWdg.set(airmass)
 		self._azAltRefreshID = self.after(_AzAltRefreshDelayMS, self.setAzAltAirmass)
 
