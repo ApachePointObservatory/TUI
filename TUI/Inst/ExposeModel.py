@@ -46,22 +46,14 @@ Notes:
 					Added viewImageVar and added image view support. Warning:
 					it blocks events while the ds9 window is opened,
 					which can be a long time if there's an error.
-2005-09-23 ROwen	Fix PR 269: Seq By File preference cannot be unset.
-					Fixed by alwys specifying seq (the <inst>Expose documentation
-					says the default is seqByDir, but it seems to be the last seq used).
-					View Image improvements:
-					- Use a separate ds9 window for each camera.
-					- Re-open a ds9 window if necessary.
 """
 __all__ = ['getModel']
 
 import os
 import Tkinter
-import RO.Alg
 import RO.CnvUtil
 import RO.DS9
 import RO.KeyVariable
-import RO.SeqUtil
 import RO.StringUtil
 import TUI.HubModel
 import TUI.TUIModel
@@ -136,7 +128,7 @@ class Model (object):
 		self.instNameLow = instName.lower()
 		self.actor = "%sExpose" % self.instNameLow
 		self.instInfo = _InstInfoDict[self.instNameLow]
-		self.ds9WinDict = {}
+		self.ds9Win = None
 		
 		self.hubModel = TUI.HubModel.getModel()
 		self.tuiModel = TUI.TUIModel.getModel()
@@ -287,7 +279,7 @@ class Model (object):
 		
 		cmdr, dumHost, dumFromRootDir, progDir, userDir = fileInfo[0:5]
 		progID, username = cmdr.split(".")
-		fileNames = fileInfo[5:]
+		fileNames = [fname for fname in fileInfo[5:] if fname != "None"]
 		
 		host, fromRootDir = self.hubModel.httpRoot.get()[0]
 		if None in (host, fromRootDir):
@@ -305,25 +297,15 @@ class Model (object):
 		toRootDir = self.ftpSaveToPref.getValue()
 
 		# save in userDir subdirectory of ftp directory
-		for ii in range(len(fileNames)):
-			fileName = fileNames[ii]
-			if fileName == "None":
-				continue
-
+		for fileName in fileNames:
 			dispStr = "".join((progDir, userDir, fileName))
 			fromURL = "".join(("http://", host, fromRootDir, progDir, userDir, fileName))
 			toPath = os.path.join(toRootDir, progDir, userDir, fileName)
 			
-			doneFunc = None
 			if self.viewImageVar.get():
-				camName = RO.SeqUtil.get(self.instInfo.camNames, ii)
-				if camName != None:
-					doneFunc = RO.Alg.GenericCallback(self._downloadFinished, camName)
-				else:
-					self.tuiModel.logMsg(
-						"More files than known cameras; cannot display image %s" % fileName,
-						severity = RO.Constants.sevWarning,
-					)
+				doneFunc = self._downloadFinished
+			else:
+				doneFunc = None
 			
 			self.downloadWdg.getFile(
 				fromURL = fromURL,
@@ -335,22 +317,12 @@ class Model (object):
 				doneFunc = doneFunc,
 			)
 	
-	def _downloadFinished(self, camName, httpGet):
+	def _downloadFinished(self, httpGet):
 		if httpGet.getState() != httpGet.Done:
 			return
-		ds9Win = self.ds9WinDict.get(camName)
-		if not ds9Win:
-			if camName not in self.instInfo.camNames:
-				raise RuntimeError("Unknown camera name %r for %s" % (camName, self.instName))
-			if camName:
-				ds9Name = "%s_%s" % (self.instName, camName)
-			else:
-				ds9Name = self.instName
-			ds9Win = RO.DS9.DS9Win(ds9Name, doOpen=True)
-			self.ds9WinDict[camName] = ds9Win
-		elif not ds9Win.isOpen():
-			ds9Win.doOpen()
-		ds9Win.showFITSFile(httpGet.toPath)
+		if not self.ds9Win:
+			self.ds9Win = RO.DS9.DS9Win(self.instName, doOpen=True)
+		self.ds9Win.showFITSFile(httpGet.toPath)
 
 	def formatExpCmd(self,
 		expType = "object",
@@ -393,8 +365,6 @@ class Model (object):
 			
 		if self.seqByFilePref.getValue():
 			outStrList.append("seq=nextByFile")
-		else:
-			outStrList.append("seq=nextByDir")
 		
 		if startNum != None:
 			outStrList.append("startNum=%d" % (startNum,))
