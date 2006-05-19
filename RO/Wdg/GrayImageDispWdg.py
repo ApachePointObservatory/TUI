@@ -124,10 +124,6 @@ History:
 2006-04-11 ROwen	Bug fix: initial scaling function was not set.
 					Modified to make linear the initial function.
 2006-04-13 ROwen	Added support for masks.
-2006-05-19 ROwen	MaskInfo changes:
-					- Added setColor method.
-					- Bug fix: mask colors were slightly mishandled
-					  (the rgb values ranged to 64k instead of 256).
 """
 import weakref
 import Tkinter
@@ -198,14 +194,18 @@ class MaskInfo(object):
 		self.andVal = 2**bitInd
 		self.name = name
 		self.btext = btext
+		self.color = color
 		self.intens = intens
 		self.doShow = doShow
 		self.wdg = None
 
 		if not self.tkWdg:
 			self.tkWdg = Tkinter.Frame()
-
-		self.setColor(color)
+		self.maskRGB = self.tkWdg.winfo_rgb(color)
+	
+	def setWdg(self, wdg):
+		"""Specify a checkbuttonw widget to control show/hide of this mask"""
+		self.wdg = wdg
 	
 	def applyMask(self, im, maskIm):
 		"""Apply the color transformation for this mask.
@@ -234,15 +234,6 @@ class MaskInfo(object):
 		rgbim = im.convert("RGB")
 		rgbim.paste(rgbMask, mask=transMask)
 		return rgbim
-
-	def setWdg(self, wdg):
-		"""Specify a checkbuttonw widget to control show/hide of this mask"""
-		self.wdg = wdg
-	
-	def setColor(self, color):
-		"""Set the mask color"""
-		self.maskRGB = [val/256 for val in self.tkWdg.winfo_rgb(color)]
-		self.color = color
 
 
 class Annotation(object):
