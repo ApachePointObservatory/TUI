@@ -15,6 +15,13 @@ Note:
   	and Focus Increment are ignored.
   
 To do:
+- Consider a separate button to clear boresight offset;
+  then the user can keep hacking at the problem
+  until they like the focus.
+  Or only clear boresight if focus succeeds.
+  Or...? It's probably safer as it is.
+- Fix truncation of text around edge of graph;
+  would it help to ditch axis labels?
 - Fix the fact that the graph initially has focus
   when it should never get focus at all.
   Unfortunately, the simplest thing I tried--handing focus
@@ -29,12 +36,10 @@ History:
 					Stopped using float("nan") since it doesn't work on all pythons.
 					Modified to always pause before the focus sweep.
 					Modified to window the exposure.
-2006-11-13 ROwen	Modified to have user set center focus and range.
-					Added Expose and Sweep buttons.
 """
 import math
-import random # for debug
-import Numeric as num
+import numarray
+import Numeric
 import LinearAlgebra
 import Tkinter
 import RO.Wdg
@@ -49,7 +54,7 @@ from TUI.Inst.ExposeInputWdg import ExposeInputWdg
 
 import matplotlib
 matplotlib.use("TkAgg")
-matplotlib.rcParams["numerix"] = "Numeric"
+matplotlib.rcParams["numerix"] = "numarray"
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -57,11 +62,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # constants
 DefRadius = 5.0 # centroid radius, in arcsec
 DefFocusNPos = 5  # number of focus positions
-DefFocusRange = 200 # default focus range around current focus
+DefDeltaFoc = 200 # default focus range around current focus
 FocusWaitMS = 1000 # time to wait after every focus adjustment (ms)
 BacklashComp = 0 # amount of backlash compensation, in microns (0 for none)
 WinSizeMult = 2.5 # window radius = centroid radius * WinSizeMult
-FocGraphMargin = 5 # margin on graph for x axis limits, in um
 
 MicronStr = RO.StringUtil.MuStr + "m"
 
@@ -113,6 +117,19 @@ class BaseFocusScript(object):
 		# create and grid widgets
 		gr = RO.Wdg.Gridder(sr.master, sticky="ew")
 
+		self.expTimeWdg = RO.Wdg.FloatEntry(
+			sr.master,
+			minValue = self.guideModel.gcamInfo.minExpTime,
+			maxValue = self.guideModel.gcamInfo.maxExpTime,
+			defValue = self.guideModel.gcamInfo.defExpTime,
+			defFormat = "%.1f",
+			defMenu = "Current",
+			minMenu = "Minimum",
+			helpText = "Exposure time",
+			helpURL = self.helpURL,
+		)
+		gr.gridWdg("Exposure Time", self.expTimeWdg, "sec")
+		
 		# create boresight widgets, if wanted
 		self.boreNameWdgSet = []
 		if len(defBoreXY) != 2:
@@ -133,7 +150,6 @@ class BaseFocusScript(object):
 				minValue = -60.0,
 				maxValue = 60.0,
 				defValue = defVal,
-				defMenu = "Default",
 				helpText = wdgName + " position",
 				helpURL = self.helpURL,
 			)
@@ -142,74 +158,56 @@ class BaseFocusScript(object):
 			self.boreNameWdgSet.append((wdgName, boreWdg))
 
 
-		self.expTimeWdg = RO.Wdg.FloatEntry(
-			sr.master,
-			minValue = self.guideModel.gcamInfo.minExpTime,
-			maxValue = self.guideModel.gcamInfo.maxExpTime,
-			defValue = self.guideModel.gcamInfo.defExpTime,
-			defFormat = "%.1f",
-			defMenu = "Default",
-			minMenu = "Minimum",
-			helpText = "Exposure time",
-			helpURL = self.helpURL,
-		)
-		gr.gridWdg("Exposure Time", self.expTimeWdg, "sec")
-		
 		self.centroidRadWdg = RO.Wdg.IntEntry(
 			master = sr.master,
 			minValue = 5,
 			maxValue = 1024,
 			defValue = defRadius,
-			defMenu = "Default",
 			helpText = "Centroid radius; don't skimp",
 			helpURL = self.helpURL,
 		)
 		gr.gridWdg("Centroid Radius", self.centroidRadWdg, "arcsec", sticky="ew")
 
-		setCurrFocusWdg = RO.Wdg.Button(
+		setDefFocusWdg = RO.Wdg.Button(
 			master = sr.master,
-			text = "Center Focus",
-			callFunc = self.setCurrFocus,
-			helpText = "Set to current focus",
+			text = "Start Focus",
+			callFunc = self.setDefFocus,
+			helpText = "Set default focus values",
 			helpURL = self.helpURL,
 		)
 	
-		self.centerFocPosWdg = RO.Wdg.IntEntry(
+		self.startFocusPosWdg = RO.Wdg.IntEntry(
 			master = sr.master,
-			defValue = 0,
-			defMenu = "Default",
-			helpText = "Center of focus sweep",
+			minValue = -2000,
+			helpText = "Initial focus offset",
 			helpURL = self.helpURL,
 		)
-		gr.gridWdg(setCurrFocusWdg, self.centerFocPosWdg, MicronStr)
-#		setCurrFocusWdg.grid(
+		gr.gridWdg(setDefFocusWdg, self.startFocusPosWdg, MicronStr)
+#		setDefFocusWdg.grid(
 #			row = gr.getNextRow() - 1,
 #			column = gr.getNextCol(),
 #		)
 	
-		self.focusRangeWdg = RO.Wdg.IntEntry(
+		self.endFocusPosWdg = RO.Wdg.IntEntry(
 			master = sr.master,
 			maxValue = 2000,
-			defValue = DefFocusRange,
-			defMenu = "Default",
-			helpText = "Range of focus sweep",
+			helpText = "Final focus offset",
 			helpURL = self.helpURL,
 		)
-		gr.gridWdg("Focus Range", self.focusRangeWdg, MicronStr)
+		gr.gridWdg("End Focus", self.endFocusPosWdg, MicronStr)
 	
 		self.numFocusPosWdg = RO.Wdg.IntEntry(
 			master = sr.master,
 			minValue = 2,
 			defValue = DefFocusNPos,
-			defMenu = "Default",
-			helpText = "Number of focus positions for sweep",
+			helpText = "Number of focus positions",
 			helpURL = self.helpURL,
 		)
 		gr.gridWdg("Focus Positions", self.numFocusPosWdg, "")
 		
 		self.focusIncrWdg = RO.Wdg.FloatEntry(
 			master = sr.master,
-			defFormat = "%.1f",
+			defFormat = "%.0f",
 			readOnly = True,
 			relief = "flat",
 			helpText = "Focus step size",
@@ -223,7 +221,7 @@ class BaseFocusScript(object):
 			text = "Move to Best Focus",
 			defValue = True,
 			relief = "flat",
-			helpText = "Move to estimated best focus and measure FWHM after sweep?",
+			helpText = "Move to Best Focus when done?",
 			helpURL = self.helpURL,
 		)
 		gr.gridWdg(None, self.moveBestFocus, colSpan = 3, sticky="w")
@@ -250,60 +248,24 @@ class BaseFocusScript(object):
 		self.figCanvas.get_tk_widget().grid(row=0, column=col, rowspan=row, sticky="news")
 		self.plotAxis = plotFig.add_subplot(1, 1, 1)
 
-		self.focusRangeWdg.addCallback(self.updFocusIncr, callNow=False)
+		self.endFocusPosWdg.addCallback(self.updFocusIncr, callNow=False)
+		self.startFocusPosWdg.addCallback(self.updFocusIncr, callNow=False)
 		self.numFocusPosWdg.addCallback(self.updFocusIncr, callNow=True)
-		
-		# add Expose and Sweep buttons
-		self.exposeBtn = RO.Wdg.Button(
-			master = sr.master,
-			text = "Expose",
-			callFunc = self.doExposeBtn,
-			helpText = "Expose and measure FWHM at current focus",
-			helpURL = self.helpURL,
-		)
-		self.sweepBtn = RO.Wdg.Button(
-			master = sr.master,
-			text = "Sweep",
-			callFunc = self.doSweepBtn,
-			helpText = "Start focus sweep",
-			helpURL = self.helpURL,
-		)
-		gr.gridWdg(False, (self.exposeBtn, self.sweepBtn))
 		
 		if sr.debug:
 			self.expTimeWdg.set("1")
-			self.centerFocPosWdg.set(0)
-			self.focusRangeWdg.set(200)
-			self.numFocusPosWdg.set(5)
+			self.startFocusPosWdg.set(-50)
+			self.endFocusPosWdg.set(100)
+			self.numFocusPosWdg.set(3)
 		
 		self.initAll()
 		# try to get focus away from graph (but it doesn't work; why?)
 		self.expTimeWdg.focus_set()
-		self.setCurrFocus()
-	
-	def doExposeBtn(self, wdg=None):
-		self.doSweep = False
-		self.sr.resumeUser()
+		self.setDefFocus()
 		
-	def doSweepBtn(self, wdg=None):
-		self.doSweep = True
-		self.sr.resumeUser()
-		
-	def enableBtns(self, doEnable):
-		"""Enable or disable Expose and Sweep buttons.
-		"""
-		if doEnable:
-			self.exposeBtn["state"] = "normal"
-			self.sweepBtn["state"] = "normal"
-		else:
-			self.exposeBtn["state"] = "disabled"
-			self.sweepBtn["state"] = "disabled"
-
 	def end(self, sr):
 		"""If telescope moved, restore original boresight position.
 		"""
-		self.enableBtns(False)
-
 		if self.didMove:
 			# restore original boresight position
 			if None in self.begBoreXY:
@@ -370,8 +332,6 @@ class BaseFocusScript(object):
 		self.arcsecPerPixel = None
 		self.instCtr = None
 		self.instLim = None
-		self.doSweep = False
-		self.plotLine = None
 
 		# clear the table
 		self.logWdg.clearOutput()
@@ -381,12 +341,7 @@ class BaseFocusScript(object):
 		# clear the graph
 		self.plotAxis.clear()
 		self.plotAxis.grid(True)
-		# start with autoscale disabled due to bug in matplotlib
-		self.plotAxis.set_autoscale_on(False)
 		self.figCanvas.draw()
-		
-		# disable Enable and Sweep buttons
-		self.enableBtns(False)
 		
 	def logFocusMeas(self, name, focPos, fwhm):
 		"""Log a focus measurement.
@@ -400,33 +355,10 @@ class BaseFocusScript(object):
 		else:
 			fwhmStr = "%0.1f" % (fwhm,)
 			fwhmArcSecStr = "%0.1f" % (fwhm * self.arcsecPerPixel,)
-		self.logWdg.addOutput("%s\t%.1f\t%s\t%s\n" % \
+		self.logWdg.addOutput("%s\t%d\t%s\t%s\n" % \
 			(name, focPos, fwhmStr, fwhmArcSecStr)
 		)
 
-	def graphFocusMeas(self, focList, fwhmList, scalex=False):
-		"""Graph measured fwhm vs focus"""
-		print "graphFocusMeas(focList=%s, fwhmList=%s)" % (focList, fwhmList)
-		
-		numMeas = len(focList)
-		if len(fwhmList) != numMeas:
-			raise RuntimeError("length of focList and fwhmList don't match; focList=%s, fwhmList=%s" % (focList, fwhmList))
-		if numMeas == 0:
-			return
-
-		minFoc = min(focList) - FocGraphMargin
-		maxFoc = max(focList) + FocGraphMargin
-		minFWHM = min(fwhmList) * 0.95
-		maxFWHM = max(fwhmList) * 1.05
-		if not self.plotLine:
-			self.plotLine = self.plotAxis.plot(focList, fwhmList, 'bo')[0]
-		else:
-			self.plotLine.set_data(focList[:], fwhmList[:])
-		if scalex:
-			self.plotAxis.set_xlim(minFoc, maxFoc)
-		self.plotAxis.set_ylim(minFWHM, maxFWHM)
-		self.figCanvas.draw()
-		
 	def run(self, sr):
 		"""Take the series of focus exposures.
 		"""
@@ -435,7 +367,6 @@ class BaseFocusScript(object):
 		
 		# open DIS Slitviewer window
 		self.tuiModel.tlSet.makeVisible(self.guideTLName)
-		self.sr.master.winfo_toplevel().lift()
 		
 		# fake data for debug mode
 		# iteration #, FWHM
@@ -447,104 +378,79 @@ class BaseFocusScript(object):
 		self.boreXYDeg = [self.getEntryNum(wdg, name) / 3600.0 for (name, wdg) in self.boreNameWdgSet]
 		self.starXYPix = [(self.boreXYDeg[ii] * self.instScale[ii]) + self.instCtr[ii] for ii in range(2)]
 		yield self.waitMoveBoresight()
-
-		focPosList = []
-		fwhmList = []
 		
 		# take exposure and try to centroid
 		# if centroid fails, ask user to acquire a star
-		testNum = 0
-		while not self.doSweep:
-			testNum += 1
-			focPos = float(self.centerFocPosWdg.get())
-			if focPos == None:
-				raise sr.ScriptError("Must specify center focus")
-			yield self.waitSetFocus(focPos, False)
-			sr.showMsg("Taking test exposure at focus %.1f %sm" % \
-				(focPos, RO.StringUtil.MuStr))
-			yield self.waitCentroid()
-
-			fwhm = sr.value
-			self.logFocusMeas("Exp %d" % (testNum,), focPos, fwhm)
-			if fwhm == None:
-				msgStr = "No star found! Fix and then press Expose or Sweep"
-			else:
-				focPosList.append(focPos)
-				fwhmList.append(fwhm)
-				self.graphFocusMeas(focPosList, fwhmList, scalex = True)
-				msgStr = "Press Expose or Sweep to continue"
-
-			# wait for user to press the Expose or Sweep button
-			# note: the only time they should be enabled is during this wait
-			self.enableBtns(True)
-			sr.showMsg(msgStr, RO.Constants.sevWarning)
-			yield sr.waitUser()
-			self.enableBtns(False)
-
+		sr.showMsg("Taking a test exposure.")
+		yield self.waitCentroid()
+		if sr.value == None:
+			msgStr = "No star found! Fix and then press Resume"
+		else:
+			msgStr = "Check params; then press Resume to start the focus sweep"
+		sr.pause()
+		sr.master.after(1, sr.showMsg, msgStr, RO.Constants.sevWarning)
 		
 		# at this point a suitable star should be on the boresight...
 			
 		# record parameters that cannot be changed while script is running
-		centerFocPos = float(self.getEntryNum(self.centerFocPosWdg, "Center Focus"))
-		focusRange   = float(self.getEntryNum(self.focusRangeWdg, "Focus Range"))
-		startFocPos = centerFocPos - (focusRange / 2.0)
-		endFocPos = startFocPos + focusRange
+		startFocPos	= self.getEntryNum(self.startFocusPosWdg, "Start Focus")
+		endFocPos   = self.getEntryNum(self.endFocusPosWdg, "End Focus")
 		numFocPos   = self.getEntryNum(self.numFocusPosWdg, "Focus Positions")
 		if numFocPos < 2:
 			raise sr.ScriptError("# Focus Positions < 2")
-		focusIncr    = self.focusIncrWdg.getNum()
+		incFocus    = self.focusIncrWdg.getNum()
 		numExpPerFoc = 1
 		self.focDir = (endFocPos > startFocPos)
 		
-		plotMin = startFocPos
-		plotMax = startFocPos + focusRange
-		if focPosList:
-			plotMin = min(plotMin, min(focPosList))
-			plotMax  = max(plotMax, max(focPosList))
-		plotMin -= FocGraphMargin
-		plotMax += FocGraphMargin
+		# arrays for holding values as we take exposures
+		focPosArr = numarray.zeros(numFocPos, "Float")
+		fwhmArr  = numarray.zeros(numFocPos, "Float")
+		coeffArr = numarray.zeros(numFocPos, "Float")
+		weightArr = numarray.ones(numFocPos, "Float")
 
-		self.plotAxis.set_xlim((plotMin, plotMax))
+		minFoc = startFocPos
+		maxFoc = int(startFocPos + round((numFocPos-1)*incFocus))
+
+		plotLine = self.plotAxis.plot([], [], 'bo')[0]
+		self.plotAxis.set_xlim((minFoc, maxFoc))
 		self.figCanvas.draw()
 		
 		numMeas = 0
 		for focInd in range(numFocPos):
-			focPos = float(startFocPos + (focInd*focusIncr))
+			focPos = int(startFocPos + round(focInd*incFocus))
 
 			doBacklashComp = (focInd == 0)
 			yield self.waitSetFocus(focPos, doBacklashComp)
-			sr.showMsg("Exposing at focus %.1f %sm" % \
+			sr.showMsg("Exposing at focus %d %sm" % \
 				(focPos, RO.StringUtil.MuStr))
 			yield self.waitCentroid()
-			if sr.debug:
-				fwhm = 0.0001 * (focPos - centerFocPos) ** 2
-				fwhm += random.gauss(1.0, 0.25)
-			else:
-				fwhm = sr.value
+			fwhm = sr.value
 
-			self.logFocusMeas("Sweep %d" % (focInd+1,), focPos, fwhm)
+			self.logFocusMeas("Exp %d" % (focInd+1,), focPos, fwhm)
 			
 			if fwhm != None:
-				focPosList.append(focPos)
-				fwhmList.append(fwhm)
-				self.graphFocusMeas(focPosList, fwhmList)
+				numMeas += 1
+				focPosArr[numMeas-1] = focPos
+				fwhmArr[numMeas-1] = fwhm
+				minFWHM = fwhmArr[:numMeas].min()
+				maxFWHM = fwhmArr[:numMeas].max()
+				if minFWHM == maxFWHM:
+					minFWHM *= 0.95
+					maxFWHM *= 1.05
+				plotLine.set_data(focPosArr[:numMeas], fwhmArr[:numMeas])
+				self.plotAxis.set_xlim(minFoc, maxFoc)
+				self.plotAxis.set_ylim(minFWHM, maxFWHM)
+				self.figCanvas.draw()
 		
-		if len(focPosList) < 3:
+		if numMeas < 3:
 			raise sr.ScriptError("Need >=3 measurements to fit best focus")
 	
 		# Fit a curve to the data
-		# arrays for holding values as we take exposures
-		numMeas = len(focPosList)
-		focPosArr = num.array(focPosList, num.Float)
-		fwhmArr  = num.array(fwhmList, num.Float)
-		weightArr = num.ones(numMeas, num.Float)
-		coeffs = polyfitw(focPosArr, fwhmArr, weightArr, 2, False)
+		coeffArr = polyfitw(focPosArr[:numMeas], fwhmArr[:numMeas], weightArr[:numMeas], 2, 0)
 		
 		# find the best focus position
-		minFoc = min(focPosList)
-		maxFoc = max(focPosList)
-		bestEstFocPos = (-1.0*coeffs[1])/(2.0*coeffs[2])
-		bestEstFWHM = coeffs[0]+coeffs[1]*bestEstFocPos+coeffs[2]*bestEstFocPos*bestEstFocPos
+		bestEstFocPos = (-1.0*coeffArr[1])/(2.0*coeffArr[2])
+		bestEstFWHM = coeffArr[0]+coeffArr[1]*bestEstFocPos+coeffArr[2]*bestEstFocPos*bestEstFocPos
 		if not min(minFoc, maxFoc) <= bestEstFocPos <= max(minFoc, maxFoc):
 			# best estimate is no good; reject it
 			bestEstFWHM = None
@@ -555,8 +461,8 @@ class BaseFocusScript(object):
 		self.logFocusMeas("BestEst", bestEstFocPos, bestEstFWHM)
 
 		# generate the data from the 2nd order fit
-		x = num.arange(min(focPosArr), max(focPosArr), 1)
-		y = coeffs[0] + coeffs[1]*x + coeffs[2]*(x**2.0)
+		x = numarray.arange(min(focPosArr),max(focPosArr),1)
+		y = coeffArr[0] + coeffArr[1]*x + coeffArr[2]*(x**2.0)
 		
 		# plot the fit, and the chosen focus position in green
 		self.plotAxis.plot(x, y, '-k', linewidth=2)
@@ -566,15 +472,11 @@ class BaseFocusScript(object):
 		# move to best focus if "Move to best Focus" checked
 		movebest = self.moveBestFocus.getBool()
 		if movebest:
-			self.setCurrFocus()
 			yield self.waitSetFocus(bestEstFocPos, doBacklashComp=True)
 			sr.showMsg("Exposing at estimated best focus %d %sm" % \
 				(bestEstFocPos, RO.StringUtil.MuStr))
 			yield self.waitCentroid()
-			if sr.debug:
-				finalFWHM = 1.1
-			else:
-				finalFWHM = sr.value
+			finalFWHM = sr.value
 			
 			self.logFocusMeas("BestMeas", bestEstFocPos, finalFWHM)
 			
@@ -586,8 +488,9 @@ class BaseFocusScript(object):
 					severity=RO.Constants.sevWarning,
 				)
 	
-	def setCurrFocus(self, *args):
-		"""Set center focus to current focus.
+	def setDefFocus(self, *args):
+		"""Set focus start and end widgets to default values
+		based on the current focus.
 		"""
 		currFocus = self.sr.getKeyVar(self.tccModel.secFocus, defVal=None)
 		if currFocus == None:
@@ -595,19 +498,24 @@ class BaseFocusScript(object):
 				severity=RO.Constants.sevWarning,
 			)
 			return
-
-		self.centerFocPosWdg.set(currFocus)
+		
+		startFocus = int(round(currFocus - (DefDeltaFoc / 2)))
+		endFocus = startFocus + DefDeltaFoc
+		self.startFocusPosWdg.set(startFocus)
+		self.endFocusPosWdg.set(endFocus)
+		self.numFocusPosWdg.set(DefFocusNPos)
 	
 	def updFocusIncr(self, *args):
 		"""Update focus increment widget.
 		"""
-		focusRange = self.focusRangeWdg.getNumOrNone()
+		startPos = self.startFocusPosWdg.getNumOrNone()
+		endPos = self.endFocusPosWdg.getNumOrNone()
 		numPos = self.numFocusPosWdg.getNumOrNone()
-		if None in (focusRange, numPos):
+		if None in (startPos, endPos, numPos):
 			self.focusIncrWdg.set(None, isCurrent = False)
 			return
 
-		focusIncr = int(round(focusRange / (numPos - 1)))
+		focusIncr = (endPos - startPos) / (numPos - 1)
 		self.focusIncrWdg.set(focusIncr, isCurrent = True)
 
 	def waitCentroid(self):
@@ -632,15 +540,24 @@ class BaseFocusScript(object):
 		   keyVars = (self.guideModel.files, self.guideModel.star),
 		   checkFail = False,
 		)
-		cmdVar = sr.value
-		starData = cmdVar.getKeyVarData(self.guideModel.star)
-		if starData:
-			sr.value = starData[0][8]
-			return
-
-		if not cmdVar.getKeyVarData(self.guideModel.files):
-			sr.ScriptError("Exposure failed")
-		sr.value = None
+		if not sr.debug:
+			cmdVar = sr.value
+			starData = cmdVar.getKeyVarData(self.guideModel.star)
+			if starData:
+				sr.value = starData[0][8]
+				return
+	
+			if not cmdVar.getKeyVarData(self.guideModel.files):
+				sr.ScriptError("Exposure failed")
+			sr.value = None
+		else:
+			iterNum, fwhm = self.debugIterFWHM
+			sr.value = fwhm
+			if iterNum < 3:
+				nextFWHM = fwhm - 0.2
+			else:
+				nextFWHM = fwhm + 0.2
+			self.debugIterFWHM = (iterNum + 1, nextFWHM)
 	
 	def waitMoveBoresight(self):
 		"""Move the boresight, take an exposure and pause the script.
@@ -685,13 +602,12 @@ class BaseFocusScript(object):
 		- doBacklashComp: if True, perform backlash compensation
 		"""
 		sr = self.sr
-		focPos = float(focPos)
 		
 		# to try to eliminate the backlash in the secondary mirror drive move back 1/2 the
 		# distance between the start and end position from the bestEstFocPos
 		if doBacklashComp and BacklashComp:
-			backlashFocPos = int(focPos - (abs(BacklashComp) * self.focDir))
-			sr.showMsg("Backlash comp: moving focus to %.1f %sm" % (backlashFocPos, RO.StringUtil.MuStr))
+			backlashFocPos = focPos - (abs(BacklashComp) * self.focDir)
+			sr.showMsg("Backlash comp: moving focus to %d %sm" % (backlashFocPos, RO.StringUtil.MuStr))
 			yield sr.waitCmd(
 			   actor = "tcc",
 			   cmdStr = "set focus=%d" % (backlashFocPos),
@@ -699,15 +615,15 @@ class BaseFocusScript(object):
 			yield sr.waitMS(FocusWaitMS)
 		
 		# move to desired focus position
-		sr.showMsg("Moving focus to %.1f %sm" % (focPos, RO.StringUtil.MuStr))
+		sr.showMsg("Moving focus to %d %sm" % (focPos, RO.StringUtil.MuStr))
 		yield sr.waitCmd(
 		   actor = "tcc",
-		   cmdStr = "set focus=%.1f" % (focPos),
+		   cmdStr = "set focus=%d" % (focPos),
 		)
 		yield sr.waitMS(FocusWaitMS)
 	
 	
-def polyfitw(x, y, w, ndegree, return_fit=False):
+def polyfitw(x, y, w, ndegree, return_fit=0):
 	"""
 	Performs a weighted least-squares polynomial fit with optional error estimates.
 
@@ -727,11 +643,11 @@ def polyfitw(x, y, w, ndegree, return_fit=False):
 			The degree of polynomial to fit.
 
 	Outputs:
-		If return_fit is false (the default) then polyfitw returns only C, a vector of 
+		If return_fit==0 (the default) then polyfitw returns only C, a vector of 
 		coefficients of length ndegree+1.
-		If return_fit is true then polyfitw returns a tuple (c, yfit, yband, sigma, a)
+		If return_fit!=0 then polyfitw returns a tuple (c, yfit, yband, sigma, a)
 			yfit:	
-			The vector of calculated Y's.  Has an error of + or - yband.
+			The vector of calculated Y's.  Has an error of + or - Yband.
 
 			yband: 
 			Error estimate for each point = 1 sigma.
@@ -751,33 +667,33 @@ def polyfitw(x, y, w, ndegree, return_fit=False):
 	"""
 	n = min(len(x), len(y)) # size = smaller of x,y
 	m = ndegree + 1				# number of elements in coeff vector
-	a = num.zeros((m,m), num.Float)  # least square matrix, weighted matrix
-	b = num.zeros(m, num.Float)	 # will contain sum w*y*x^j
-	z = num.ones(n, num.Float)	 # basis vector for constant term
+	a = Numeric.zeros((m,m),Numeric.Float)  # least square matrix, weighted matrix
+	b = Numeric.zeros(m,Numeric.Float)	 # will contain sum w*y*x^j
+	z = Numeric.ones(n,Numeric.Float)	 # basis vector for constant term
 
-	a[0,0] = num.sum(w)
-	b[0] = num.sum(w*y)
+	a[0,0] = Numeric.sum(w)
+	b[0] = Numeric.sum(w*y)
 
 	for p in range(1, 2*ndegree+1):		 # power loop
 		z = z*x	# z is now x^p
-		if (p < m):  b[p] = num.sum(w*y*z)	# b is sum w*y*x^j
-		sum = num.sum(w*z)
+		if (p < m):  b[p] = Numeric.sum(w*y*z)	# b is sum w*y*x^j
+		sum = Numeric.sum(w*z)
 		for j in range(max(0,(p-ndegree)), min(ndegree,p)+1):
 			a[j,p-j] = sum
 
 	a = LinearAlgebra.inverse(a)
-	c = num.matrixmultiply(b, a)
-	if not return_fit:
+	c = Numeric.matrixmultiply(b, a)
+	if (return_fit == 0):
 		return c		 # exit if only fit coefficients are wanted
 
 	# compute optional output parameters.
-	yfit = num.zeros(n,num.Float)+c[0]	# one-sigma error estimates, init
+	yfit = Numeric.zeros(n,Numeric.Float)+c[0]	# one-sigma error estimates, init
 	for k in range(1, ndegree +1):
 		yfit = yfit + c[k]*(x**k)  # sum basis vectors
-	var = num.sum((yfit-y)**2 )/(n-m)  # variance estimate, unbiased
-	sigma = num.sqrt(var)
-	yband = num.zeros(n,num.Float) + a[0,0]
-	z = num.ones(n,num.Float)
+	var = Numeric.sum((yfit-y)**2 )/(n-m)  # variance estimate, unbiased
+	sigma = Numeric.sqrt(var)
+	yband = Numeric.zeros(n,Numeric.Float) + a[0,0]
+	z = Numeric.ones(n,Numeric.Float)
 	for p in range(1,2*ndegree+1):		# compute correlated error estimates on y
 		z = z*x		 # z is now x^p
 		sum = 0.
@@ -785,5 +701,5 @@ def polyfitw(x, y, w, ndegree, return_fit=False):
 			sum = sum + a[j,p-j]
 		yband = yband + sum * z		 # add in all the error sources
 	yband = yband*var
-	yband = num.sqrt(yband)
+	yband = Numeric.sqrt(yband)
 	return c, yfit, yband, sigma, a
