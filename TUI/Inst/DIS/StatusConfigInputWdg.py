@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import generators
 """Configuration input panel for Dual Imaging Spectrograph.
 
 To Do:
@@ -51,7 +52,6 @@ History:
 2005-06-08 ROwen    Changed indFormat to a new-style class.
 2006-04-27 ROwen    Removed use of ignored clearMenu and defMenu in StatusConfigGridder.
 2006-10-20 ROwen    Modified to use new RO.Wdg.OptionMenu index method to avoid tk misfeature.
-2008-02-11 ROwen    Modified to be compatible with the new TUI.Inst.StatusConfigWdg.
 """
 import Tkinter
 import RO.Constants
@@ -62,18 +62,17 @@ import DISModel
 
 _MaxDataWidth = 5
 
+_HelpPrefix = "Instruments/DIS/DISWin.html#"
+
 _ColWidth = 6   # width of data columns for red/blue or x/y data
 
-class StatusConfigInputWdg (RO.Wdg.InputContFrame):
-    InstName = "DIS"
-    HelpPrefix = 'Instruments/%s/%sWin.html#' % (InstName, InstName)
+# category names
+_DetailCat = "detail"
+_CCDCat = "ccd"
+_ConfigCat = "config"
+_GSCat = {1:"gset1", 2:"gset2"}
 
-    # control show/hide categories
-    ConfigCat = RO.Wdg.StatusConfigGridder.ConfigCat
-    DetailCat = "detail"
-    CCDCat = "ccd"
-    GSCat = {1:"gset1", 2:"gset2"}
-    
+class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     def __init__(self,
         master,
     **kargs):
@@ -94,7 +93,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         shutterCurrWdg = RO.Wdg.StrLabel(self,
             helpText = "current state of the shutter",
-            helpURL = self.HelpPrefix + "Shutter",
+            helpURL = _HelpPrefix + "Shutter",
             anchor = "w",
         )
         self.model.shutter.addROWdg(shutterCurrWdg)
@@ -111,7 +110,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         
         maskNameCurrWdg = RO.Wdg.StrLabel(self,
             helpText = "current slit mask",
-            helpURL = self.HelpPrefix + "Mask",
+            helpURL = _HelpPrefix + "Mask",
             anchor = "w",
         )
         self.model.maskName.addROWdg(maskNameCurrWdg)
@@ -119,7 +118,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.maskNameUserWdg = RO.Wdg.OptionMenu(self,
             items=[],
             helpText = "requested slit mask",
-            helpURL = self.HelpPrefix + "Mask",
+            helpURL = _HelpPrefix + "Mask",
             defMenu = "Current",
             autoIsCurrent = True,
         )
@@ -137,14 +136,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         filterNameCurrWdg = RO.Wdg.StrLabel(self,
             helpText = "current filter set",
-            helpURL = self.HelpPrefix + "Filter",
+            helpURL = _HelpPrefix + "Filter",
             anchor = "w",
         )
         self.model.filterName.addROWdg(filterNameCurrWdg)
         self.filterNameUserWdg = RO.Wdg.OptionMenu(self,
             items=[],
             helpText = "requested filter set",
-            helpURL = self.HelpPrefix + "Filter",
+            helpURL = _HelpPrefix + "Filter",
             defMenu = "Current",
             autoIsCurrent = True,
         )
@@ -162,7 +161,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         self.turretNameCurrWdg = RO.Wdg.StrLabel(self,
             helpText = "current pos. of grating turret",
-            helpURL=self.HelpPrefix + "Turret",
+            helpURL=_HelpPrefix + "Turret",
             anchor = "w",
         )
 #       self.model.turretName.addIndexedCallback(self._doTurretName, 0)
@@ -173,7 +172,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             items=turretNames,
             callFunc=self._showHideGratingWdg,
             helpText = "requested pos. of grating turret",
-            helpURL = self.HelpPrefix + "Turret",
+            helpURL = _HelpPrefix + "Turret",
             defMenu = "Current",
             autoIsCurrent = True,
         )
@@ -196,7 +195,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         frame = Tkinter.Frame(self)
         detentCurrWdg = RO.Wdg.StrLabel(frame,
             helpText = "commanded pos. of turret detent",
-            helpURL = self.HelpPrefix + "Detent",
+            helpURL = _HelpPrefix + "Detent",
         )
         detentCurrWdg.pack(side="left")
         Tkinter.Label(frame, text="steps").pack(side="left")
@@ -206,7 +205,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             dataWdg = frame,
             sticky = "w",
             colSpan = 3,
-            cat = self.DetailCat,
+            cat = _DetailCat,
         )
 
         # color-specific widgets
@@ -225,9 +224,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             defValue = False,
             showValue = True,
             helpText = "show/hide engineering details",
-            helpURL = self.HelpPrefix + "ShowMore",
+            helpURL = _HelpPrefix + "ShowMore",
         )
-        gr.addShowHideControl(self.DetailCat, self.showDetailWdg)
+        gr.addShowHideControl(_DetailCat, self.showDetailWdg)
 
         colorLabelDict = {}
         for setName in ("data", "cfg"):
@@ -253,7 +252,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 width = _ColWidth,
                 anchor = "e",
                 helpText = "current %s grating" % colorDescr[ii],
-                helpURL=self.HelpPrefix + "Grating",
+                helpURL=_HelpPrefix + "Grating",
             )
             for ii in range(2)
         ]
@@ -270,7 +269,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                     width = _MaxDataWidth,
                     anchor="e",
                     helpText = "requested %s grating" % colorDescr[ii],
-                    helpURL = self.HelpPrefix + "Grating",
+                    helpURL = _HelpPrefix + "Grating",
                 )
                 for ii in range(2)
             ]
@@ -278,7 +277,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 label = None,
                 dataWdg = [None, None],
                 cfgWdg = gratingWdgSet,
-                cat = self.GSCat[gsid],
+                cat = _GSCat[gsid],
                 row = -1,
             )
             self.model.gratingsByGSID.getKeyVarByID(gsid).addROWdgSet(gratingWdgSet)
@@ -289,7 +288,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 width = _ColWidth,
                 anchor = "e",
                 helpText = "dispersion of current %s grating" % colorDescr[ii],
-                helpURL = self.HelpPrefix + "Dispersion",
+                helpURL = _HelpPrefix + "Dispersion",
             )
             for ii in range(2)
         ]
@@ -307,7 +306,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                     width = 4,
                     anchor="e",
                     helpText = "dispersion of requested %s grating" % colorDescr[ii],
-                    helpURL = self.HelpPrefix + "Dispersion",
+                    helpURL = _HelpPrefix + "Dispersion",
                 )
                 for ii in range(2)
             ]
@@ -316,7 +315,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 dataWdg = [None, None],
                 cfgWdg = dispersionWdgSet,
                 cfgUnits = u"\u00c5/pix",
-                cat = self.GSCat[gsid],
+                cat = _GSCat[gsid],
                 row = -1,
             )
             self.model.dispersionsByGSID.getKeyVarByID(gsid).addROWdgSet(dispersionWdgSet)
@@ -327,7 +326,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 width = _ColWidth,
                 anchor = "e",
                 helpText = "central wavelength of %s grating" % colorDescr[ii],
-                helpURL = self.HelpPrefix + "Lambda",
+                helpURL = _HelpPrefix + "Lambda",
             )
             for ii in range(2)
         ]       
@@ -348,7 +347,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                     maxValue = maxLambda[ii],
                     width = 5,
                     helpText = "central wavelength of %s grating" % colorDescr[ii],
-                    helpURL = self.HelpPrefix + "Lambda",
+                    helpURL = _HelpPrefix + "Lambda",
                     clearMenu = None,
                     defMenu = "Current",
                     autoIsCurrent = True,
@@ -361,7 +360,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 dataWdg = [None, None],
                 cfgWdg = self.lambdaUserWdgSet[gsid],
                 cfgUnits = u"\u00c5",
-                cat = self.GSCat[gsid],
+                cat = _GSCat[gsid],
                 row = -1,
             )
 
@@ -372,7 +371,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 width = _ColWidth,
                 anchor = "e",
                 helpText = "tilt of %s grating at lambda = 0" % colorDescr[ii],
-                helpURL=self.HelpPrefix + "ZeroTilt",
+                helpURL=_HelpPrefix + "ZeroTilt",
             )
             for ii in range(2)
         ]
@@ -381,7 +380,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             label = "Zero Tilt",
             dataWdg = zeroCurrWdgSet,
             units = "steps",
-            cat = self.DetailCat,
+            cat = _DetailCat,
         )
 
         tiltCurrWdgSet = [
@@ -389,7 +388,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 width = _ColWidth,
                 anchor = "e",
                 helpText = "tilt of %s grating at current lambda" % colorDescr[ii],
-                helpURL=self.HelpPrefix + "Tilt",
+                helpURL=_HelpPrefix + "Tilt",
             )
             for ii in range(2)
         ]
@@ -398,7 +397,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             label = "Tilt",
             dataWdg = tiltCurrWdgSet,
             units = "steps",
-            cat = self.DetailCat,
+            cat = _DetailCat,
         )
 
         ccdTempsCurrWdgSet = [
@@ -406,7 +405,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 width = _ColWidth,
                 anchor = "e",
                 helpText = "current temperature of %s CCD" % colorDescr[ii],
-                helpURL=self.HelpPrefix + "Temp",
+                helpURL=_HelpPrefix + "Temp",
             )
             for ii in range(2)
         ]
@@ -415,7 +414,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             label = "Temp",
             dataWdg = ccdTempsCurrWdgSet,
             units = "C",
-            cat = self.DetailCat,
+            cat = _DetailCat,
         )
 
         ccdHeatersCurrWdgSet = [
@@ -423,7 +422,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 width = _ColWidth,
                 anchor = "e",
                 helpText = "heater current (%% of full) for %s CCD" % colorDescr[ii],
-                helpURL=self.HelpPrefix + "Heater",
+                helpURL=_HelpPrefix + "Heater",
             )
             for ii in range(2)
         ]
@@ -432,7 +431,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             label = "Heater",
             dataWdg = ccdHeatersCurrWdgSet,
             units = "%",
-            cat = self.DetailCat,
+            cat = _DetailCat,
         )
 
         # ccd widgets
@@ -451,9 +450,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             defValue = False,
             showValue = True,
             helpText = "show/hide binning, etc.",
-            helpURL = self.HelpPrefix + "ShowCCD",
+            helpURL = _HelpPrefix + "ShowCCD",
         )
-        gr.addShowHideControl(self.CCDCat, self.showCCDWdg)
+        gr.addShowHideControl(_CCDCat, self.showCCDWdg)
         gr.gridWdg (
             label = self.showCCDWdg,
         )
@@ -472,7 +471,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             dataWdg = ccdLabelDict["data"],
             cfgWdg = ccdLabelDict["cfg"],
             sticky = "e",
-            cat = self.CCDCat,
+            cat = _CCDCat,
             row = -1,
         )
         
@@ -484,7 +483,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         ccdBinCurrWdgSet = [RO.Wdg.IntLabel(self,
             width = 4,
             helpText = "current bin factor in %s" % ccdDescr[ii],
-            helpURL=self.HelpPrefix + "Bin",
+            helpURL=_HelpPrefix + "Bin",
         )
             for ii in range(2)
         ]
@@ -496,7 +495,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 maxValue = 99,
                 width = 2,
                 helpText = "requested bin factor in %s" % ccdDescr[ii],
-                helpURL = self.HelpPrefix + "Bin",
+                helpURL = _HelpPrefix + "Bin",
                 clearMenu = None,
                 defMenu = "Current",
                 callFunc = self._userBinChanged,
@@ -509,7 +508,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             label = "Bin",
             dataWdg = ccdBinCurrWdgSet,
             cfgWdg = self.ccdBinUserWdgSet,
-            cat = self.CCDCat,
+            cat = _CCDCat,
         )
 
         # CCD window
@@ -523,7 +522,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         ccdWindowCurrWdgSet = [RO.Wdg.IntLabel(self,
             width = 4,
             helpText = "%s of current window (binned pix)" % winDescr[ii],
-            helpURL = self.HelpPrefix + "Window",
+            helpURL = _HelpPrefix + "Window",
         )
             for ii in range(4)
         ]
@@ -535,7 +534,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 maxValue = (2048, 1028, 2048, 1028)[ii],
                 width = 4,
                 helpText = "%s of requested window (binned pix)" % winDescr[ii],
-                helpURL = self.HelpPrefix + "Window",
+                helpURL = _HelpPrefix + "Window",
                 clearMenu = None,
                 defMenu = "Current",
                 minMenu = ("Mininum", "Minimum", None, None)[ii],
@@ -551,21 +550,21 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             dataWdg = ccdWindowCurrWdgSet[0:2],
             cfgWdg = self.ccdWindowUserWdgSet[0:2],
             units = "LL bpix",
-            cat = self.CCDCat,
+            cat = _CCDCat,
         )
         gr.gridWdg (
             label = None,
             dataWdg = ccdWindowCurrWdgSet[2:4],
             cfgWdg = self.ccdWindowUserWdgSet[2:4],
             units = "UR bpix",
-            cat = self.CCDCat,
+            cat = _CCDCat,
         )
 
         # Image size, in binned pixels
         self.ccdImageSizeCurrWdgSet = [RO.Wdg.IntLabel(self,
             width = 4,
             helpText = "current %s size of image (binned pix)" % winDescr[ii],
-            helpURL = self.HelpPrefix + "Window",
+            helpURL = _HelpPrefix + "Window",
         )
             for ii in range(2)
         ]
@@ -575,7 +574,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             RO.Wdg.IntLabel(self,
                 width = 4,
                 helpText = "requested %s size of image (binned pix)" % ("x", "y")[ii],
-                helpURL = self.HelpPrefix + "ImageSize",
+                helpURL = _HelpPrefix + "ImageSize",
             ) for ii in range(2)
         ]
         wdgSet = gr.gridWdg (
@@ -583,14 +582,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             dataWdg = self.ccdImageSizeCurrWdgSet,
             cfgWdg = self.ccdImageSizeUserWdgSet,
             units = "bpix",
-            cat = self.CCDCat,
+            cat = _CCDCat,
         )
 
         # ccd overscan
         ccdOverscanCurrWdgSet = [RO.Wdg.IntLabel(self,
                 width = 4,
                 helpText = "current overscan in %s (binned pix)" % ccdDescr[ii],
-                helpURL = self.HelpPrefix + "Overscan",
+                helpURL = _HelpPrefix + "Overscan",
             )
             for ii in range(2)
         ]
@@ -602,7 +601,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 maxValue = 2048,
                 width = 4,
                 helpText = "requested overscan in %s (binned pix)" % ccdDescr[ii],
-                helpURL = self.HelpPrefix + "Overscan",
+                helpURL = _HelpPrefix + "Overscan",
                 clearMenu = None,
                 defMenu = "Current",
                 autoIsCurrent = True,
@@ -615,7 +614,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             dataWdg = ccdOverscanCurrWdgSet,
             units = "bpix",
             cfgWdg = self.ccdOverscanUserWdgSet,
-            cat = self.CCDCat,
+            cat = _CCDCat,
         )
 
         # set up format functions for the various pop-up menus
@@ -873,8 +872,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         gsid = self.getGratingSetID()
 
         argDict = {
-            self.GSCat[1]: gsid == 1,
-            self.GSCat[2]: gsid == 2,
+            _GSCat[1]: gsid == 1,
+            _GSCat[2]: gsid == 2,
         }
         self.gridder.showHideWdg (**argDict)
 
@@ -904,6 +903,6 @@ if __name__ == "__main__":
     Tkinter.Button(bf, text="Demo", command=TestData.animate).pack(side="left")
     bf.pack()
 
-    testFrame.gridder.addShowHideControl(testFrame.ConfigCat, cfgWdg)
+    testFrame.gridder.addShowHideControl(_ConfigCat, cfgWdg)
 
     root.mainloop()

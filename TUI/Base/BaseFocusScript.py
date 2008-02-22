@@ -97,16 +97,6 @@ History:
 2007-09-12 ROwen    SlitviewerFocusScript bug fix: Cancel would fail if no image ever taken.
 2007-12-20 ROwen    Moved matplotlib configuration statements to TUI's startup because
                     in matplotlib 0.91.1 one may not call "use" after importing matplotlib.backends.
-2008-01-24 ROwen    BaseFocusScript bug fixes:
-                    - PR 686: Find button broken (waitFindStar ran "expose" instead of "findstars"
-                      and so never found anything.).
-                    - recordUserParams didn't round window so relStarPos could be off by a fraction of a pixel.
-2008-01-25 ROwen    Added a digit after the decimal point for reporting fwhm in arcsec.
-                    Implemented a lower limit on focus increment.
-2008-02-01 ROwen    Changed configuration constants from globals to class variables of BaseFocusScript
-                    so subclasses can more easily override them.
-                    Fixed debug mode to use proper defaults for number of steps and focus range.
-                    Setting current focus successfully clears the status bar.
 """
 import math
 import random # for debug
@@ -124,6 +114,18 @@ from TUI.Inst.ExposeInputWdg import ExposeInputWdg
 
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+# constants
+DefRadius = 5.0 # centroid radius, in arcsec
+NewStarRad = 2.0 # amount of star position change to be considered a new star
+DefFocusNPos = 5  # number of focus positions
+DefFocusRange = 200 # default focus range around current focus
+FocusWaitMS = 1000 # time to wait after every focus adjustment (ms)
+BacklashComp = 0 # amount of backlash compensation, in microns (0 for none)
+WinSizeMult = 2.5 # window radius = centroid radius * WinSizeMult
+FocGraphMargin = 5 # margin on graph for x axis limits, in um
+MaxFocSigmaFac = 0.5 # maximum allowed sigma of best fit focus as a multiple of focus range
 
 MicronStr = RO.StringUtil.MuStr + "m"
 
@@ -231,18 +233,6 @@ class BaseFocusScript(object):
     cmd_Find = "find"
     cmd_Measure = "measure"
     cmd_Sweep = "sweep"
-
-    # constants
-    #DefRadius = 5.0 # centroid radius, in arcsec
-    #NewStarRad = 2.0 # amount of star position change to be considered a new star
-    DefFocusNPos = 5  # number of focus positions
-    DefFocusRange = 200 # default focus range around current focus
-    FocusWaitMS = 1000 # time to wait after every focus adjustment (ms)
-    BacklashComp = 0 # amount of backlash compensation, in microns (0 for none)
-    WinSizeMult = 2.5 # window radius = centroid radius * WinSizeMult
-    FocGraphMargin = 5 # margin on graph for x axis limits, in um
-    MaxFocSigmaFac = 0.5 # maximum allowed sigma of best fit focus as a multiple of focus range
-    MinFocusIncr = 50 # minimum focus increment, in um
     def __init__(self,
         sr,
         gcamActor,
@@ -388,8 +378,8 @@ class BaseFocusScript(object):
         self.focusRangeWdg = RO.Wdg.IntEntry(
             master = sr.master,
             label = "Focus Range",
-            maxValue = self.DefFocusRange * 10,
-            defValue = self.DefFocusRange,
+            maxValue = 2000,
+            defValue = DefFocusRange,
             defMenu = "Default",
             helpText = "Range of focus sweep",
             helpURL = self.helpURL,
@@ -400,7 +390,7 @@ class BaseFocusScript(object):
             master = sr.master,
             label = "Focus Positions",
             minValue = 3,
-            defValue = self.DefFocusNPos,
+            defValue = DefFocusNPos,
             defMenu = "Default",
             helpText = "Number of focus positions for sweep",
             helpURL = self.helpURL,
@@ -413,7 +403,7 @@ class BaseFocusScript(object):
             defFormat = "%0.1f",
             readOnly = True,
             relief = "flat",
-            helpText = "Focus step size; must be at least %s %s" % (self.MinFocusIncr, MicronStr),
+            helpText = "Focus step size",
             helpURL = self.helpURL,
         )
         self.gr.gridWdg(self.focusIncrWdg.label, self.focusIncrWdg, MicronStr)
@@ -460,7 +450,7 @@ class BaseFocusScript(object):
         self.gr.gridWdg(False, self.logWdg, sticky="ew", colSpan = 10)
         
         # graph of measurements
-        plotFig = matplotlib.figure.Figure(figsize=(4, 1), frameon=True)
+        plotFig = matplotlib.figure.Figure(figsize=(4,1), frameon=True)
         self.figCanvas = FigureCanvasTkAgg(plotFig, sr.master)
         self.figCanvas.get_tk_widget().grid(row=0, column=graphCol, rowspan=graphRowSpan, sticky="news")
         self.plotAxis = plotFig.add_subplot(1, 1, 1)
@@ -510,6 +500,8 @@ class BaseFocusScript(object):
         if sr.debug:
             self.expTimeWdg.set("1")
             self.centerFocPosWdg.set(0)
+            self.focusRangeWdg.set(200)
+            self.numFocusPosWdg.set(5)
     
     def clearGraph(self):
         self.plotAxis.clear()
@@ -704,7 +696,7 @@ class BaseFocusScript(object):
         dataStrs = (
             formatNum(focPos, "%0.0f"),
             formatNum(fwhm, "%0.1f"),
-            formatNum(fwhmArcSec, "%0.2f"),
+            formatNum(fwhmArcSec, "%0.1f"),
         )
         outStr = "%s\t%s\n" % (name, "\t".join(dataStrs))
         self.logWdg.addOutput(outStr)
@@ -735,7 +727,7 @@ class BaseFocusScript(object):
         dataStrs = (
             formatNum(focPos, "%0.0f"),
             formatNum(fwhm, "%0.1f"),
-            formatNum(fwhmArcSec, "%0.2f"),
+            formatNum(fwhmArcSec, "%0.1f"),
             formatNum(starMeas.sky, "%0.0f"),
             formatNum(starMeas.ampl, "%0.0f"),
             formatNum(skyPlusAmpl, "%0.0f"),
@@ -764,7 +756,7 @@ class BaseFocusScript(object):
         self.centroidRadPix =  centroidRadArcSec / (self.arcsecPerPixel * self.binFactor)
         
         if doStarPos:
-            winRad = self.centroidRadPix * self.WinSizeMult
+            winRad = self.centroidRadPix * WinSizeMult
             
             self.absStarPos = [None, None]
             for ii in range(2):
@@ -772,11 +764,10 @@ class BaseFocusScript(object):
                 self.absStarPos[ii] = self.getEntryNum(wdg)
             
             if self.doWindow:
-                windowMinXY = [max(self.instLim[ii],   int(0.5 + self.absStarPos[ii] - winRad)) for ii in range(2)]
-                windowMaxXY = [min(self.instLim[ii-2], int(0.5 + self.absStarPos[ii] + winRad)) for ii in range(2)]
+                windowMinXY = [max(self.instLim[ii], self.absStarPos[ii] - winRad) for ii in range(2)]
+                windowMaxXY = [min(self.instLim[ii-2], self.absStarPos[ii] + winRad) for ii in range(2)]
                 self.window = windowMinXY + windowMaxXY
                 self.relStarPos = [self.absStarPos[ii] - windowMinXY[ii] for ii in range(2)]
-                print "winRad=%s, windowMinXY=%s, relStarPos=%s" % (winRad, windowMinXY, self.relStarPos)
             else:
                 self.window = None
                 self.relStarPos = self.absStarPos[:]
@@ -903,7 +894,6 @@ class BaseFocusScript(object):
             return
 
         self.centerFocPosWdg.set(currFocus)
-        self.sr.showMsg("")
     
     def setGraphRange(self, extremeFocPos=None, extremeFWHM=None):
         """Sets the displayed range of the graph.
@@ -914,8 +904,8 @@ class BaseFocusScript(object):
         """
         # "setGraphRange(extremeFocPos=%s, extremeFWHM=%s)" % (extremeFocPos, extremeFWHM)
         if extremeFocPos and extremeFocPos.isOK():
-            minFoc = extremeFocPos.minVal - self.FocGraphMargin
-            maxFoc = extremeFocPos.maxVal + self.FocGraphMargin
+            minFoc = extremeFocPos.minVal - FocGraphMargin
+            maxFoc = extremeFocPos.maxVal + FocGraphMargin
             if maxFoc - minFoc < 50:
                 minFoc -= 25
                 maxFoc += 25
@@ -968,11 +958,7 @@ class BaseFocusScript(object):
             return
 
         focusIncr = focusRange / float(numPos - 1)
-        isOK = focusIncr >= self.MinFocusIncr
-        if not isOK:
-            errMsg = "Focus increment too small (< %s %s)" % (self.MinFocusIncr, MicronStr)
-            self.sr.showMsg(errMsg, RO.Constants.sevWarning)
-        self.focusIncrWdg.set(focusIncr, isCurrent = isOK)
+        self.focusIncrWdg.set(focusIncr, isCurrent = True)
 
     def waitCentroid(self):
         """Take an exposure and centroid using 1x1 binning.
@@ -1024,7 +1010,7 @@ class BaseFocusScript(object):
             raise RuntimeError("Find disabled; maxFindAmpl=None")
 
         self.sr.showMsg("Exposing %s sec to find best star" % (self.expTime,))
-        findStarCmdStr = "findstars " + self.formatExposeArgs(doWindow=False)
+        findStarCmdStr = "expose " + self.formatExposeArgs(doWindow=False)
         
         yield sr.waitCmd(
            actor = self.gcamActor,
@@ -1117,8 +1103,6 @@ class BaseFocusScript(object):
         if numFocPos < 3:
             raise sr.ScriptError("need at least three focus positions")
         focusIncr = self.focusIncrWdg.getNum()
-        if focusIncr < self.MinFocusIncr:
-            raise sr.ScriptError("focus increment too small (< %s %s)" % (self.MinFocusIncr, MicronStr))
         numExpPerFoc = 1
         self.focDir = (endFocPos > startFocPos)
         
@@ -1191,7 +1175,7 @@ class BaseFocusScript(object):
 
         # check fit error
         if focSigma != None:
-            maxFocSigma = self.MaxFocSigmaFac * focusRange
+            maxFocSigma = MaxFocSigmaFac * focusRange
             if focSigma > maxFocSigma:
                 raise sr.ScriptError("focus std. dev. too large: %0.0f > %0.0f" % (focSigma, maxFocSigma))
         
@@ -1243,14 +1227,14 @@ class BaseFocusScript(object):
         
         # to try to eliminate the backlash in the secondary mirror drive move back 1/2 the
         # distance between the start and end position from the bestEstFocPos
-        if doBacklashComp and self.BacklashComp:
-            backlashFocPos = focPos - (abs(self.BacklashComp) * self.focDir)
+        if doBacklashComp and BacklashComp:
+            backlashFocPos = focPos - (abs(BacklashComp) * self.focDir)
             sr.showMsg("Backlash comp: moving focus to %0.0f %s" % (backlashFocPos, MicronStr))
             yield sr.waitCmd(
                actor = "tcc",
                cmdStr = "set focus=%0.0f" % (backlashFocPos,),
             )
-            yield sr.waitMS(self.FocusWaitMS)
+            yield sr.waitMS(FocusWaitMS)
         
         # move to desired focus position
         sr.showMsg("Moving focus to %0.0f %s" % (focPos, MicronStr))
@@ -1258,7 +1242,7 @@ class BaseFocusScript(object):
            actor = "tcc",
            cmdStr = "set focus=%0.0f" % (focPos,),
         )
-        yield sr.waitMS(self.FocusWaitMS)
+        yield sr.waitMS(FocusWaitMS)
 
 
 class SlitviewerFocusScript(BaseFocusScript):

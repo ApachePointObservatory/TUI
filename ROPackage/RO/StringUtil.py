@@ -39,7 +39,6 @@ History:
                     and a related bug in dmsStrFroMSec. Thanks to John Lucey.
                     (Note: the test code had a case for it, but expected the wrong value.)
 2007-06-04 ROwen    Bug fix: dmsStrFromSec gave bad results if nFields != 3.
-2008-01-30 ROwen    Removed unused variable signNum (found by pychecker).
 """
 import re
 
@@ -438,8 +437,10 @@ def _getDMSFields (decDeg, nFields=3, precision=1):
         raise ValueError("precision=%r; must be >= 0" % (precision,))
 
     if decDeg < 0:
+        signNum = -1
         signStr = "-"
     else:
+        signNum = 1
         signStr = ""
 
     if nFields == 1:

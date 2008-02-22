@@ -2,7 +2,6 @@
 History:
 2003-10-23 ROwen    Renamed from GetByPrefix and enhanced.
 2005-06-08 ROwen    Changed MatchList to a new style class.
-2008-01-04 ROwen    Bug fix: was not compatible with unicode entries (the match test would fail).
 """
 class MatchList(object):
     """Find matches for a string in a list of strings,
@@ -20,6 +19,10 @@ class MatchList(object):
     ):
         self.abbrevOK = bool(abbrevOK)
         self.ignoreCase = bool(ignoreCase)
+        if self.abbrevOK:
+            self.strMatchMethhod = str.startswith
+        else:
+            self.strMatchMethhod = str.__eq__
         
         self.setList(valueList)
 
@@ -28,10 +31,9 @@ class MatchList(object):
         """
         if self.ignoreCase:
             prefix = prefix.lower()
-        if self.abbrevOK:
-            return [valItem[-1] for valItem in self.valueList if valItem[0].startswith(prefix)]
-        else:
-            return [valItem[-1] for valItem in self.valueList if valItem[0] == prefix]       
+        return [valItem[-1] for valItem in self.valueList
+            if self.strMatchMethhod(valItem[0], prefix)
+        ]       
 
     def getUniqueMatch(self, prefix):
         """If there is a unique match, return it, else raise ValueError.
@@ -62,7 +64,7 @@ class MatchList(object):
     
     def setList(self, valueList):
         """Set the list of values to match.
-        Non-string-like items are silently ignored.
+        Non-string items are silently ignored.
         """
         if self.ignoreCase:
             self.valueList = [
