@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import generators
 """Data for testing various DIS widgets"""
 import TUI.TUIModel
 

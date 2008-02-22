@@ -1,27 +1,24 @@
 #!/usr/bin/env python
+from __future__ import generators
 """Status/config and exposure windows for the Echelle.
 
 History:
 2003-12-08 ROwen
 2005-06-10 ROwen    Added test code.
 2005-06-14 ROwen    Corrected a comment that said GRIM.
-2008-02-11 ROwen    Modified to use new TUI.Inst.StatusConfigWdg.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
-import TUI.Inst.StatusConfigWdg
-import StatusConfigInputWdg
-
-InstName = StatusConfigInputWdg.StatusConfigInputWdg.InstName
+import StatusConfigWdg
 
 def addWindow(tlSet):
     tlSet.createToplevel (
-        name = "None.%s Expose" % (InstName,),
+        name = "None.Echelle Expose",
         defGeom = "+452+280",
         resizable = False,
         wdgFunc = RO.Alg.GenericCallback (
             TUI.Inst.ExposeWdg.ExposeWdg,
-            instName = InstName,
+            instName = "Echelle",
         ),
         visible=False,
     )
@@ -30,16 +27,10 @@ def addWindow(tlSet):
         name = "Inst.Echelle",
         defGeom = "+676+280",
         resizable = False,
-        wdgFunc = StatusConfigWdg,
+        wdgFunc = StatusConfigWdg.StatusConfigWdg,
         visible = False,
     )
 
-class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):
-    def __init__(self, master):
-        TUI.Inst.StatusConfigWdg.StatusConfigWdg.__init__(self,
-            master = master,
-            statusConfigInputClass = StatusConfigInputWdg.StatusConfigInputWdg,
-        )
 
 
 if __name__ == "__main__":

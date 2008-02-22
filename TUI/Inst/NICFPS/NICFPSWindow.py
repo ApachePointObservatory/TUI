@@ -1,44 +1,33 @@
 #!/usr/bin/env python
+from __future__ import generators
 """Status/config and exposure windows for NIC-FPS.
 
 History:
 2004-10-19 ROwen
-2008-02-11 ROwen    Modified to use new TUI.Inst.StatusConfigWdg.
-2008-02-12 ROwen    Bug fix: was using instName=Expose for the expose window.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
-import TUI.Inst.StatusConfigWdg
-import StatusConfigInputWdg
-
-InstName = StatusConfigInputWdg.StatusConfigInputWdg.InstName
+import StatusConfigWdg
 
 def addWindow(tlSet):
     tlSet.createToplevel (
-        name = "None.%s Expose" % (InstName,),
+        name = "None.NICFPS Expose",
         defGeom = "+452+280",
         resizable = False,
         wdgFunc = RO.Alg.GenericCallback (
             TUI.Inst.ExposeWdg.ExposeWdg,
-            instName = InstName,
+            instName = "NICFPS",
         ),
-        visible = False,
+        visible=False,
     )
     
     tlSet.createToplevel (
-        name = "Inst.%s" % (InstName,),
+        name = "Inst.NICFPS",
         defGeom = "+676+280",
         resizable = False,
-        wdgFunc = StatusConfigWdg,
-        visible = False,
+        wdgFunc = StatusConfigWdg.StatusConfigWdg,
+        visible = (__name__ == "__main__"),
     )
-
-class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):
-    def __init__(self, master):
-        TUI.Inst.StatusConfigWdg.StatusConfigWdg.__init__(self,
-            master = master,
-            statusConfigInputClass = StatusConfigInputWdg.StatusConfigInputWdg,
-        )
 
 
 if __name__ == "__main__":

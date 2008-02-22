@@ -31,8 +31,6 @@ History:
 2007-04-24 ROwen    Changed commented-out import of numarray to numpy;
                     whether it builds using numpy is untested.
 2007-07-10 ROwen    Fixed for Python 2.5 (was referring to Python 2.4 for the snack directory).
-2008-02-21 ROwen    Modified to use direct RO path instead of relying on the symlink
-                    (which was not working when trying to build 1.4.5).
 """
 from distutils.core import setup
 import os
@@ -53,12 +51,12 @@ for extra in ["win32com.shell"]:
         modulefinder.AddPackagePath(extra, pth)
 
 tuiRoot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-roRoot = os.path.join(tuiRoot, "ROPackage", "python")
+roRoot = os.path.join(tuiRoot, "ROPackage")
 sys.path = [tuiRoot, roRoot] + sys.path
 import TUI.Version
 mainProg = os.path.join(tuiRoot, "runtui.py")
 
-NDataFilesToPrint = 5 # number of data files to print, per directory
+NDataFilesToPrint = 0 # number of data files to print, per directory
 
 def addDataFiles(dataFiles, fromDir, toSubDir=None, inclHiddenDirs=False):
     """Find data files and format data for the data_files argument of setup.
@@ -76,8 +74,6 @@ def addDataFiles(dataFiles, fromDir, toSubDir=None, inclHiddenDirs=False):
     
     Returns a list of the following elements:
     """
-    if not os.path.isdir(fromDir):
-        raise RuntimeError("Cannot find directory %r" % (fromDir,))
     lenFromDir = len(fromDir)
     if toSubDir == None:
         toSubDir = os.path.split(fromDir)[1]
@@ -106,7 +102,7 @@ for resBase in ("Bitmaps",):
     toSubDir = os.path.join("RO", resBase)
     fromDir = os.path.join(roRoot, toSubDir)
     addDataFiles(dataFiles, fromDir, toSubDir)
- 
+    
 # Add tcl snack libraries
 pythonDir = os.path.dirname(sys.executable)
 snackSubDir = "tcl\\snack2.2"
