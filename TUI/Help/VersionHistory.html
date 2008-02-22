@@ -8,105 +8,18 @@
 
 <h3>Compatibility</h3>
 <ul>
-	<li>Mac: works with MacOS X 10.4 and 10.3.9 and is a universal binary. It may run on MacOS X 10.5 (we're still testing).
+	<li><a name="macwarning"></a>Mac: works with MacOS X 10.4 and 10.3.9. However: users of MacOS X 10.3.9 will not be able to Save Window Positions due to Aqua Tcl/Tk <a href="http://sourceforge.net/tracker/?func=detail&amp;aid=1771916&amp;group_id=12997&amp;atid=112997">bug 1771916</a> (which is not likely to be fixed). I encourage you to upgrade. If you find 10.4 slow then disable spotlight. TUI is a universal binary (as of version 1.4.1).
+    <li>Windows: works with Windows 2000, XP and Vista.
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
-	<li>Windows: works with Windows 2000, XP and Vista.
 </ul>
 
 <h3><a name="UnixWarning">Warning For Unix Users</a></h3>
 
-<p>TUI now uses numpy instead of numarray and Numeric (as of version 1.4). As a result, <br><b>unix users must install</b>:
+<p>TUI now uses numpy instead of numarray and Numeric (as of version 1.4). As a result,<br><b>unix users must install</b>:
 <ul>
     <li>numpy (1.0 or later)
     <li>A numpy-compatible version of pyfits (1.1 or later). <b>Warning:</b> once this is installed, to you must take a special step to run TUI 1.3 or older: you must set environment variable NUMERIX to <code>numarray</code>. I suggest you define this in the shell script that launches TUI 1.3 (or older) because it is must <b>not</b> be set for TUI 1.4.
     <li>A numpy-compatible version of matplotlib to run focus scripts. Future versions of TUI are likely to require matplotlib to run at all. (The Mac and Windows versions of TUI already include matplotlib.)
-</ul>
-
-<h3><a name="MacWarning">Warning For MacOS X 10.3.9 Users</a></h3>
-
-<p><b>To run on MacOS X 10.3.9:</b> you must install <a href="http://downloads.activestate.com/ActiveTcl/MacOSX/">Tcl/Tk</a> to use this version of TUI. I recommend Tcl/Tk 8.4.11 or 8.4.14. Version 8.4.15-8.4.17 contains a nasty memory leak and Python is not yet fully compatible with Tcl/Tk 8.5.
-
-<h3>1.4.5 2008-02-14</h3>
-
-<b>Users on MacOS X 10.3.9 please see the <a href="#MacWarning">Mac warning</a></b>.
-
-<p>Visible changes:
-<ul>
-    <li>Guider Windows:
-    <ul>
-        <li>The NA2 Guider window can control the filter and focus.
-        <li>Changed default scale to Linear and range to 99.9% to 99.5%
-    </ul>
-    <li>Scripts:
-    <ul>
-        <li>Added NA2 Guider script "Focus GMech". Renamed NA2 Guider script Focus to "Focus Sec".
-    	<li>Focus scripts now require the focus step size to be at least 50 microns. This prevents wasting time with unreasonably tiny steps.
-    </ul>
-    <li>The guider status in the Status window shows the camera as well as the state (unless the state is Off or unknown) and shows Manual as a separate state, in blue, to help identify failed autoguiding.
-    <li>Cosmetic changes:
-    <ul>
-        <li>Renamed Cancel to X in most windows (but not yet scripts). This makes many windows narrower.
-        <li>Properly enable/disable buttons in all instrument windows, Secondary Focus and Connect.
-        <li>Added a cancel button (X) to the Secondary Focus and Echelle windows.
-    </ul>
-    <li>The Mac version is once again a universal Binary. This version uses the native Tcl/Tk because that seems to work best for MacOS X 10.5 (though it has cosmetic issues: some buttons may not appear until you press them, other buttons may be shown as disabled even if they are enabled).
-</ul>
-
-<p>Bug fixes:
-<ul>
-	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=739">PR 739</a> NA2 Guider Focus GMech script subframing is wrong. This appears to be due to gcam subframing wrong; I submitted PR 740 to this effect and worked around the problem by disabling subframing.
-	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=724">PR 724</a> gfocus values do not display/update in TUI status window. This broke in all prior versions of TUI when control of the NA2 guider mechanicals was removed from the TCC to a new hub actor.
-	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=720">PR 720</a> SPIcam focus script failed, funky error message. Note that I think I worked around the problem but still don't understand how it could cause these symptoms so this may not yet be fully fixed.
-    <li>Rotation type is once again displayed in the Status window.
-	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=701">PR 701</a> Enclosure window heater All On/All Off buttons are reversed.
-</ul>
-
-<p>Internal changes:
-<ul>
-    <li>All instruments now use a common "StatusConfigWdg" instead of each writing their own. This reduces replicated code and offers better commonality.
-</ul>
-
-<h3>1.4.4 2008-01-03</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Improved the guider control-click offset. The offset is displayed as an arrow. The offset may be modified by dragging the mouse, and may be cancelled by dragging the mouse off the image.
-    <blockquote>
-        <p>Occasionally the mouse position is reported incorrectly on Macs due to a Tcl/Tk bug. Formerly this caused mysteriously wrong control-click offsets. Now you will see the problem: the arrow will not start at the mouse pointer (or will not appear at all if the incorrectly reported mouse position is off the image). The arrow shows the offset you will really get. You may move the mouse until the arrow shows the offset you want, or cancel the offset by moving the mouse until the start of the arrow goes off the image (at which point the arrow will disappear, indicating that no offset will be sent).
-    </blockquote>
-    <li>NICFPS improvements:
-    <ul>
-        <li>Fowler Samples is a normal entry box instead of a menu. The menu was already very long and could have gotten longer someday.
-        <li>Fixed some layout problems in the NICFPS window.
-     </ul>
-    <li>The "about box" now includes the version of various libraries used by TUI. This is useful information for diagnosing bugs.
-</ul>
-
-<p>Internal changes:
-<ul>
-    <li>NICFPS now reports the maximum number of Fowler samples allowed, so I modified TUI to use this information instead of hard-coding the maximum. This will be handy if NICFPS is ever modified to allow more Fowler samples.
-</ul>
-
-<p>Bug fix:
-<ul>
-    <li>TUI focus scripts were incompatible with matplotlib 0.91.1. Note to script writers: do not call matplotlib.use() because it raises an exception (in matplotlib 0.91.1) once matplotlib.backends has been imported. To work around this TUI now configures the matplotlib backend at startup.
-</ul>
-
-<h3>1.4.3 2007-11-16</h3>
-
-<p>Visible changes:
-<ul>
-    <li>One may now specify a port after the hub host address (after a space).
-    <li>NICFPS now allows up to 15 fowler samples.
-</ul>
-
-<h3>1.4.2 2007-11-09</h3>
-
-<p>This version is only for Macintoshes. It fixes two Mac-specific bugs by reverting to an older version of Aqua Tcl/Tk. As a result Mac TUI is once again not a universal binary.
-
-<p>Bug fixes:
-<ul>
-	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=681">PR 681</a> Memory leak.
 </ul>
 
 <h3>1.4.1 2007-10-09</h3>

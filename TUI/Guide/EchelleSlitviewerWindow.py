@@ -10,10 +10,6 @@ History:
 2005-07-14 ROwen    Removed local test mode support.
 2006-05-26 ROwen    Moved ecam-specific code to a separate class, to avoid name collisions.
                     Added Current menu to the filter menu.
-2008-02-06 ROwen    Tweaked the layout a bit.
-2008-02-11 ROwen    Modified the code to match NA2 Guider window, including:
-                    - Added a cancel button
-                    - Hid the current filter by default
 """
 import Tkinter
 import RO.InputCont
@@ -34,7 +30,6 @@ def addWindow(tlSet):
         visible = False,
     )
 
-
 class EchelleSlitviewerWdg(GuideWdg.GuideWdg):
     def __init__(self,
         master,
@@ -44,98 +39,68 @@ class EchelleSlitviewerWdg(GuideWdg.GuideWdg):
             actor = "ecam",
         )
         
-        self.ECamFilterWdg = ECamFilterWdg(
+        self.ecamExtraWdg = ECamExtraWdg(
             master = self.devSpecificFrame,
-            statusBar = self.statusBar,
+            doCmd = self.doCmd,
         )
-        self.ECamFilterWdg.pack(side="left", expand=True, fill="x")
-        
-        self.devSpecificFrame.configure(border=5, relief="sunken")
+        self.ecamExtraWdg.pack(side="left")
     
 
-class ECamFilterWdg(Tkinter.Frame):
+class ECamExtraWdg(Tkinter.Frame):
     def __init__(self,
         master,
-        statusBar
-    ):
-        Tkinter.Frame.__init__(self, master = master)
-        self.statusBar = statusBar
+        doCmd,
+    **kargs):
+        Tkinter.Frame.__init__(self,
+            master = master,
+        )
 
         self.echelleModel = TUI.Inst.Echelle.EchelleModel.getModel()
-        self.currCmd = None
-        
-        # show current filter as well as user filter menu?
-        showCurrFilter = False
+        self.doCmd = doCmd
 
-        col = 0
+        gr = RO.Wdg.Gridder(self)
         
-        RO.Wdg.StrLabel(
-            master = self,
-            text = "Filter",
-            helpText = "Echelle slitviewer filter",
-            helpURL = _HelpURL,
-        ).grid(row=0, column=col)
-        col += 1
-        
-        self.currFilterWdg = RO.Wdg.StrLabel(
+        self.currFiltWdg = RO.Wdg.StrLabel(
             master = self,
             width = _FiltWidth,
             helpText = "Current Echelle slitviewer filter",
             helpURL = _HelpURL,
         )
-        if showCurrFilter:
-            self.currFilterWdg.grid(row=0, column=col)
-            col += 1
         
-        if showCurrFilter:
-            userFilterHelp = "Desired Echelle slitviewer filter"
-        else:
-            userFilterHelp = "Echelle slitviewer filter"
-
-        self.userFilterWdg = RO.Wdg.OptionMenu(
+        self.userFiltWdg = RO.Wdg.OptionMenu(
             master = self,
             items = (),
             autoIsCurrent = True,
             width = _FiltWidth,
-            callFunc = self.enableButtons,
             defMenu = "Current",
-            helpText = userFilterHelp,
+            helpText = "Desired Echelle slitviewer filter",
             helpURL = _HelpURL,
         )
-        self.userFilterWdg.grid(row=0, column=col)
-        col += 1
+        gr.gridWdg("Filter", self.currFiltWdg, self.userFiltWdg)
 
-        nCols = col
+        col = gr.getNextCol()
+        nRows = gr.getNextRow()
 
-        self.applyBtn = RO.Wdg.Button(
+        self.applyWdg = RO.Wdg.Button(
             master = self,
-            text = "Set Filter",
+            text = "Apply",
             callFunc = self.doApply,
             helpText = "Set Echelle slitviewer filter",
             helpURL = _HelpURL,
         )
-        self.applyBtn.grid(row=0, column=col)
+        self.applyWdg.setEnable(False)
+        self.applyWdg.grid(row=0, column=col, rowspan=nRows)
         col += 1
 
-        self.cancelBtn = RO.Wdg.Button(
+        self.currWdg = RO.Wdg.Button(
             master = self,
-            text = "X",
-            callFunc = self.doCancel,
-            helpText = "Cancel filter command",
-            helpURL = _HelpURL,
-        )
-        self.cancelBtn.grid(row=0, column=col)
-        col += 1
-
-        self.currentBtn = RO.Wdg.Button(
-            master = self,
-            text = "Current Filter",
+            text = "Current",
             callFunc = self.doCurrent,
             helpText = "Show current Echelle slitviewer filter",
             helpURL = _HelpURL,
         )
-        self.currentBtn.setEnable(False)
-        self.currentBtn.grid(row=0, column=col)
+        self.currWdg.setEnable(False)
+        self.currWdg.grid(row=0, column=col, rowspan=nRows)
         col += 1
         
         self.grid_columnconfigure(col, weight=1)
@@ -143,53 +108,43 @@ class ECamFilterWdg(Tkinter.Frame):
         def fmtStrArg(argStr):
             return RO.StringUtil.quoteStr(argStr.lower())
 
+        self.inputCont = RO.InputCont.WdgCont (
+            name = "svfilter",
+            wdgs = self.userFiltWdg,
+            formatFunc = RO.InputCont.BasicFmt(
+                valFmt=fmtStrArg,
+            ),
+            callFunc = self.inputContCallback,
+        )
+        
         self.echelleModel.svFilter.addIndexedCallback(self.updFilter)
+#       self.echelleModel.svFilter.addROWdg(self.currFiltWdg)
+#       self.echelleModel.svFilter.addROWdg(self.userFiltWdg, setDefault=True)
         self.echelleModel.svFilterNames.addCallback(self.updFilterNames)
-    
-    def cmdDone(self, *args, **kargs):
-        self.currCmd = None
-        self.enableButtons()
 
     def doApply(self, wdg=None):
         """Apply changes to configuration"""
-        desFilter = self.userFilterWdg.getString()
-        cmdStr = 'svfilter "%s"' % (desFilter,)
+        cmdStr = self.inputCont.getString()
+        if not cmdStr:
+            return
 
-        self.currCmd = RO.KeyVariable.CmdVar (
-            actor = self.echelleModel.actor,
-            cmdStr = cmdStr,
-            callFunc = self.cmdDone,
-            callTypes = RO.KeyVariable.DoneTypes,
-        )
-        self.statusBar.doCmd(self.currCmd)
-        self.enableButtons()
-    
-    def doCancel(self, *args, **kargs):
-        if self.currCmd and not self.currCmd.isDone():
-            self.currCmd.abort()
-            self.doCurrent()
+        self.doCmd(cmdStr, actor=self.echelleModel.actor, cmdBtn=self.applyWdg)
     
     def doCurrent(self, wdg=None):
-        self.userFilterWdg.restoreDefault()
-
-    def enableButtons(self, wdg=None):
-        """Enable the various buttons depending on the current state"""
-        if self.currCmd and not self.currCmd.isDone():
-            self.userFilterWdg.setEnable(False)
-            self.currentBtn.setEnable(False)
-            self.cancelBtn.setEnable(True)
-            self.applyBtn.setEnable(False)
-        else:
-            allowChange = not self.userFilterWdg.isDefault()
-            self.userFilterWdg.setEnable(True)
-            self.applyBtn.setEnable(allowChange)
-            self.cancelBtn.setEnable(False)
-            self.currentBtn.setEnable(allowChange)
+        self.inputCont.restoreDefault()
     
+    def inputContCallback(self, inputCont=None):
+        """Disable Apply if all values default.
+        """
+        cmdStr = self.inputCont.getString()
+        doEnable = cmdStr != ""
+        self.applyWdg.setEnable(doEnable)
+        self.currWdg.setEnable(doEnable)
+
     def updFilter(self, filt, isCurrent, keyVar=None):
         #print "updFilter(filt = %s, isCurrent = %s)" % (filt, isCurrent)
-        self.currFilterWdg.set(filt, isCurrent = isCurrent)
-        self.userFilterWdg.setDefault(filt, isCurrent = isCurrent)
+        self.currFiltWdg.set(filt, isCurrent = isCurrent)
+        self.userFiltWdg.setDefault(filt, isCurrent = isCurrent)
     
     def updFilterNames(self, filtNames, isCurrent, keyVar=None):
         #print "updFilterNames(filtNames = %s, isCurrent = %s)" % (filtNames, isCurrent)
@@ -201,9 +156,10 @@ class ECamFilterWdg(Tkinter.Frame):
             if name != None:
                 maxNameLen = max(maxNameLen, len(name))
 
-        self.currFilterWdg["width"] = maxNameLen
-        self.userFilterWdg["width"] = maxNameLen
-        self.userFilterWdg.setItems(filtNames)
+        self.currFiltWdg["width"] = maxNameLen
+        self.userFiltWdg["width"] = maxNameLen
+        self.userFiltWdg.setItems(filtNames)
+
 
 
 if __name__ == "__main__":

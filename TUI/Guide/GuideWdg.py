@@ -174,10 +174,6 @@ History:
                     due to not using the doneFunc argument of RO.Wdg.Entry widgets.
                     Used the new label argument for RO.Wdg.Entry widgets.
 2007-04-24 ROwen    Modified to use numpy instead of numarray.
-2007-12-18 ROwen    Improved control-click offset: display an arrow showing the offset; the arrow
-                    may be dragged to modify the offset or dragged off the image to cancel the offset.
-2007-01-28 ROwen    Changed default range from 99.9% to 99.5%.
-2008-02-11 ROwen    Changed name of cancel button from Cancel to X.
 """
 import atexit
 import os
@@ -213,7 +209,6 @@ _GuideTag = "guide"
 _SelTag = "showSelection"
 _DragRectTag = "centroidDrag"
 _BoreTag = "boresight"
-_CtrlClickTag = "ctrlClick"
 
 _SelRad = 18
 _SelHoleRad = 9
@@ -335,9 +330,6 @@ class GuideWdg(Tkinter.Frame):
         self.actor = actor
         self.guideModel = GuideModel.getModel(actor)
         self.tuiModel = TUI.TUIModel.getModel()
-        self.boreXY = None
-        self.ctrlClickOK = False
-        self.ctrlClickArrow = None
         
         # color prefs
         def getColorPref(prefName, defColor, isMask = False):
@@ -369,6 +361,7 @@ class GuideWdg(Tkinter.Frame):
         self.imObjDict = RO.Alg.ReverseOrderedDict()
         self._memDebugDict = {}
         self.dispImObj = None # object data for most recently taken image, or None
+        self.inCtrlClick = False
         self.ds9Win = None
         
         self.doingCmd = None # (cmdVar, cmdButton, isGuideOn) used for currently executing cmd
@@ -496,7 +489,6 @@ class GuideWdg(Tkinter.Frame):
             maskInfo = maskInfo,
             helpURL = _HelpPrefix + "Image",
             callFunc = self.enableSubFrameBtns,
-            defRange = "99.5%",
         )
         self.gim.grid(row=row, column=0, columnspan=totCols, sticky="news")
         self.grid_rowconfigure(row, weight=1)
@@ -900,7 +892,7 @@ class GuideWdg(Tkinter.Frame):
         
         self.cancelBtn = RO.Wdg.Button(
             cmdButtonFrame,
-            text = "X",
+            text = "Cancel",
             callFunc = self.cmdCancel,
             helpText = "Cancel executing command",
             helpURL = helpURL,
@@ -956,9 +948,7 @@ class GuideWdg(Tkinter.Frame):
         self.gim.cnv.bind("<Button-1>", self.doDragStart, add=True)
         self.gim.cnv.bind("<B1-Motion>", self.doDragContinue, add=True)
         self.gim.cnv.bind("<ButtonRelease-1>", self.doDragEnd, add=True)
-        self.gim.cnv.bind("<Control-Button-1>", self.centerOnClickBegin)
-        self.gim.cnv.bind("<Control-B1-Motion>", self.centerOnClickContinue)
-        self.gim.cnv.bind("<Control-ButtonRelease-1>", self.centerOnClickEnd)
+        self.gim.cnv.bind("<Control-Button-1>", self.doCenterOnClick)
         
         # keyword variable bindings
         self.guideModel.fsActRadMult.addIndexedCallback(self.updRadMult)
@@ -1014,86 +1004,6 @@ class GuideWdg(Tkinter.Frame):
 
         return False
 
-    def centerOnClickBegin(self, evt):
-        """Start control-click: center up on the command-clicked image location.
-        Display arrow showing the offset that will be applied.
-        """
-        self.ctrlClickOK = False # assume the worst for now
-        self.ctrlClickArrow = None
-
-        try:
-            if not self.imDisplayed():
-                raise RuntimeError("Ctrl-click requires an image")
-        
-            if not self.guideModel.gcamInfo.slitViewer:
-                raise RuntimeError("Ctrl-click requires a slit viewer")
-        
-            if self.gim.mode != "normal": # recode to use a class constant
-                raise RuntimeError("Ctrl-click requires default mode (+ icon)")
-            
-            if self.boreXY == None:
-                raise RuntimeError("Boresight position unknown")
-
-            if not self.gim.evtOnCanvas(evt):
-                raise RuntimeError("Tcl/Tk bug: event not on canvas")
-        except RuntimeError, e:
-            self.statusBar.setMsg(str(e), severity = RO.Constants.sevError)
-            self.statusBar.playCmdFailed()
-            return
-        
-        self.ctrlClickOK = True
-        evtCnvPos = self.gim.cnvPosFromEvt(evt)
-        boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
-        self.ctrlClickArrow = self.gim.cnv.create_line(
-            evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
-            fill = self.boreColorPref.getValue(),
-            tags = _CtrlClickTag,
-            arrow = "last",
-        )
-   
-    def centerOnClickContinue(self, evt):
-        """Drag control-click arrow around.
-        """
-        self.gim.cnv.delete(self.ctrlClickArrow)
-        self.ctrlClickArrow = None
-        if not self.ctrlClickOK:
-            return
-
-        if not self.gim.evtOnCanvas(evt):
-            # mouse is off canvas; don't draw an arrow
-            return
-
-        evtCnvPos = self.gim.cnvPosFromEvt(evt)
-        boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
-        self.ctrlClickArrow = self.gim.cnv.create_line(
-            evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
-            fill = self.boreColorPref.getValue(),
-            tags = _CtrlClickTag,
-            arrow = "last",
-        )
-    
-    def centerOnClickEnd(self, evt):
-        """Center up on the command-clicked image location.
-        """
-        if self.ctrlClickArrow != None:
-            self.gim.cnv.delete(self.ctrlClickArrow)
-            self.ctrlClickArrow = None
-        if not self.ctrlClickOK:
-            return
-        self.ctrlClickOK = False
-
-        if not self.gim.evtOnCanvas(evt):
-            # mouse is off canvas; don't do anything
-            return
-
-        evtCnvPos = self.gim.cnvPosFromEvt(evt)
-        imPos = self.gim.imPosFromCnvPos(evtCnvPos)
-        
-        expArgs = self.getExpArgStr() # inclThresh=False)
-        cmdStr = "guide centerOn=%.2f,%.2f %s" % (imPos[0], imPos[1], expArgs)
-
-        self.doCmd(cmdStr)
-
     def cmdCancel(self, wdg=None):
         """Cancel the current command.
         """
@@ -1132,6 +1042,33 @@ class GuideWdg(Tkinter.Frame):
         """Show normal image cursor.
         """
         self.gim.cnv["cursor"] = self.defCnvCursor
+    
+    def doCenterOnClick(self, evt):
+        """Center up on the command-clicked image location.
+        """
+        self.inCtrlClick = True
+
+        try:
+            if not self.imDisplayed():
+                raise RuntimeError("Ctrl-click requires an image")
+        
+            if not self.guideModel.gcamInfo.slitViewer:
+                raise RuntimeError("Ctrl-click requires a slit viewer")
+        
+            if self.gim.mode != "normal": # recode to use a class constant
+                raise RuntimeError("Ctrl-click requires default mode (+ icon)")
+            
+            cnvPos = self.gim.cnvPosFromEvt(evt)
+            imPos = self.gim.imPosFromCnvPos(cnvPos)
+            
+            expArgs = self.getExpArgStr() # inclThresh=False)
+            cmdStr = "guide centerOn=%.2f,%.2f %s" % (imPos[0], imPos[1], expArgs)
+        except RuntimeError, e:
+            self.statusBar.setMsg(str(e), severity = RO.Constants.sevError)
+            self.statusBar.playCmdFailed()
+            return
+
+        self.doCmd(cmdStr)
     
     def doCenterOnSel(self, evt):
         """Center up on the selected star.
@@ -1329,6 +1266,8 @@ class GuideWdg(Tkinter.Frame):
             raise
     
     def doDragContinue(self, evt):
+        if self.inCtrlClick:
+            return
         if not self.gim.isNormalMode():
             return
         if not self.dragStart:
@@ -1338,6 +1277,9 @@ class GuideWdg(Tkinter.Frame):
         self.gim.cnv.coords(self.dragRect, self.dragStart[0], self.dragStart[1], newPos[0], newPos[1])
     
     def doDragEnd(self, evt):
+        if self.inCtrlClick:
+            self.inCtrlClick = False
+            return
         if not self.gim.isNormalMode():
             return
 
@@ -1898,11 +1840,6 @@ class GuideWdg(Tkinter.Frame):
         - forceCurr force guide params to be set to current value?
             if None then automatically set based on the Current button
         """
-        self.boreXY = None
-        if self.ctrlClickArrow != None:
-            print "Warning: ctrlClickArrow left around while displaying new image"
-            self.gim.cnv.delete(self.ctrlClickArrow)
-            self.ctrlClickArrow = None
         #print "showImage(imObj=%s)" % (imObj,)
         # expire current image if not in history (this should never happen)
         if (self.dispImObj != None) and (self.dispImObj.imageName not in self.imObjDict):
@@ -1994,14 +1931,14 @@ class GuideWdg(Tkinter.Frame):
                     self.showStar(starData)
             
             if self.guideModel.gcamInfo.slitViewer and imHdr:
-                boreXYIraf = (imHdr.get("CRPIX1"), imHdr.get("CRPIX2"))
-                if None not in boreXYIraf:
-                    # boresight position known; display it
-                    self.boreXY = numpy.add(boreXYIraf, 0.5)
-                    boreColor = self.boreColorPref.getValue()
+                boreXY = (imHdr.get("CRPIX1"), imHdr.get("CRPIX2"))
+                boreColor = self.boreColorPref.getValue()
+                if None not in boreXY:
+                    # adjust for iraf convention
+                    boreXY = numpy.add(boreXY, 0.5)
                     self.gim.addAnnotation(
                         GImDisp.ann_Plus,
-                        imPos = self.boreXY,
+                        imPos = boreXY,
                         rad = _BoreRad,
                         isImSize = False,
                         tags = _BoreTag,

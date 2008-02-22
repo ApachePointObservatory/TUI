@@ -55,7 +55,6 @@ History:
 2006-11-03 ROwen    Added findTag method.
 2007-02-13 ROwen    Added setEnable method.
 2007-09-19 ROwen    Fixed setEnable method and stopped importing three unused modules. Thanks, pychecker!
-2007-12-22 ROwen    Fixed incompatiblity with Tcl/Tk 8.5: text.index returns an object, not a string.
 """
 __all__ = ['LogWdg']
 
@@ -150,7 +149,7 @@ class LogWdg(Tkinter.Frame):
         self.text.insert("end", astr, tagStr)
         
         # truncate extra lines, if any
-        extraLines = int(float(str(self.text.index("end"))) - self.maxLineIndex)
+        extraLines = int(float(self.text.index("end")) - self.maxLineIndex)
         if extraLines > 0:
             self.text.delete("1.0", str(extraLines) + ".0")
         
