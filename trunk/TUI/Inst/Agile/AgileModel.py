@@ -9,7 +9,11 @@ Thus it is relatively easy to get the current value of a parameter
 and it is trivial to register callbacks for when values change
 or register ROWdg widgets to automatically display updating values.
 
+Note: expStatus is omitted because agileExpose outputs similar information
+that is picked up by the exposure model.
+
 2008-11-10 ROwen    preliminary; does not include support for the filterwheel
+2009-04-17 ROwen    Added many new keywords.
 """
 __all__ = ["getModel"]
 import RO.CnvUtil
@@ -88,11 +92,17 @@ class _Model (object):
             description="bin factor (x=y)",
         )
         
-        self.window = keyVarFact(
-            keyword="window",
-            nval = 4,
-            converters=RO.CnvUtil.asIntOrNone,
-            description="window (subframe): minX, minY, maxX, maxY (binned pixels; inclusive)",
+        self.extSync = keyVarFact(
+            keyword="extSync",
+            nval = 1,
+            converters=RO.CnvUtil.asBoolOrNone,
+            description="use external sync for accurate timing",
+        )
+        
+        self.gain = keyVarFact(
+            keyword="gain",
+            nval = 1,
+            description="amplifier gain; one of low, med or high",
         )
 
         self.overscan = keyVarFact(
@@ -100,6 +110,46 @@ class _Model (object):
             nval = 2,
             converters=RO.CnvUtil.asIntOrNone,
             description="overscan: x, y (binned pixels)",
+        )
+        
+        self.readRate = keyVarFact(
+            keyword="readRate",
+            nval = 1,
+            description="pixel readout rate; one of slow or fast",
+        )
+        
+        self.window = keyVarFact(
+            keyword="window",
+            nval = 4,
+            converters=RO.CnvUtil.asIntOrNone,
+            description="window (subframe): minX, minY, maxX, maxY (binned pixels; inclusive)",
+        )
+        
+        # Exposure Metadata
+        
+        self.numCircBufImages = keyVarFact(
+            keyword = "numCircBufImages",
+            nval = 2,
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "Number of images in the circular buffer, maximum allowed",
+        )
+        
+        self.readoutTime = keyVarFact(
+            keyword = "readoutTime",
+            nval = 1,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Time to read out an exposure (sec)",
+        )
+        
+        # Environment
+        
+        self.cameraConnState = keyVarFact(
+            keyword = "cameraConnState",
+            nval = 2,
+            description = """Camera connection state:
+            - state: one of Connected, Disconnected, Connecting, Disconnecting
+            - description: explanation for state (if any)
+            """,
         )
 
         self.ccdTemp = keyVarFact(
@@ -123,13 +173,78 @@ class _Model (object):
             description = "CCD temperature error limit: low, high, veryLow, veryHigh",
         )
         
-        self.cameraConnState = keyVarFact(
-            keyword = "cameraConnState",
-            nval = 2,
-            description = """Camera connection state:
-            - state: one of Connected, Disconnected, Connecting, Disconnecting
-            - description: explanation for state (if any)
+        self.gpsSynced = keyVarFact(
+            keyword = "gpsSynced",
+            nval = 1,
+            converters = RO.CnvUtil.asBoolOrNone,
+            description = "Sync pulse clock card synced to GPS clock?",
+        )
+        
+        self.ntpStatus = keyVarFact(
+            keyword = "ntpStatus",
+            nval = 3,
+            converters = (RO.CnvUtil.asBoolOrNone, str, RO.CnvUtil.asIntOrNone),
+            description = """State of NTP time synchronization:
+            - ntp client running
+            - ntp server name (abbreviated)
+            - npt server stratum
             """,
+        )
+        
+        # Parameters
+        
+        self.biasSecGap = keyVarFact(
+            keyword = "biasSecGap",
+            nval = 1,
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "Unbinned pixels in overscan to skip before bias section",
+        )
+        
+        self.defBin = keyVarFact(
+            keyword = "defBin",
+            nval = 1,
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "Default bin factor",
+        )
+        
+        self.defGain = keyVarFact(
+            keyword = "defGain",
+            nval = 1,
+            description = "Default gain",
+        )
+        
+        self.defReadRate = keyVarFact(
+            keyword = "defReadRate",
+            nval = 1,
+            description = "Default read rate",
+        )
+        
+        self.defExtSync = keyVarFact(
+            keyword = "defExtSync",
+            nval = 1,
+            converters = RO.CnvUtil.asBoolOrNone,
+            description = "Default for use external sync for accurate timing",
+        )
+        
+        self.maxOverscan = keyVarFact(
+            keyword = "maxOverscan",
+            nval = 1,
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "Maximum overscan (in unbinned pixels)",
+        )
+        
+        self.minExpTime = keyVarFact(
+            keyword = "minExpTime",
+            nval = 1,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Minimum exposure time (sec)",
+        )
+        
+        self.minExpOverheadTime = keyVarFact(
+            keyword = "minExpOverheadTime",
+            nval = 1,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Minimum time (sec) by which exposure time must exceed readout time",
         )
         
         keyVarFact.setKeysRefreshCmd()
