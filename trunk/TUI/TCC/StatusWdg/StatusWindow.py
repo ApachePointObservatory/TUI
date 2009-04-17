@@ -23,10 +23,6 @@ import SlewStatus
 
 def addWindow(tlSet):
     """Set up the main status window
-    Use name "None.Status" so it doesn't show up in any menu.
-    This is because the menus are in this very window --
-    so if you can select the menu, this window is already
-    the current window.
     """
     tlSet.createToplevel(
         name = "TUI.Status",

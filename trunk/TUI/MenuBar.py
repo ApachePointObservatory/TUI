@@ -71,7 +71,7 @@ class MenuBar(object):
         if self.wsys == RO.TkUtil.WSysAqua:
             parentTL = self.tuiModel.root
         else:
-            parentTL = self.tlSet.getToplevel("None.Status")
+            parentTL = self.tlSet.getToplevel("TUI.Status")
         self.parentMenu = Tkinter.Menu(parentTL)
         parentTL["menu"] = self.parentMenu
         
@@ -184,7 +184,11 @@ class MenuBar(object):
         elif self.wsys == RO.TkUtil.WSysWin:
             mnu.add_separator()
             mnu.add_command(label="Exit", command=self.doQuit)
-        # else Mac Aqua, which already has a Quit item
+        else:
+            # Mac already has a Quit item. Unfortunately, when using Twisted it has no effect and it cannot be
+            # programmed in the usual tcl/tk way. However, it can be caught as follows, with thanks to
+            # Daniel Steffen for the information:
+            self.tuiModel.root.createcommand("::tk::mac::Quit", self.doQuit)
 
         self.tuiMenu = mnu
         self.parentMenu.add_cascade(label = "TUI", menu = mnu)

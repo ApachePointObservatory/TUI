@@ -49,6 +49,7 @@ This is the main routine that calls everything else.
                     as required for use with pyinstaller 1.3.
 2007-12-20 ROwen    Import and configure matplotlib here and stop configuring it elsewhere. This works around
                     a problem in matplotlib 0.91.1: "use" can't be called after "import matplotlib.backends".
+2009-04-17 ROwen    Updated for new Status window name: None.Status->TUI.Status.
 """
 import os
 import sys
