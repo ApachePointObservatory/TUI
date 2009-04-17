@@ -70,6 +70,7 @@ Notes:
 2008-12-15 ROwen    Reduce minimum exposure time for Agile to 0.3 seconds
 2009-01-28 ROwen    Changed canOverscan to defOverscan in instInfo.
 2009-02-24 ROwen    Added playExposureEnds to instInfo and set it False for Agile. 
+2009-04-15 ROwen    Increased default Agile x overscan from 9 to 27.
 """
 __all__ = ['getModel']
 
@@ -176,7 +177,7 @@ def _getInstInfoDict():
             canStop = False,
             numBin = 1,
             canWindow = True,
-            defOverscan = (9, 0),
+            defOverscan = (27, 0),
             playExposureEnds = False,
         ),
         _ExpInfo(

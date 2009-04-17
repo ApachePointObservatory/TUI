@@ -2,7 +2,8 @@
 """Configuration input panel for Agile.
 
 To do:
-- Filter wheel support.
+- Add filter wheel support.
+- Support downloading every Nth image, or at least skipping images if we get behind.
 
 History:
 2008-10-24 ROwen    preliminary adaptation from DIS
@@ -11,16 +12,25 @@ History:
 2008-11-10 ROwen    Commented out nonfunctional filter code.
                     Set minimum temperature width so no info shows up properly.
                     Call temperature callbacks right away.
+2009-04-17 ROwen    Added full evironmental display
 """
 import Tkinter
 import RO.Constants
 import RO.MathUtil
 import RO.Wdg
+import TUI.Base.StateSet
 import TUI.TUIModel
 import AgileModel
 
 _DataWidth = 8  # width of data columns
 _EnvWidth = 6 # width of environment value columns
+
+DevCamera = "Camera"
+DevCCDTemp = "CCD Temp"
+DevCCDSetTemp = "CCD Set Temp"
+DevGPSSynced = "GPS Synced"
+DevNTPStatus = "NTP Status"
+DevNames = (DevCamera, DevCCDTemp, DevCCDSetTemp, DevGPSSynced, DevNTPStatus)
 
 class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     InstName = "Agile"
@@ -28,7 +38,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
     # category names
     ConfigCat = RO.Wdg.StatusConfigGridder.ConfigCat
-    TempCat = 'temp'
+    EnvironCat = 'temp'
 
     def __init__(self,
         master,
@@ -38,6 +48,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         RO.Wdg.InputContFrame.__init__(self, master, **kargs)
         self.model = AgileModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
+        
+        self.environStateSet = TUI.Base.StateSet.StateSet(DevNames, callFunc=self._updEnvironStateSet)
         
         self.settingCurrWin = False
     
@@ -106,6 +118,29 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             "veryhigh": ("Very High", RO.Constants.sevError),
         }
         
+        # Environment
+        
+        self.environShowHideWdg = RO.Wdg.Checkbutton(
+            master = self,
+            text = "Environ",
+            indicatoron = False,
+            helpText = "Show/hide environment details",
+            helpURL = self.HelpPrefix + "Environment",
+        )
+        
+        self.environSummaryWdg = RO.Wdg.StrLabel(
+            master = self,
+            helpText = "Environment summary",
+            helpURL = self.HelpPrefix + "Environment",
+        )
+
+        gr.gridWdg (
+            label = self.environShowHideWdg,
+            dataWdg = self.environSummaryWdg,
+            colSpan=3,
+            numStatusCols = None,
+        )
+
         # Camera connected
         self.cameraConnStateWdg = RO.Wdg.StrLabel(
             master = self,
@@ -113,100 +148,110 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpText = "Camera connection state",
             helpURL = self.HelpPrefix + "CameraConn",
         )
-        gr.gridWdg("Camera", self.cameraConnStateWdg)
+        gr.gridWdg("Camera", self.cameraConnStateWdg, cat = self.EnvironCat)
         
-        # CCD Temperature
-        
-        self.tempShowHideWdg = RO.Wdg.Checkbutton(
+        self.ccdTempWdg = RO.Wdg.StrLabel(
             master = self,
-            text = "CCD Temp",
-            indicatoron = False,
-            helpText = "Show/hide temperature details",
-            helpURL = self.HelpPrefix + "CCDTemp",
-        )
-        
-        self.ccdTempWdg = RO.Wdg.FloatLabel(
-            master = self,
-            precision = 1,
-            width = _EnvWidth,
             helpText = "Current CCD Temp (C)",
             helpURL = self.HelpPrefix + "CCDTemp",
         )
         
-        self.ccdTempStateWdg = RO.Wdg.StrLabel(
-            master = self,
-            anchor = "w",
-            helpText = "Is temperature OK?",
-            helpURL = self.HelpPrefix + "CCDTemp",
-        )
-
         gr.gridWdg (
-            label = self.tempShowHideWdg,
-            dataWdg = (self.ccdTempWdg, self.ccdTempStateWdg),
+            label = DevCCDTemp,
+            dataWdg = self.ccdTempWdg,
+            cat = self.EnvironCat,
         )
         
         # CCD Set Temperature
         
-        self.ccdSetTempWdg = RO.Wdg.FloatLabel(
+        self.ccdSetTempWdg = RO.Wdg.StrLabel(
             master = self,
-            precision = 1,
-            width = _EnvWidth,
             helpText = "Desired CCD Temp (C)",
-            helpURL = self.HelpPrefix + "CCDTemp",
-        )
-        
-        self.ccdSetTempStateWdg = RO.Wdg.StrLabel(
-            master = self,
-            anchor = "w",
-            helpText = "Is desired temperature OK?",
             helpURL = self.HelpPrefix + "CCDTemp",
         )
 
         gr.gridWdg (
-            label = "CCD Set Temp",
-            dataWdg = (self.ccdSetTempWdg, self.ccdSetTempStateWdg),
-            cat = self.TempCat,
+            label = DevCCDSetTemp,
+            dataWdg = self.ccdSetTempWdg,
+            cat = self.EnvironCat,
         )
         
         # CCD Temperature Limits
         
-        tempLimitsLabels = ("Low", "High", "Very Low", "Very High")
         self.ccdTempLimitsFrame = Tkinter.Frame(self)
-        self.ccdTempLimitsWdgDict = RO.Alg.OrderedDict()
-        col = 0
-        for label in tempLimitsLabels:
-            labelWdg = RO.Wdg.StrLabel(
-                self.ccdTempLimitsFrame,
-                text = label,
-            )
-            valueWdg = RO.Wdg.FloatLabel(
+        self.ccdTempLimitsWdgSet = []
+        for col, limitName in enumerate(("Low", "High", "Very Low", "Very High")):
+            ccdTempLimitWdg = RO.Wdg.FloatLabel(
                 self.ccdTempLimitsFrame,
                 precision = 1,
                 width = _EnvWidth,
-                helpText = "Error limit for %s CCD temp." % (label.lower(),)
+                helpText = "Error limit for %s CCD temp." % (limitName.lower(),)
             )
-            labelWdg.grid(row=0, column=col)
-            valueWdg.grid(row=1, column=col)
-            col += 1
-            self.ccdTempLimitsWdgDict[label] = (labelWdg, valueWdg)
+            ccdTempLimitWdg.grid(row=0, column=col)
+            self.ccdTempLimitsWdgSet.append(ccdTempLimitWdg)
         
         gr.gridWdg(
             label = "CCD Temp Limits",
             dataWdg = self.ccdTempLimitsFrame,
             colSpan = 10,
             numStatusCols = None,
-            cat = self.TempCat,
+            cat = self.EnvironCat,
         )
         
+        self.gpsSyncedWdg = RO.Wdg.StrLabel(
+            master = self,
+            anchor = "w",
+            helpText = "Is clock card synched to the GPS clock?",
+            helpURL = self.HelpPrefix + "GPSSynced",
+        )
+       
+        gr.gridWdg(
+            label = DevGPSSynced,
+            dataWdg = self.gpsSyncedWdg,
+            cat = self.EnvironCat,
+         )
+        
+        self.ntpStatusFrame = Tkinter.Frame(self)
+        self.ntpStatusWdgSet = []
+        for col, helpStr in enumerate(("Is NTP client running?", "NTP server", "Stratum of NTP server")):
+            ntpStatusWdg = RO.Wdg.StrLabel(
+                self.ntpStatusFrame,
+                helpText = helpStr,
+            )
+            ntpStatusWdg.grid(row=0, column=col)
+            self.ntpStatusWdgSet.append(ntpStatusWdg)
+
+        gr.gridWdg(
+            label = DevNTPStatus,
+            dataWdg = self.ntpStatusFrame,
+            colSpan = 10,
+            numStatusCols = None,
+            cat = self.EnvironCat,
+         )
+            
         gr.allGridded()
         
+        self.gpsSyncedDict = {
+            True: (RO.Constants.sevNormal, "Yes"),
+            False: (RO.Constants.sevError, "No"),
+            None: (RO.Constants.sevWarning, "?"),
+        }
+        
+        self.ntpRunningDict = {
+            True: "Running",
+            False: "NotRunning",
+            None: "?",
+        }
+
         # add callbacks that deal with multiple widgets
 #         self.model.filterNames.addCallback(self._updFilterNames)
-        self.tempShowHideWdg.addCallback(self._doShowHide, callNow = False)
+        self.environShowHideWdg.addCallback(self._doShowHide, callNow = False)
+        self.model.cameraConnState.addCallback(self._updCameraConnState, callNow = True)
         self.model.ccdTemp.addCallback(self._updCCDTemp, callNow = True)
         self.model.ccdSetTemp.addCallback(self._updCCDSetTemp, callNow = True)
-        self.model.ccdTempLimits.addCallback(self._updTempLimits, callNow = True)
-        self.model.cameraConnState.addCallback(self._updCameraConnState, callNow = True)
+        self.model.ccdTempLimits.addCallback(self._updCCDTempLimits, callNow = True)
+        self.model.gpsSynced.addCallback(self._updGPSSynced, callNow=True)
+        self.model.ntpStatus.addCallback(self._updNTPStatus, callNow=True)
         self._doShowHide()
         
         eqFmtFunc = RO.InputCont.BasicFmt(
@@ -229,8 +274,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.bind('<Map>', repaint)
 
     def _doShowHide(self, wdg=None):
-        showTemps = self.tempShowHideWdg.getBool()
-        argDict = {self.TempCat: showTemps}
+        showTemps = self.environShowHideWdg.getBool()
+        argDict = {self.EnvironCat: showTemps}
         self.gridder.showHideWdg (**argDict)
     
     def _showFilterTimer(self, doShow):
@@ -248,50 +293,106 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         stateStr = cameraConnState[0]
         descrStr = cameraConnState[1]
         if not stateStr:
-            stateStr = "        "
+            stateStr = "?"
         isConnected = stateStr.lower() == "connected"
         if isConnected:
             severity = RO.Constants.sevNormal
         else:
             severity = RO.Constants.sevWarning
         self.cameraConnStateWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
+        self.environStateSet.setState(DevCamera, isCurrent=isCurrent, severity=severity, stateStr=stateStr)
     
-    def _updTempLimits(self, ccdTempLimits, isCurrent, keyVar=None):
-        #print "_updTempLimits(ccdTempLimits=%s, isCurrent=%s)" % (ccdTempLimits, isCurrent)
-        for ind, (label, wdgSet) in enumerate(self.ccdTempLimitsWdgDict.iteritems()):
+    def _updCCDTemp(self, dataList, isCurrent, keyVar=None):
+        #print "_updCCDTemp(ccdTempInfo=%s, isCurrent=%s)" % (ccdTempInfo, isCurrent)
+        ccdTemp, tempStatus = dataList[0:2]
+        if ccdTemp == None:
+            stateStr = "?"
+        else:
+            stateStr = "0.1f" % (ccdTemp)
+        if tempStatus != None:
+            tempStatus = tempStatus.lower()
+        dispStr, severity = self.ccdTempStateDict.get(tempStatus, (tempStatus, RO.Constants.sevWarning))
+        if dispStr != None:
+            stateStr = "%s %s" % (stateStr, dispStr)
+        self.ccdTempWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
+        if not isCurrent or severity != RO.Constants.sevNormal:
+            self.environStateSet.setState(DevCCDTemp, isCurrent = isCurrent, severity = severity, stateStr=stateStr)
+        else:
+            self.environStateSet.clearState(DevCCDTemp)
+        
+    
+    def _updCCDSetTemp(self, dataList, isCurrent, keyVar=None):
+        #print "_updCCDSetTemp(ccdSetTempInfo=%s, isCurrent=%s)" % (ccdSetTempInfo, isCurrent)
+        ccdSetTemp, tempStatus = dataList[0:2]
+        if ccdSetTemp == None:
+            stateStr = "?"
+        else:
+            stateStr = "0.1f" % (ccdSetTemp)
+        if tempStatus != None:
+            tempStatus = tempStatus.lower()
+        dispStr, severity = self.ccdTempStateDict.get(tempStatus, (tempStatus, RO.Constants.sevWarning))
+        if dispStr != None:
+            stateStr = "%s %s" % (stateStr, dispStr)
+        self.ccdSetTempWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
+        if not isCurrent or severity != RO.Constants.sevNormal:
+            self.environStateSet.setState(DevCCDSetTemp, isCurrent = isCurrent, severity = severity, stateStr=stateStr)
+        else:
+            self.environStateSet.clearState(DevCCDSetTemp)
+    
+    def _updCCDTempLimits(self, ccdTempLimits, isCurrent, keyVar=None):
+        #print "_updCCDTempLimits(ccdTempLimits=%s, isCurrent=%s)" % (ccdTempLimits, isCurrent)
+        for ind, wdg in enumerate(self.ccdTempLimitsWdgSet):
             tempLimit = ccdTempLimits[ind]
             if tempLimit == None:
-                for wdg in wdgSet:
-                    wdg.grid_remove()
+                wdg.grid_remove()
             else:
                 tempLimit = abs(tempLimit)
-                if label.lower().endswith("low"):
+                if ind % 2 == 0: # limits 0 and 2 are negative
                     tempLimit = -tempLimit
-                for wdg in wdgSet:
-                    wdg.grid()
-                wdgSet[1].set(tempLimit)
+                wdg.grid()
+                wdg.set(tempLimit)
     
-    def _updCCDTemp(self, ccdTempInfo, isCurrent, keyVar=None):
-        #print "_updCCDTemp(ccdTempInfo=%s, isCurrent=%s)" % (ccdTempInfo, isCurrent)
-        ccdTemp, tempStatus = ccdTempInfo
-
-        self.ccdTempWdg.set(ccdTemp, isCurrent)
-
-        if tempStatus != None:
-            tempStatus = tempStatus.lower()
-        dispStr, tempSeverity = self.ccdTempStateDict.get(tempStatus, (tempStatus, RO.Constants.sevWarning))
-        self.ccdTempStateWdg.set(dispStr, isCurrent = isCurrent, severity = tempSeverity)
+    def _updGPSSynced(self, dataList, isCurrent, keyVar=None):
+        gpsSynced = dataList[0]
+        severity, stateStr = self.gpsSyncedDict[dataList[0]]
+        self.gpsSyncedWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
+        if severity == RO.Constants.sevNormal and isCurrent:
+            self.environStateSet.clearState(DevGPSSynced)
+        else:
+            self.environStateSet.setState(DevGPSSynced, isCurrent=isCurrent, severity=severity, stateStr=stateStr)
+         
     
-    def _updCCDSetTemp(self, ccdSetTempInfo, isCurrent, keyVar=None):
-        #print "_updCCDSetTemp(ccdSetTempInfo=%s, isCurrent=%s)" % (ccdSetTempInfo, isCurrent)
-        ccdSetTemp, tempStatus = ccdSetTempInfo
+    def _updNTPStatus(self, dataList, isCurrent, keyVar=None):
+        isRunning, server, stratum = dataList[0:3]
+        severity = RO.Constants.sevNormal
+        if isRunning == False:
+            severity = RO.Constants.sevError
+        elif (isRunning == None) or (server == "?") or (stratum == None):
+            severity = RO.Constants.sevWarning
+        isRunningStr = self.ntpRunningDict[isRunning]
+        if server == None:
+            serverStr = "?"
+        else:
+            serverStr = server.split(".")[0]
+        stratumStr = stratum if stratum != None else "?"
+        self.ntpStatusWdgSet[0].set(isRunningStr, isCurrent=isCurrent, severity=severity)
+        self.ntpStatusWdgSet[1].set(serverStr, isCurrent=isCurrent, severity=severity)
+        self.ntpStatusWdgSet[2].set(stratumStr, isCurrent=isCurrent, severity=severity)
+        stateStr = "%s %s %s" % (isRunningStr, serverStr, stratumStr)
+        if severity == RO.Constants.sevNormal and isCurrent:
+            self.environStateSet.clearState(DevNTPStatus)
+        else:
+            self.environStateSet.setState(DevNTPStatus, isCurrent=isCurrent, severity=severity, stateStr=stateStr)
 
-        self.ccdSetTempWdg.set(ccdSetTemp, isCurrent)
-
-        if tempStatus != None:
-            tempStatus = tempStatus.lower()
-        dispStr, tempSeverity = self.ccdTempStateDict.get(tempStatus, (tempStatus, RO.Constants.sevWarning))
-        self.ccdSetTempStateWdg.set(dispStr, isCurrent = isCurrent, severity = tempSeverity)
+    def _updEnvironStateSet(self, *args):
+        """Environmental state set updated"""
+        state = self.environStateSet.getFirstState()
+        #print "_updEnvironStateSet; first state=", state
+        if not state:
+            self.environSummaryWdg.set("OK", isCurrent=True, severity=RO.Constants.sevNormal)
+        else:
+             summaryStr = "%s: %s" % (state.name, state.stateStr)
+             self.environSummaryWdg.set(summaryStr, isCurrent=state.isCurrent, severity=state.severity)
 
     def _updFilter(self, filterName, isCurrent, keyVar=None):
         self._showFilterTimer(False)
