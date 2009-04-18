@@ -303,12 +303,12 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.environStateSet.setState(DevCamera, isCurrent=isCurrent, severity=severity, stateStr=stateStr)
     
     def _updCCDTemp(self, dataList, isCurrent, keyVar=None):
-        #print "_updCCDTemp(ccdTempInfo=%s, isCurrent=%s)" % (ccdTempInfo, isCurrent)
+        print "_updCCDTemp(dataList=%s, isCurrent=%s)" % (dataList, isCurrent)
         ccdTemp, tempStatus = dataList[0:2]
         if ccdTemp == None:
             stateStr = "?"
         else:
-            stateStr = "0.1f" % (ccdTemp)
+            stateStr = "%0.1f" % (ccdTemp,)
         if tempStatus != None:
             tempStatus = tempStatus.lower()
         dispStr, severity = self.ccdTempStateDict.get(tempStatus, (tempStatus, RO.Constants.sevWarning))
@@ -322,12 +322,12 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         
     
     def _updCCDSetTemp(self, dataList, isCurrent, keyVar=None):
-        #print "_updCCDSetTemp(ccdSetTempInfo=%s, isCurrent=%s)" % (ccdSetTempInfo, isCurrent)
+        #print "_updCCDSetTemp(dataList=%s, isCurrent=%s)" % (dataList, isCurrent)
         ccdSetTemp, tempStatus = dataList[0:2]
         if ccdSetTemp == None:
             stateStr = "?"
         else:
-            stateStr = "0.1f" % (ccdSetTemp)
+            stateStr = "%0.1f" % (ccdSetTemp,)
         if tempStatus != None:
             tempStatus = tempStatus.lower()
         dispStr, severity = self.ccdTempStateDict.get(tempStatus, (tempStatus, RO.Constants.sevWarning))
