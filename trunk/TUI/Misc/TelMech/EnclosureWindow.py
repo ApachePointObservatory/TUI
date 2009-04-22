@@ -27,10 +27,9 @@ def addWindow(tlSet):
 
 
 if __name__ == "__main__":
-    root = RO.Wdg.PythonTk()
-    root.resizable(width=0, height=0)
-
     import TestData
+    root = TestData.tuiModel.tkRoot
+    root.resizable(width=0, height=0)
     
     tlSet = TestData.tuiModel.tlSet
 
@@ -38,6 +37,8 @@ if __name__ == "__main__":
     
     tlSet.makeVisible("Misc.Enclosure")
     
-    TestData.run()
+    TestData.init()
+    
+    TestData.runDemo()
     
     root.mainloop()
