@@ -546,19 +546,16 @@ class StatusCommandWdg (Tkinter.Frame):
 
         
 if __name__ == '__main__':
-    root = RO.Wdg.PythonTk()
-    root.resizable(width=0, height=0)
-
     import TestData
-    print "import TestData"
+    tester = TestData.telmechTester
+    root = TestData.tuiModel.tkRoot
+    root.resizable(width=0, height=0)
         
     testFrame = StatusCommandWdg (root)
     testFrame.pack()
-    
-    print "done building"
 
-#    Tkinter.Button(root, text="Demo", command=TestData.animate).pack()
+    Tkinter.Button(root, text="Demo", command=TestData.runDemo).pack()
     
-    TestData.run()
+    TestData.init()
     
     root.mainloop()

@@ -33,6 +33,7 @@ History:
                     nextDownload: removed maskNum.
 2006-05-24 ROwen    setParams: added mode, removed count.
 2007-04-24 ROwen    Removed unused import of numarray.
+2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
 """
 import gc
 import os
@@ -80,7 +81,7 @@ def dispatch(replyStr, actor=None):
     msgStr = "%s %d %s %s" % (cmdr, _CmdID, actor, replyStr)
 #   print "dispatching %r" % msgStr
 
-    tuiModel.root.after(20, tuiModel.dispatcher.doRead, None, msgStr)
+    tuiModel.tkRoot.after(20, tuiModel.dispatcher.doRead, None, msgStr)
 
 def setParams(expTime=None, thresh=None, radMult=None, mode=None):
 #   print "setParams(expTime=%r, thresh=%r, radMult=%r, mode=%r)" % (expTime, thresh, radMult, mode)
@@ -164,7 +165,7 @@ def nextDownload(basePath, imPrefix, imNum, numImages=None, waitMs=2000):
         if numImages <= 0:
             #dumpGarbage()
             return
-    tuiModel.root.after(waitMs, nextDownload, basePath, imPrefix, imNum+1, numImages, waitMs)
+    tuiModel.tkRoot.after(waitMs, nextDownload, basePath, imPrefix, imNum+1, numImages, waitMs)
     
 def runDownload(basePath, imPrefix, startNum, numImages=None, waitMs=2000):
     """Download a series of guide images from APO.

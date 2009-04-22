@@ -85,4 +85,4 @@ def animate(dataIter=None):
         return
     dispatch(data)
     
-    tuiModel.root.after(1500, animate, dataIter)
+    tuiModel.tkRoot.after(1500, animate, dataIter)

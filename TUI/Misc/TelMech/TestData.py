@@ -1,12 +1,8 @@
 #!/usr/bin/env python
-import RO.Alg
-import RO.ParseMsg
-import TUI.TUIModel
+import TUI.Base.TestDispatcher
 
-tuiModel = TUI.TUIModel.getModel(True)
-dispatcher = tuiModel.dispatcher
-cmdr = tuiModel.getCmdr()
-Actor = "telmech"
+telmechTester = TUI.Base.TestDispatcher.TestDispatcher("telmech", delay=1.0)
+tuiModel = telmechTester.tuiModel
 
 MainData = (
     "device=heaters; h8=off; h24=off; h12=off; h20=off; h16=off; h4=off",
@@ -20,7 +16,7 @@ MainData = (
 )
 
 # each element of animDataSet is a reply to be dispatched, minus actor and type.
-AnimDataSet = (
+AnimDataSet = [(elt,) for elt in (
     "device=shutters; right=open; left=open",
     "device=covers; covers=open",
     "device=tertrot; tertrot=?",
@@ -33,27 +29,10 @@ AnimDataSet = (
     "device=louvers; rup=open; rmid=open; rlow=open; floor=open; lup=open; lmid=open; llow=open; lpit=open; rpit=open; stairw=open",
     "device=heaters; h8=on; h24=on; h12=on; h20=off; h16=off; h4=off",
     "device=heaters; h8=on; h24=on; h12=on; h20=on; h16=on; h4=on",
-)
+)]
 
-def dispatch(dataStr, cmdr=cmdr, actor=Actor, cmdID=1, msgType="i"):
-    """Dispatch a message"""
-    msgStr = "%s %s %s %s %s" % (cmdr, cmdID, actor, msgType, dataStr)
-    msgDict = RO.ParseMsg.parseHubMsg(msgStr)
-    print "Dispatching:", msgStr
-    dispatcher.dispatch(msgDict)
-    
-def animate(dataIter=None):
-    if dataIter == None:
-        dataIter = iter(AnimDataSet)
-    try:
-        data = dataIter.next()
-    except StopIteration:
-        return
-    dispatch(data)
-    
-    tuiModel.root.after(1500, animate, dataIter)
+def init():
+    telmechTester.dispatch(MainData)
 
-def run():
-    for dataStr in MainData:
-        dispatch(dataStr)
-    animate()
+def runDemo():
+    telmechTester.runDataSet(AnimDataSet)
