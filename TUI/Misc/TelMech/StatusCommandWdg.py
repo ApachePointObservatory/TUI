@@ -547,7 +547,6 @@ class StatusCommandWdg (Tkinter.Frame):
         
 if __name__ == '__main__':
     import TestData
-    tester = TestData.telmechTester
     root = TestData.tuiModel.tkRoot
     root.resizable(width=0, height=0)
         
