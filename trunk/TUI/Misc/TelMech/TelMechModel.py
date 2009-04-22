@@ -26,6 +26,7 @@ information about that category of device.
 2007-06-27 ROwen    Added covers and tertrot entries.
                     Modified stateToBoolOrNone to use ? as "unknown value".
 2007-09-17 ROwen    Put the tertiary position names in order of increasing tertiary rotation angle.
+2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
 """
 __all__ = ["getModel"]
 
@@ -144,7 +145,7 @@ class _Model (object):
         self._connection = tuiModel.getConnection()
         self.timeLim = _TimeLim
         self._pollID = None
-        self._tkRoot = tuiModel.root
+        self._tkRoot = tuiModel.tkRoot
         
         self.__keyVarFact = RO.KeyVariable.KeyVarFactory(
             actor = self.actor,

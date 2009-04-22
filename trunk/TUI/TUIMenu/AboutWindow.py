@@ -10,6 +10,7 @@
 2005-10-24 ROwen    Updated the acknowledgements to include WingIDE.
 2006-06-01 ROwen    Updated the acknowledgements to include Fritz Stauffer.
 2007-04-17 ROwen    Updated the acknowledgements to add "scripts".
+2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
 """
 import sys
 import Image
@@ -36,7 +37,7 @@ def getVersionDict():
     res = {}
     res["tui"] = TUI.Version.VersionStr
     res["python"] = sys.version.split()[0]
-    res["tcltk"] = tuiModel.root.call("info", "patchlevel")
+    res["tcltk"] = tuiModel.tkRoot.call("info", "patchlevel")
     try:
         res["matplotlib"] = matplotlib.__version__
     except NameError:

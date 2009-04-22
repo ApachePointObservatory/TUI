@@ -38,6 +38,7 @@ History:
 2005-07-07 ROwen    Modified for moved RO.TkUtil.
 2006-03-09 ROwen    Modified to avoid "improper exit" complaints
                     on Windows by explicitly destroying root on quit.
+2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
 """
 import Tkinter
 import RO.Alg
@@ -69,7 +70,7 @@ class MenuBar(object):
 
         # determine parent toplevel and create menu for it
         if self.wsys == RO.TkUtil.WSysAqua:
-            parentTL = self.tuiModel.root
+            parentTL = self.tuiModel.tkRoot
         else:
             parentTL = self.tlSet.getToplevel("TUI.Status")
         self.parentMenu = Tkinter.Menu(parentTL)
@@ -188,7 +189,7 @@ class MenuBar(object):
             # Mac already has a Quit item. Unfortunately, when using Twisted it has no effect and it cannot be
             # programmed in the usual tcl/tk way. However, it can be caught as follows, with thanks to
             # Daniel Steffen for the information:
-            self.tuiModel.root.createcommand("::tk::mac::Quit", self.doQuit)
+            self.tuiModel.tkRoot.createcommand("::tk::mac::Quit", self.doQuit)
 
         self.tuiMenu = mnu
         self.parentMenu.add_cascade(label = "TUI", menu = mnu)
@@ -198,7 +199,7 @@ class MenuBar(object):
         self.tuiMenu.entryconfigure(self.connectMenuIndex, state="normal")
 
     def doEditItem(self, name):
-        wdg = self.tuiModel.root.focus_get()
+        wdg = self.tuiModel.tkRoot.focus_get()
         if not wdg:
             return
         evtStr = "<<%s>>" % (name,)
@@ -214,10 +215,10 @@ class MenuBar(object):
         try:
             self.doDisconnect()
         finally:
-            self.tuiModel.root.quit()
+            self.tuiModel.tkRoot.quit()
             if RO.OS.PlatformName == "win":
                 # avoid "improper exit" complaints
-                self.tuiModel.root.destroy()
+                self.tuiModel.tkRoot.destroy()
     
     def doRefresh(self):
         """Refresh all automatic variables.

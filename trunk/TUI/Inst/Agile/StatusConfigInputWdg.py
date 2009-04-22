@@ -13,6 +13,7 @@ History:
                     Set minimum temperature width so no info shows up properly.
                     Call temperature callbacks right away.
 2009-04-17 ROwen    Added full evironmental display
+2009-04-20 ROwen    Commented out a debug print statement.
 """
 import Tkinter
 import RO.Constants
@@ -303,7 +304,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.environStateSet.setState(DevCamera, isCurrent=isCurrent, severity=severity, stateStr=stateStr)
     
     def _updCCDTemp(self, dataList, isCurrent, keyVar=None):
-        print "_updCCDTemp(dataList=%s, isCurrent=%s)" % (dataList, isCurrent)
+        #print "_updCCDTemp(dataList=%s, isCurrent=%s)" % (dataList, isCurrent)
         ccdTemp, tempStatus = dataList[0:2]
         if ccdTemp == None:
             stateStr = "?"

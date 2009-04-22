@@ -52,4 +52,4 @@ def animate(dataIter=None):
     for dataDict in dataList:
         dispatch(dataDict)
     
-    tuiModel.root.after(1500, animate, dataIter)
+    tuiModel.tkRoot.after(1500, animate, dataIter)

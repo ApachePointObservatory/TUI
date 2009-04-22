@@ -5,7 +5,7 @@ Includes the following items:
     note: the network connection is dispatcher.connection
 - prefs: the application preferences (TUI.TUIPrefs.TUIPrefs)
 - tlSet: the set of toplevels (windows) (RO.Wdg.ToplevelSet)
-- root: the root application window (Tkinter.Toplevel);
+- tkRoot: the root application window (Tkinter.Toplevel);
     mostly used when one to execute some Tkinter command
     (all of which require an arbitrary Tkinter object)
 
@@ -37,6 +37,7 @@ History:
 2006-10-25 ROwen    Enhanced the logMsg function:
                     - Added keyword argument
                     - Output is now formatted like hub output.
+2009-04-21 ROwen    Renamed root to tkRoot.
 """
 import os
 import platform
@@ -76,7 +77,7 @@ def getModel(testMode = False):
 
 class _Model (object):
     def __init__(self, testMode = False):
-        self.root = Tkinter.Frame().winfo_toplevel()
+        self.tkRoot = Tkinter.Frame().winfo_toplevel()
     
         # network connection
         if testMode:
@@ -89,7 +90,7 @@ class _Model (object):
 
         # keyword dispatcher
         self.dispatcher = RO.KeyDispatcher.KeyDispatcher(
-            tkWdg = self.root,
+            tkWdg = self.tkRoot,
             connection = connection,
         )
     
@@ -104,7 +105,7 @@ class _Model (object):
         )
 
         # set up standard bindings (since the defaults are poor)
-        RO.Wdg.stdBindings(self.root)
+        RO.Wdg.stdBindings(self.tkRoot)
 
         # set up the base URL for TUI help
         RO.Constants._setHelpURLBase (getBaseHelpURL())
