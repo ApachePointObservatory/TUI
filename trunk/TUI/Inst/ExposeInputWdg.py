@@ -55,6 +55,7 @@ History:
                     but depending on changes in the hub some of these features may be removed.
 2009-02-26 ROwen    Added Full button to set full window.
                     Bug fix: max window value not updated when bin factor changed.
+2009-05-04 ROwen    Modified to use expModel.instInfo.maxNumExp instead of constant _MaxNumExp
 """
 import Tkinter
 import RO.InputCont
@@ -62,9 +63,6 @@ import RO.SeqUtil
 import RO.StringUtil
 import RO.Wdg
 import ExposeModel
-
-# magic numbers
-_MaxNumExp = 9999
 
 _HelpURL = "Instruments/ExposeWin.html"
 
@@ -170,7 +168,7 @@ class ExposeInputWdg (Tkinter.Frame):
         self.numExpWdg = RO.Wdg.IntEntry(self,
             defValue = 1,
             minValue = 1,
-            maxValue = _MaxNumExp,
+            maxValue = self.expModel.instInfo.maxNumExp,
             defMenu = "Minimum",
             helpText = "Number of exposures in the sequence",
             helpURL = helpURL,
