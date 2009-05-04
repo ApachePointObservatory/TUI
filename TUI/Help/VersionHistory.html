@@ -10,16 +10,21 @@
 <h3>Compatibility</h3>
 
 <ul>
-	<li>Mac: works with MacOS X 10.5 and 10.4 and is a universal binary. MacOS X 10.3.9 is no longer supported, though it may work (one known problems is that you cannot save window positions; this is due to a bug in Tcl/Tk that will never be fixed).
+	<li>Mac: works with MacOSX 10.5 and 10.4 and is a universal binary. MacOSX 10.3.9 is no longer supported, though it may work (one known problems is that you cannot save window positions; this is due to a bug in Tcl/Tk that will never be fixed).
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
 	<li>Windows: works with Windows Vista, XP and 2000.
 </ul>
 
-<h3>1.6a10-post 2009-04-20</h3>
+<h3>1.6a11 2009-05-04</h3>
+
+<p>Visible changes:
+<ul>
+    <li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=990">CR 990</a> Agile now allows specifying up to 99,999 exposures.
+</ul>
 
 <p>Bug fix:
 <ul>
-    <li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=931">PR 931</a> cmd-W closes Status window on MacOS X.
+    <li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=931">PR 931</a> cmd-W closes Status window on MacOSX.
 </ul>
 
 <h3>1.6a10 2009-04-17</h3>
@@ -71,7 +76,7 @@
 <p>Bug fixes:
 <ul>
     <li>Agile: the default/max value for the upper-right window controls was not adjusted to match the bin factor.
-    <li>NA2 Guider:Focus GMech script: fixed a bug that prevented it from restoring the original focus at the end if the script fails (it was trying to read original focus from the wrong BaseFOcusScript member variable).
+    <li>NA2 Guider:Focus GMech script: fixed a bug that prevented it from restoring the original focus at the end if the script fails (it was trying to read original focus from the wrong BaseFocusScript member variable).
 </ul>
 
 <h3>1.6a6 2009-02-05</h3>
@@ -161,7 +166,7 @@
         <li>Added exposure status display to the guide widget. But at present this only works for TSpec because the hub does not report the information for other guiders.
         <li>Improved guiding support for slow connections. Once TUI starts downloading a guide image it ignores all subsequent guide images until the download is finished. Then it starts downloading the last image taken. For slow connections this makes the display more deterministic and uses bandwidth more efficiently. Users on fast connections will not see any change.
     </ul>
-    <li>The Mac version now includes Tcl/Tk 8.4.19. This should clean up some visual glitches in the Mac version, though it comes at the cost that MacOS X 10.3.9 users cannot save window positions.
+    <li>The Mac version now includes Tcl/Tk 8.4.19. This should clean up some visual glitches in the Mac version, though it comes at the cost that MacOSX 10.3.9 users cannot save window positions.
     <li>NA2 scripts Focus Sec and Focus GMech both now use windowing (now that PRs <a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=739">739</a> and <a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=740">740</a> are both fixed).
     <li>The Enclosure window now has one Cancel button that can cancel all executing commands. Also each widget is disabled while the command it sent is executing.
     <li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=692">CR 692</a> Added a umask preference (under Exposures).
@@ -188,7 +193,7 @@
 
 <h3>1.4.5 2008-02-14</h3>
 
-<p><b>Users on MacOS X 10.3.9 please see the <a href="#MacWarning">Mac warning</a></b>.
+<p><b>Users on MacOSX 10.3.9 please see the <a href="#MacWarning">Mac warning</a></b>.
 
 <p>Visible changes:
 <ul>
@@ -209,7 +214,7 @@
         <li>Properly enable/disable buttons in all instrument windows, Secondary Focus and Connect.
         <li>Added a cancel button (X) to the Secondary Focus and Echelle windows.
     </ul>
-    <li>The Mac version is once again a universal Binary. This version uses the native Tcl/Tk because that seems to work best for MacOS X 10.5 (though it has cosmetic issues: some buttons may not appear until you press them, other buttons may be shown as disabled even if they are enabled).
+    <li>The Mac version is once again a universal Binary. This version uses the native Tcl/Tk because that seems to work best for MacOSX 10.5 (though it has cosmetic issues: some buttons may not appear until you press them, other buttons may be shown as disabled even if they are enabled).
 </ul>
 
 <p>Bug fixes:
@@ -273,7 +278,7 @@
 
 <p>Visible changes:
 <ul>
-    <li>The Mac version is now a universal binary (now that Aqua Tcl/Tk 8.4.16 is available and appears to have a few serious bugs fixed). However, Save Window Positions does not work under MacOS X 10.3.9.
+    <li>The Mac version is now a universal binary (now that Aqua Tcl/Tk 8.4.16 is available and appears to have a few serious bugs fixed). However, Save Window Positions does not work under MacOSX 10.3.9.
     <li>Enclosure window: tertiary rotation positions are now in order of rotation.
 </ul>
 
@@ -406,7 +411,7 @@
 	<li>On Mac and Windows error messages are now saved to a <a href="Tidbits/ErrorLog.html">log file</a>.
 	<li>The Windows executable is now called "TUI.exe".
 	<li>Multi-line commands pasted into the log window command area are now rejected.
-	<li>The MacOS X version is now distributed as a disk image (.dmg file).
+	<li>The MacOSX version is now distributed as a disk image (.dmg file).
 </ul>
 
 <p>Bug fixes:
@@ -427,7 +432,7 @@
 <ul>
 	<li>TUI now sends version and platform info at login. Soon I hope this will allow warning about outdated versions. Meanwhile, it allows collection of statistical data.
 	<li>Added RO.Wdg.CmdWdg (split off from RO.Wdg.CmdReplyWdg).
-	<li>The MacOS X version includes python, making it more likely to be compatible with future versions of MacOS X. Also, it is now built with py2app instead of bundlebuilder (py2app is the new way to build Mac distributions and slightly simplifies the build process).
+	<li>The MacOSX version includes python, making it more likely to be compatible with future versions of MacOSX. Also, it is now built with py2app instead of bundlebuilder (py2app is the new way to build Mac distributions and slightly simplifies the build process).
 </ul>
 
 <h3>Version 1.1 2005-10-24</h3>
@@ -455,18 +460,18 @@
 	</ul>
 	<li>Improved the way TUI talks to ds9:
 	<ul>
-		<li>Corrected the installation instructions for ds9 and xpa on MacOS X and Windows.
-		<li>MacOS X: automatically launches X11 before trying to use ds9 to display images.
+		<li>Corrected the installation instructions for ds9 and xpa on MacOSX and Windows.
+		<li>MacOSX: automatically launches X11 before trying to use ds9 to display images.
 		<li>Improved error handling when xpa or ds9 are not found.
 	</ul>
 	<li>The minimum exposure time for guiders and slitviewers is now 0 (instead of 0.1 seconds). However, very short exposures may not be uniformly illuminated, or illuminated at all, depending on the camera.
 	<li>Added a self-contained Windows distribution.
-	<li>MacOS X only: Command-Q now quits and Command-W now hides the front window. The former was displayed in the menu but was ignored. The latter is not (yet) in the menus.
+	<li>MacOSX only: Command-Q now quits and Command-W now hides the front window. The former was displayed in the menu but was ignored. The latter is not (yet) in the menus.
 </ul>
 
 <p>Bug fixes:
 <ul>
-	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=292">PR 292</a> DS9 typically not usable from MacOS X.
+	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=292">PR 292</a> DS9 typically not usable from MacOSX.
 	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=276">PR 276</a> Abort, Stop, Pause buttons don't work in exposure windows.
 	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=274">PR 274</a> Cannot select other guide stars by clicking on a guider image.
 	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=272">PR 272</a> standard scripts not available on Mac TUI.
@@ -557,7 +562,7 @@
 <ul>
 	<li><a href="http://pod.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=205">PR 205</a> NICFPS exposure time of 0 rejected by Expose window and sends None in dither script.
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=199">PR 199</a> Auto FTP may delete files.
-	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=196">PR 196</a> the Choose... button in the guider windows can silently fail on MacOS X.
+	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=196">PR 196</a> the Choose... button in the guider windows can silently fail on MacOSX.
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=188">PR 188</a> guide window zoom can make TUI unresponsive.
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=180">PR 180</a> ftp leaks memory.
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=154">PR 154</a> Once you click on the status bar you cannot get rid of the cursor.
@@ -672,7 +677,7 @@
 <p>Bug fixes:
 <ul>
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=82">PR 82</a> The Open... item in the Scripts menu was broken.
-	<li>MacOS X: graphics in the Sky and Focal Plane window were somewhat out of position due to a workaround for a tk bug that was no longer needed. That workaround has been removed.
+	<li>MacOSX: graphics in the Sky and Focal Plane window were somewhat out of position due to a workaround for a tk bug that was no longer needed. That workaround has been removed.
 </ul>
 
 <p>Internal changes:
@@ -780,7 +785,7 @@
 <p>Bug fixes:
 <ul>
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=32">PR 32</a> Refresh Display may cause the slew countdown timer to start.
-	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=40">PR 40</a> Contextual help broken on MacOS X (at least in many cases; see "internal changes" or the PR for more info).
+	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=40">PR 40</a> Contextual help broken on MacOSX (at least in many cases; see "internal changes" or the PR for more info).
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=42">PR 42</a> Two sounds don't play on Solaris: AxisHalt and MessageReceived.	
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=48">PR 48</a> Focus problem with file and directory preferences.
 	<li><a href="http://pod.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=52">PR 52</a> If the user tried to deselect both cameras in the DIS Expose window (which is illegal), the last camera deselected was re-selected, but unfortunately it still showed up as deselected.
@@ -822,7 +827,7 @@
 	<li>RO.Wdg.CtxMenu changes:
 	<ul>
 		<li>Renamed AddCtxMenu to addCtxMenu, since it is a function.
-		<li>Changed ctxShowHelp so that if a file: URL with an anchor cannot be loaded, it tries the same URL with the anchor stripped. This works around a limitation in MacOS X and possibly other platforms. (Note: in some earlier versions of MacOS X the anchor was silently ignored, but in 10.3.3 the file is not found.)
+		<li>Changed ctxShowHelp so that if a file: URL with an anchor cannot be loaded, it tries the same URL with the anchor stripped. This works around a limitation in MacOSX and possibly other platforms. (Note: in some earlier versions of MacOSX the anchor was silently ignored, but in 10.3.3 the file is not found.)
 		<li>CtxMenu no longer checks if the widget already has a contextual menu. This was done to allow RO.Wdg.StatusBar to inherit from CtxMenuMixin.
 		<li>Help url base handling moved to new RO.Wdg.Constants module.
 	</ul>
@@ -909,7 +914,7 @@
 		<li>Multiple user catalogs may be open at the same time.
 		<li>Long user catalogs are divided into manageable pieces in the Catalog menu in the Slew window.
 		<li>You can control whether a catalog is displayed in the Sky window and if displayed, the color used. For now this can only be set by editing the catalog, but I hope to add a more direct interface at some point.
-		<li>User catalogs and preference files may use any standard newline character (\n, \r or \r\n), but only for users with Python 2.3 or later (because universal newline support is not available in Python 2.2.x). The MacOS X prebuilt executable uses Python 2.3, so Mac users are all set.
+		<li>User catalogs and preference files may use any standard newline character (\n, \r or \r\n), but only for users with Python 2.3 or later (because universal newline support is not available in Python 2.2.x). The MacOSX prebuilt executable uses Python 2.3, so Mac users are all set.
 	</ul>
 	<li>All windows except Message, Log and APO's Permissions now play the "Command Done" and "Command Failed" sounds at the appropriate times. This was added to Focus, Offset, Slew and the various Expose windows.
 	<li>TUI additions can now have windows listed in the TUI menu. These appear in alphabetical order below Refresh Display. This enabled the next change...
@@ -947,9 +952,9 @@
 	<li>The TUI prefs and geometry files are now located
 	in the standard location on Mac and Windows (using proper
 	system calls to find these directories even on non-English systems). There has been no change on unix. The file names and locations are documented <a href="../TUIMenu/PreferencesWin.html#PrefFile">here</a>. Mac users must rename and move their files for them to be seen in the new location.
-	<li>The locations for TUI additions have been changed to better support double-clickable applications (e.g. MacOS X). This affects all users with TUI additions (e.g. APO).
+	<li>The locations for TUI additions have been changed to better support double-clickable applications (e.g. MacOSX). This affects all users with TUI additions (e.g. APO).
 	<li>TUI shows what it's doing in the log window as it searches for additions and loads them (during startup).
-	<li>Added an icon to the MacOS X executable.
+	<li>Added an icon to the MacOSX executable.
 </ul>
 
 <p>Bug fixes:
@@ -968,7 +973,7 @@
 
 <p>Visible changes:
 <ul>
-	<li>The first version with a double-clickable executable for MacOS X (10.3 only). See the <a href="../Installation.html">installation instructions</a> for the download address and Mac-specific notes.
+	<li>The first version with a double-clickable executable for MacOSX (10.3 only). See the <a href="../Installation.html">installation instructions</a> for the download address and Mac-specific notes.
 </ul>
 
 <p>Bug fixes:
@@ -1249,7 +1254,7 @@
 	<li>Renamed the font preferences in an attempt to make them clearer. As a result, you may have to reapply your font preferences.
 	<li>Modified the "keep offsets" pane in the slew window to use the new offset naming scheme. Ditched tcc-style (additive) object offsets from this panel--thus they are never saved.
 	<li>Removed radial velocity from the proper motion panel.
-	<li>Bug fix: I finally figured out how to stop ButtonRelease-2 from pasting the selection on MacOS X. Yaay!
+	<li>Bug fix: I finally figured out how to stop ButtonRelease-2 from pasting the selection on MacOSX. Yaay!
 </ul>
 
 <h3>Version 0.61 2003-04-07</h3>
@@ -1327,7 +1332,7 @@
 	<li><b>Incompatible Change</b>:
 	
 	<ul>
-		<li>The settings files .TUIPrefs and .TUIGeom are now stored in your home directory, if you have one (e.g. on unix and MacOS X). Formerly they were stored in whatever directory you used to launch TUI. If you have settings you wish to preserve, please move these two files.
+		<li>The settings files .TUIPrefs and .TUIGeom are now stored in your home directory, if you have one (e.g. on unix and MacOSX). Formerly they were stored in whatever directory you used to launch TUI. If you have settings you wish to preserve, please move these two files.
 	</ul>
 	
 	
@@ -1358,9 +1363,9 @@
 		
 		<li>Bug fix: entering a command in the log window would not reliably cause the log window to scroll to the bottom. Fixed by adding an update_idletasks to CmdLogWdg; we'll see if this is a complete fix. (Thanks to Russet McMillan.)
 		
-		<li>Bug fix: command history recall in the log window would append an extra character to the recalled command (possibly only in MacOS X aqua Tk since I don't remember ever seeing this before). Fixed by not propogating key events for previous and next command.
+		<li>Bug fix: command history recall in the log window would append an extra character to the recalled command (possibly only in MacOSX aqua Tk since I don't remember ever seeing this before). Fixed by not propogating key events for previous and next command.
 		
-		<li>Bug fix: certain windows (including About TUI and Preferences) would not come to the front when first requested. This was probably only in MacOS X aqua Tk since I don't remember seeing it before. Fixed by doing a lift after wm_deiconify.
+		<li>Bug fix: certain windows (including About TUI and Preferences) would not come to the front when first requested. This was probably only in MacOSX aqua Tk since I don't remember seeing it before. Fixed by doing a lift after wm_deiconify.
 		
 		<li>Changed the log display to be read only. It may not be
 		bulletproof; if you find some way to modify the text that

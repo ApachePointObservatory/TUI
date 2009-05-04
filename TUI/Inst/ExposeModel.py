@@ -71,6 +71,7 @@ Notes:
 2009-01-28 ROwen    Changed canOverscan to defOverscan in instInfo.
 2009-02-24 ROwen    Added playExposureEnds to instInfo and set it False for Agile. 
 2009-04-15 ROwen    Increased default Agile x overscan from 9 to 27.
+2009-05-04 ROwen    Added maxNumExp to instInfo and set it to 99999 for Agile.
 """
 __all__ = ['getModel']
 
@@ -114,6 +115,7 @@ class _ExpInfo:
         instActor = None,
         minExpTime = 0.1,
         maxExpTime = 12 * 3600,
+        maxNumExp = 9999,
         camNames = None,
         expTypes = ("object", "flat", "dark", "bias"),
         canPause = True,
@@ -134,8 +136,9 @@ class _ExpInfo:
         else:
             self.instActor = instName.lower()
         self.exposeActor = "%sExpose" % (self.instActor,)
-        self.minExpTime = minExpTime
-        self.maxExpTime = maxExpTime
+        self.minExpTime = float(minExpTime)
+        self.maxExpTime = float(maxExpTime)
+        self.maxNumExp = int(maxNumExp)
         if camNames == None:
             camNames = ("",)
         self.camNames = camNames
@@ -172,7 +175,8 @@ def _getInstInfoDict():
         _ExpInfo(
             instName = "agile",
             imSize = (1024, 1024),
-            minExpTime = 0.1,
+            minExpTime = 0.3,
+            maxNumExp = 99999,
             canPause = False,
             canStop = False,
             numBin = 1,
