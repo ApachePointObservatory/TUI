@@ -92,21 +92,22 @@ class ExposeInputWdg (Tkinter.Frame):
 
         prefFrame = Tkinter.Frame(self)
         
-        self.autoGetWdg = RO.Wdg.Checkbutton (
+        Tkinter.Label(prefFrame, text="Every").pack(side="left")
+        self.autoGetWdg = RO.Wdg.IntEntry (
             master = prefFrame,
-            text = "Auto Get",
-            var = self.expModel.autoGetVar,
+            var = self.expModel.autoGetNumVarCont.var,
+            width = 3,
             helpURL = helpURL,
-            helpText = "Automatically download %s images?" % (self.expModel.instName,),
+            helpText = "Download every Nth image (0=none; -1=skip excess)",
         )
         self.autoGetWdg.pack(side="left")
 
         self.viewImageWdg = RO.Wdg.Checkbutton (
             master = prefFrame,
             text = "View Image",
-            var = self.expModel.viewImageVar,
+            var = self.expModel.viewImageVarCont.var,
             helpURL = helpURL,
-            helpText = "View downloaded %s images in ds9?" % (self.expModel.instName,),
+            helpText = "View downloaded images in ds9?",
         )
         self.viewImageWdg.pack(side="left")
         self.autoGetWdg.addCallback(self.autoGetToggled, callNow=True)
@@ -127,7 +128,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 #text = "Prefs",
             #)
         
-        gr.gridWdg("Prefs", prefFrame, colSpan=5, sticky="w")
+        gr.gridWdg("Download", prefFrame, colSpan=5, sticky="w")
 
         typeFrame = Tkinter.Frame(self)
         if expTypes != None:
@@ -300,7 +301,7 @@ class ExposeInputWdg (Tkinter.Frame):
         self.wdgAreSetUp = True
     
     def autoGetToggled(self, wdg=None):
-        doAutoGet = self.autoGetWdg.getBool()
+        doAutoGet = self.autoGetWdg.getNum() != 0
         self.viewImageWdg.setEnable(doAutoGet)
 
     def getEntryError(self):
