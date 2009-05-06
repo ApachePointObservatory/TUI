@@ -15,6 +15,18 @@
 	<li>Windows: works with Windows Vista, XP and 2000.
 </ul>
 
+<h3>1.6b1 2009-05-06</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Overhauled image download
+    <ul>
+        <li>Users now have two new options for image download: only download every Nth exposure or only download current exposures (skip intermediate exposures if the connection is too slow to keep up). At present all this is controlled with a single integer: 0 for no download, N to download every Nth image (N=1 to download all of them) or -1 to download only current images. I have some ideas for improving the user interface if this is felt to be too tricky.
+        <li>Images are now downloaded sequentially (though DIS images are downloaded in red/blue pairs). This should speed up download and prevent out-of-sequence download.
+        <li>Please update your exposure prefs to set the desired default download behavior.
+    </ul>
+</ul>
+
 <h3>1.6a11 2009-05-04</h3>
 
 <p>Visible changes:
