@@ -56,6 +56,7 @@ History:
 2009-02-26 ROwen    Added Full button to set full window.
                     Bug fix: max window value not updated when bin factor changed.
 2009-05-04 ROwen    Modified to use expModel.instInfo.maxNumExp instead of constant _MaxNumExp
+2009-05-06 ROwen    Modified to use getEvery download preference isntead of autoGet.
 """
 import Tkinter
 import RO.InputCont
@@ -93,14 +94,14 @@ class ExposeInputWdg (Tkinter.Frame):
         prefFrame = Tkinter.Frame(self)
         
         Tkinter.Label(prefFrame, text="Every").pack(side="left")
-        self.autoGetWdg = RO.Wdg.IntEntry (
+        self.getEveryWdg = RO.Wdg.IntEntry (
             master = prefFrame,
-            var = self.expModel.autoGetNumVarCont.var,
+            var = self.expModel.getEveryVarCont.var,
             width = 3,
             helpURL = helpURL,
             helpText = "Download every Nth image (0=none; -1=skip excess)",
         )
-        self.autoGetWdg.pack(side="left")
+        self.getEveryWdg.pack(side="left")
 
         self.viewImageWdg = RO.Wdg.Checkbutton (
             master = prefFrame,
@@ -110,7 +111,7 @@ class ExposeInputWdg (Tkinter.Frame):
             helpText = "View downloaded images in ds9?",
         )
         self.viewImageWdg.pack(side="left")
-        self.autoGetWdg.addCallback(self.autoGetToggled, callNow=True)
+        self.getEveryWdg.addCallback(self.autoGetToggled, callNow=True)
 
         self.prefsTL = self.expModel.tuiModel.tlSet.getToplevel("TUI.Preferences")
         if self.prefsTL:
@@ -301,7 +302,7 @@ class ExposeInputWdg (Tkinter.Frame):
         self.wdgAreSetUp = True
     
     def autoGetToggled(self, wdg=None):
-        doAutoGet = self.autoGetWdg.getNum() != 0
+        doAutoGet = self.getEveryWdg.getNum() != 0
         self.viewImageWdg.setEnable(doAutoGet)
 
     def getEntryError(self):

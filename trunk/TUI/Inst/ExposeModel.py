@@ -72,6 +72,7 @@ Notes:
 2009-02-24 ROwen    Added playExposureEnds to instInfo and set it False for Agile. 
 2009-04-15 ROwen    Increased default Agile x overscan from 9 to 27.
 2009-05-04 ROwen    Added maxNumExp to instInfo and set it to 99999 for Agile.
+2009-05-06 ROwen    Modified to use Get Every preference instead of Auto Get.
 """
 __all__ = ['getModel']
 
@@ -419,8 +420,8 @@ class Model (object):
         # variables for items the user may toggle
         # pointers to prefs for items the user can only set via prefs
         # a pointer to the download widget
-        autoGetPref = self.tuiModel.prefs.getPrefVar("Auto Get")
-        self.autoGetNumVarCont = _IntPrefVarCont(autoGetPref)
+        getEveryPref = self.tuiModel.prefs.getPrefVar("Get Every")
+        self.getEveryVarCont = _IntPrefVarCont(getEveryPref)
         viewImagePref = self.tuiModel.prefs.getPrefVar("View Image")
         self.viewImageVarCont = _BoolPrefVarCont(viewImagePref)
 

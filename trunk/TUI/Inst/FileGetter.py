@@ -5,6 +5,7 @@ Note: instantiate only one of these per instrument, regardless of how many copie
 of ExposeStatusWdg there are, to avoid downloading duplicate images.
 
 2009-05-05 ROwen    Extracted from ExposeModel.py and improved to support various modes
+2009-05-06 ROwen    Modified to use getEvery download preference isntead of autoGet.
 """
 __all__ = ['getModel']
 
@@ -101,8 +102,8 @@ class FileGetter (object):
             return
 
 #         print "_updFiles(%r, %r)" % (fileInfo, isCurrent)
-        autoGetNum = self.instModel.autoGetNumVarCont.get()
-        if autoGetNum == 0:
+        getEveryNum = self.instModel.getEveryVarCont.get()
+        if getEveryNum == 0:
             # no downloads wanted
             self.pendingDownloadArgs.clear()
             return
@@ -161,8 +162,8 @@ class FileGetter (object):
         """Examine pending downloads and start next download, if appropriate"""
 #         print "%s._handlePendingDownloads(); there are %s active and %s pending downloads" % \
 #             (self.__class__.__name__, len(self.activeDownloads), len(self.pendingDownloadArgs),)
-        autoGetNum = self.instModel.autoGetNumVarCont.get()
-        if autoGetNum == 0:
+        getEveryNum = self.instModel.getEveryVarCont.get()
+        if getEveryNum == 0:
             # no downloads wanted
 #             print "No downloads wanted; clearing pending downloads"
             self.pendingDownloadArgs.clear()
@@ -181,18 +182,18 @@ class FileGetter (object):
                 return
 
         argList = []
-        if autoGetNum > 0:
-            # nToSkip = autoGetNum - 1
+        if getEveryNum > 0:
+            # nToSkip = getEveryNum - 1
             nPending = len(self.pendingDownloadArgs)
-            if nPending >= autoGetNum:
-#                 print "Purge first %d entries from pendingDownloads and download the next" % (autoGetNum-1,)
+            if nPending >= getEveryNum:
+#                 print "Purge first %d entries from pendingDownloads and download the next" % (getEveryNum-1,)
                 # deques don't handle slicing, unfortunately
-                for x in range(autoGetNum-1):
+                for x in range(getEveryNum-1):
                     del(self.pendingDownloadArgs[0])
                 argList = self.pendingDownloadArgs.popleft()
 #             else:
 #                 print "There are not enough pending downloads yet; waiting"
-        elif autoGetNum < 0:
+        elif getEveryNum < 0:
             # start most recent images; ditch the rest
 #             print "Download last image in pending downloads and clear the rest"
             if self.pendingDownloadArgs:

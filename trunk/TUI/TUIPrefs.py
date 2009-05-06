@@ -38,6 +38,7 @@ History:
 2007-09-05 ROwen    Fixed test code.
 2007-11-16 ROwen    Modified to allow a port as part of Host address.
 2008-07-07 ROwen    Added UMask preference.
+2009-05-06 ROwen    Changed Auto Get preference to Get Every.
 """
 #import pychecker.checker
 import os
@@ -105,7 +106,7 @@ class TUIPrefs(PrefVar.PrefSet):
                 helpURL = _ExposuresHelpURL,
             ),
             PrefVar.IntPrefVar(
-                name = "Auto Get",
+                name = "Get Every",
                 category = "Exposures",
                 defValue = 0,
                 minValue = -1,
@@ -372,7 +373,6 @@ class TUIPrefs(PrefVar.PrefSet):
             prefList = prefList,
             defFileName = defFileName,
             defHeader = """Preferences for the Telescope User Interface\n""",
-            oldPrefInfo = {"Auto FTP": "Auto Get"},
         )
 
         try:
