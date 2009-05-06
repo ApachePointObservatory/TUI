@@ -104,11 +104,13 @@ class TUIPrefs(PrefVar.PrefSet):
                 helpText = "Number files by file name or by directory?",
                 helpURL = _ExposuresHelpURL,
             ),
-            PrefVar.BoolPrefVar(
+            PrefVar.IntPrefVar(
                 name = "Auto Get",
                 category = "Exposures",
-                defValue = False,
-                helpText = "Automatically download images?",
+                defValue = 0,
+                minValue = -1,
+                maxValue = 999,
+                helpText = "Automatically download every Nth image (0=none; -1=skip excess)",
                 helpURL = _ExposuresHelpURL,
             ),
             PrefVar.BoolPrefVar(
