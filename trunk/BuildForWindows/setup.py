@@ -1,6 +1,7 @@
 """Build TUI for Windows
 
-  python buildtui.py py2exe
+Open a terminal and cd to this directory. Then type:
+  setup.py py2exe
 
 Hints on including matplotlib came from the following
 (search for libgdk_pixbuf-2.0-0.dll):
@@ -33,6 +34,7 @@ History:
 2007-07-10 ROwen    Fixed for Python 2.5 (was referring to Python 2.4 for the snack directory).
 2008-02-21 ROwen    Modified to use direct RO path instead of relying on the symlink
                     (which was not working when trying to build 1.4.5).
+2009-05-07 ROwen    Updated the build instructions.
 """
 from distutils.core import setup
 import os
