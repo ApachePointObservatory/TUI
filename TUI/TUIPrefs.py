@@ -39,6 +39,7 @@ History:
 2007-11-16 ROwen    Modified to allow a port as part of Host address.
 2008-07-07 ROwen    Added UMask preference.
 2009-05-06 ROwen    Changed Auto Get preference to Get Every.
+2009-05-12 ROwen    Changed default Debug Color from gray to purple.
 """
 #import pychecker.checker
 import os
@@ -183,7 +184,7 @@ class TUIPrefs(PrefVar.PrefSet):
             PrefVar.ColorPrefVar(
                 name = "Debug Color",
                 category = "Colors",
-                defValue = "#808080",
+                defValue = "#006723",
                 helpText = "Color that indicates a debug-level message",
                 helpURL = _HelpURL,
             ),

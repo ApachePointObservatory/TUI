@@ -12,6 +12,7 @@ To do:
 
 History:
 2006-03-16 ROwen
+2009-06-24 ROwen    Bug fix: was sending SlewEnds instead of SlewEnd.
 """
 import Tkinter
 import TUI.TUIModel
@@ -104,7 +105,7 @@ def runTest(dispatcher):
             "TCCPos": (-342.999, 38.623, "NaN"),
         },
         {   # slew ends
-            "SlewEnds": (),
+            "SlewEnd": (),
             "AxisCmdState": ("Tracking","Tracking", "Halted"),
             "AxisErrCode": ("","", "NoRestart"),
             "AxePos": (-342.974, 38.645, 10.0),
@@ -128,7 +129,7 @@ def runTest(dispatcher):
             "TCCPos": (-342.563, 38.625, "NaN"),
         },
         {
-            "SlewEnds": (),
+            "SlewEnd": (),
             "AxisCmdState": ("Tracking","Tracking", "Halted"),
             "AxisErrCode": ("","", "NoRestart"),
             "AxePos": (-342.563, 38.625, 10.0),
@@ -156,7 +157,7 @@ def runTest(dispatcher):
             "TCCPos": (-342.563, 38.625, 5.0),
         },
         {
-            "SlewEnds": (),
+            "SlewEnd": (),
             "AxisCmdState": ("Tracking","Tracking", "Tracking"),
             "AxisErrCode": ("","", ""),
             "AxePos": (-342.563, 38.625, 5.0),

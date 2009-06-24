@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 """Dispatch data for testing purposes
+
+2009-06-24 ROwen    Bug fix: test code was sending SlewEnds instead of SlewEnd.
 """
 import TUI.TUIModel
 
@@ -124,7 +126,7 @@ if __name__ == "__main__":
             "TCCPos=-342.999, 38.623, NaN",
         ),
         (   # slew ends
-            "SlewEnds",
+            "SlewEnd",
             "AxisCmdState=Tracking, Tracking, Halted",
             "AxisErrCode='','', NoRestart",
             "AxePos=-342.974, 38.645, 10.0",
