@@ -316,7 +316,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 wdg.set(tempLimit)
     
     def _updFWStatus(self, fwStatus, isCurrent, keyVar=None):
-        print "_updFWStatus(fwStatus=%s, isCurrent=%s)" % (fwStatus, isCurrent)
+        #print "_updFWStatus(fwStatus=%s, isCurrent=%s)" % (fwStatus, isCurrent)
         statusWord = fwStatus[2]
         if statusWord == None:
             motorStr = "?"
