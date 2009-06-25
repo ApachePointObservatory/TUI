@@ -8,12 +8,14 @@ History:
 2009-02-05 ROwen    Bug fix: amplifier gain option medium corrected to med.
 2009-02-25 ROwen    Added display of camera connection state.
                     Modified getExpCmdStr to raise an exception if the camera is not connected.
+2009-06-24 ROwen    Added filter widget.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
 import TUI.Inst.StatusConfigWdg
 import StatusConfigInputWdg
 import AgileModel
+import AgileFilterWdg
 
 InstName = StatusConfigInputWdg.StatusConfigInputWdg.InstName
 
@@ -52,6 +54,14 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
         )
         gr.gridWdg("Read Rate", self.readRateWdg, colSpan=2)
         
+        self.filterWdg = AgileFilterWdg.AgileFilterWdg(
+            master = self.expInputWdg,
+            statusBar = self.statusBar,
+            gridder = gr,
+            helpURL = self.HelpPrefix + "filter",
+        )
+#        gr.gridWdg(False, self.filterWdg, colSpan=5)
+        
         self.statusConfigWdg = StatusConfigInputWdg.StatusConfigInputWdg(
             master = self.expInputWdg,
         )
@@ -74,12 +84,8 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
         
 
 if __name__ == "__main__":
-    import RO.Wdg
-
-    root = RO.Wdg.PythonTk()
-    root.resizable(width=0, height=0)
-    
     import TestData
+
     tlSet = TestData.tuiModel.tlSet
 
     addWindow(tlSet)
@@ -87,4 +93,7 @@ if __name__ == "__main__":
     
     TestData.dispatch()
     
-    root.mainloop()
+#    TestData.animate()
+#    TestData.animate(TestData.FWAnimDataSet)
+    
+    TestData.tuiModel.tkRoot.mainloop()

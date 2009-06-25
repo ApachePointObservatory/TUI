@@ -14,31 +14,30 @@ History:
                     Call temperature callbacks right away.
 2009-04-17 ROwen    Added full evironmental display
 2009-04-20 ROwen    Commented out a debug print statement.
+2009-06-25 ROwen    Remove filter controls.
 """
 import Tkinter
 import RO.Constants
-import RO.MathUtil
 import RO.Wdg
 import TUI.Base.StateSet
-import TUI.TUIModel
 import AgileModel
 
-_DataWidth = 8  # width of data columns
 _EnvWidth = 6 # width of environment value columns
 
-DevCamera = "Camera"
-DevCCDTemp = "CCD Temp"
-DevCCDSetTemp = "CCD Set Temp"
-DevGPSSynced = "GPS Synced"
-DevNTPStatus = "NTP Status"
-DevNames = (DevCamera, DevCCDTemp, DevCCDSetTemp, DevGPSSynced, DevNTPStatus)
+StCameraConn = "Camera"
+StCCDTemp = "CCD Temp"
+StCCDSetTemp = "CCD Set Temp"
+StGPSSynced = "GPS Synced"
+StNTPStatus = "NTP Status"
+StFWConn = "Filter Wheel"
+StFWMotor = "Filter Wheel Motor"
+StNames = (StCameraConn, StCCDTemp, StCCDSetTemp, StGPSSynced, StNTPStatus, StFWConn, StFWMotor)
 
 class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     InstName = "Agile"
     HelpPrefix = "Instruments/%sWin.html#" % (InstName,)
 
     # category names
-    ConfigCat = RO.Wdg.StatusConfigGridder.ConfigCat
     EnvironCat = 'temp'
 
     def __init__(self,
@@ -48,9 +47,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         """
         RO.Wdg.InputContFrame.__init__(self, master, **kargs)
         self.model = AgileModel.getModel()
-        self.tuiModel = TUI.TUIModel.getModel()
         
-        self.environStateSet = TUI.Base.StateSet.StateSet(DevNames, callFunc=self._updEnvironStateSet)
+        self.environStateSet = TUI.Base.StateSet.StateSet(StNames, callFunc=self._updEnvironStateSet)
         
         self.settingCurrWin = False
     
@@ -60,53 +58,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             numStatusCols = 3,
         )
         self.gridder = gr
-        
-        # filter (plus blank label to maintain minimum width)
-        blankLabel = Tkinter.Label(self, width=_DataWidth)
-
-        self.filterCurrWdg = RO.Wdg.StrLabel(
-            master = self,
-            anchor = "w",
-            helpText = "current filter",
-            helpURL = self.HelpPrefix + "Filter",
-        )
-        
-        self.filterTimerWdg = RO.Wdg.TimeBar(master = self, valueFormat = "%3.0f")
-        
-        self.filterUserWdg = RO.Wdg.OptionMenu(
-            master = self,
-            items=[],
-            helpText = "requested filter",
-            helpURL = self.HelpPrefix + "Filter",
-            defMenu = "Current",
-            autoIsCurrent = True,
-            isCurrent = False,
-        )
-
-#         filtRow = gr.getNextRow()
-#         # reserve _DataWidth width
-#         blankLabel.grid(
-#             row = filtRow,
-#             column = 1,
-#             columnspan = 2,
-#         )
-#         gr.gridWdg (
-#             label = 'Filter',
-#             dataWdg = self.filterCurrWdg,
-#             units = None,
-#             cfgWdg = self.filterUserWdg,
-#             colSpan = 2,
-#         )
-#         self.filterTimerWdg.grid(
-#             row = filtRow,
-#             column = 1,
-#             columnspan = 2,
-#             sticky = "w",
-#         )
-        self._showFilterTimer(False)
-
-#         self.model.filter.addIndexedCallback(self._updFilter)
-#         self.model.filterTime.addIndexedCallback(self._updFilterTime)
 
         # Temperature State information
         
@@ -158,7 +109,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
         
         gr.gridWdg (
-            label = DevCCDTemp,
+            label = StCCDTemp,
             dataWdg = self.ccdTempWdg,
             cat = self.EnvironCat,
         )
@@ -172,7 +123,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
 
         gr.gridWdg (
-            label = DevCCDSetTemp,
+            label = StCCDSetTemp,
             dataWdg = self.ccdSetTempWdg,
             cat = self.EnvironCat,
         )
@@ -207,7 +158,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
        
         gr.gridWdg(
-            label = DevGPSSynced,
+            label = StGPSSynced,
             dataWdg = self.gpsSyncedWdg,
             cat = self.EnvironCat,
          )
@@ -223,13 +174,36 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             self.ntpStatusWdgSet.append(ntpStatusWdg)
 
         gr.gridWdg(
-            label = DevNTPStatus,
+            label = StNTPStatus,
             dataWdg = self.ntpStatusFrame,
             colSpan = 10,
             numStatusCols = None,
             cat = self.EnvironCat,
          )
-            
+         
+         # filter related status
+
+        self.fwConnStateWdg = RO.Wdg.StrLabel(
+            master = self,
+            anchor = "w",
+            helpText = "Filter wheel connection state",
+            helpURL = self.HelpPrefix + "FWConn",
+        )
+        gr.gridWdg(StFWConn, self.fwConnStateWdg, cat = self.EnvironCat)
+        
+        self.fwHomedWdg = RO.Wdg.StrLabel(
+            master = self,
+            anchor = "w",
+            helpText = "State of filter wheel motor",
+            helpURL = self.HelpPrefix + "StFWMotor",
+        )
+       
+        gr.gridWdg(
+            label = StFWMotor,
+            dataWdg = self.fwHomedWdg,
+            cat = self.EnvironCat,
+         )
+
         gr.allGridded()
         
         self.gpsSyncedDict = {
@@ -245,51 +219,26 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         }
 
         # add callbacks that deal with multiple widgets
-#         self.model.filterNames.addCallback(self._updFilterNames)
         self.environShowHideWdg.addCallback(self._doShowHide, callNow = False)
         self.model.cameraConnState.addCallback(self._updCameraConnState, callNow = True)
+        self.model.fwConnState.addCallback(self._updFWConnState, callNow = True)
         self.model.ccdTemp.addCallback(self._updCCDTemp, callNow = True)
         self.model.ccdSetTemp.addCallback(self._updCCDSetTemp, callNow = True)
         self.model.ccdTempLimits.addCallback(self._updCCDTempLimits, callNow = True)
-        self.model.gpsSynced.addCallback(self._updGPSSynced, callNow=True)
-        self.model.ntpStatus.addCallback(self._updNTPStatus, callNow=True)
+        self.model.gpsSynced.addCallback(self._updGPSSynced, callNow = True)
+        self.model.ntpStatus.addCallback(self._updNTPStatus, callNow = True)
+        self.model.fwStatus.addCallback(self._updFWStatus, callNow = True)
         self._doShowHide()
         
         eqFmtFunc = RO.InputCont.BasicFmt(
             nameSep="=",
         )
 
-        # set up the input container set
-        self.inputCont = RO.InputCont.ContList (
-            conts = [
-                RO.InputCont.WdgCont (
-                    name = 'filters set',
-                    wdgs = self.filterUserWdg,
-                    formatFunc = eqFmtFunc,
-                ),
-            ],
-        )
-        
-        def repaint(evt):
-            self.restoreDefault()
-        self.bind('<Map>', repaint)
-
     def _doShowHide(self, wdg=None):
         showTemps = self.environShowHideWdg.getBool()
         argDict = {self.EnvironCat: showTemps}
         self.gridder.showHideWdg (**argDict)
     
-    def _showFilterTimer(self, doShow):
-        """Show or hide the filter timer
-        (and thus hide or show the current filter name).
-        """
-        if doShow:
-            self.filterTimerWdg.grid()
-            self.filterCurrWdg.grid_remove()
-        else:
-            self.filterCurrWdg.grid()
-            self.filterTimerWdg.grid_remove()
-            
     def _updCameraConnState(self, cameraConnState, isCurrent, keyVar=None):
         stateStr = cameraConnState[0]
         descrStr = cameraConnState[1]
@@ -301,7 +250,20 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         else:
             severity = RO.Constants.sevWarning
         self.cameraConnStateWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
-        self.environStateSet.setState(DevCamera, isCurrent=isCurrent, severity=severity, stateStr=stateStr)
+        self.environStateSet.setState(StCameraConn, severity=severity, stateStr=stateStr)
+    
+    def _updFWConnState(self, fwConnState, isCurrent, keyVar=None):
+        stateStr = fwConnState[0]
+        descrStr = fwConnState[1]
+        if not stateStr:
+            stateStr = "?"
+        isConnected = stateStr.lower() == "connected"
+        if isConnected:
+            severity = RO.Constants.sevNormal
+        else:
+            severity = RO.Constants.sevWarning
+        self.fwConnStateWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
+        self.environStateSet.setState(StFWConn, severity=severity, stateStr=stateStr)
     
     def _updCCDTemp(self, dataList, isCurrent, keyVar=None):
         #print "_updCCDTemp(dataList=%s, isCurrent=%s)" % (dataList, isCurrent)
@@ -317,9 +279,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             stateStr = "%s %s" % (stateStr, dispStr)
         self.ccdTempWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
         if not isCurrent or severity != RO.Constants.sevNormal:
-            self.environStateSet.setState(DevCCDTemp, isCurrent = isCurrent, severity = severity, stateStr=stateStr)
+            self.environStateSet.setState(StCCDTemp, severity = severity, stateStr=stateStr)
         else:
-            self.environStateSet.clearState(DevCCDTemp)
+            self.environStateSet.clearState(StCCDTemp)
         
     
     def _updCCDSetTemp(self, dataList, isCurrent, keyVar=None):
@@ -336,9 +298,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             stateStr = "%s %s" % (stateStr, dispStr)
         self.ccdSetTempWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
         if not isCurrent or severity != RO.Constants.sevNormal:
-            self.environStateSet.setState(DevCCDSetTemp, isCurrent = isCurrent, severity = severity, stateStr=stateStr)
+            self.environStateSet.setState(StCCDSetTemp, severity = severity, stateStr=stateStr)
         else:
-            self.environStateSet.clearState(DevCCDSetTemp)
+            self.environStateSet.clearState(StCCDSetTemp)
     
     def _updCCDTempLimits(self, ccdTempLimits, isCurrent, keyVar=None):
         #print "_updCCDTempLimits(ccdTempLimits=%s, isCurrent=%s)" % (ccdTempLimits, isCurrent)
@@ -353,15 +315,42 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 wdg.grid()
                 wdg.set(tempLimit)
     
+    def _updFWStatus(self, fwStatus, isCurrent, keyVar=None):
+        print "_updFWStatus(fwStatus=%s, isCurrent=%s)" % (fwStatus, isCurrent)
+        statusWord = fwStatus[2]
+        if statusWord == None:
+            motorStr = "?"
+            motorSev = RO.Constants.sevWarning
+        else:
+            if statusWord & 0x0201 != 0:
+                motorStr = "Not Homed"
+                motorSev = RO.Constants.sevWarning
+            elif statusWord & 0x004 != 0:
+                motorStr = "Disabled"
+                motorSev = RO.Constants.sevWarning
+            elif statusWord & 0x008 != 0:
+                motorStr = "Controller Error"
+                motorSev = RO.Constants.sevWarning
+            elif statusWord & 0x0400 != 0:
+                motorStr = "Is Homing"
+                motorSev = RO.Constants.sevNormal
+            elif statusWord & 0x1002 != 0:
+                motorStr = "Is Moving"
+                motorSev = RO.Constants.sevNormal
+            else:
+                motorStr = "OK"
+                motorSev = RO.Constants.sevNormal
+        self.fwHomedWdg.set(motorStr, isCurrent=isCurrent, severity=motorSev)
+        self.environStateSet.setState(StFWMotor, severity=motorSev, stateStr=motorStr)
+        
     def _updGPSSynced(self, dataList, isCurrent, keyVar=None):
         gpsSynced = dataList[0]
         severity, stateStr = self.gpsSyncedDict[dataList[0]]
         self.gpsSyncedWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
         if severity == RO.Constants.sevNormal and isCurrent:
-            self.environStateSet.clearState(DevGPSSynced)
+            self.environStateSet.clearState(StGPSSynced)
         else:
-            self.environStateSet.setState(DevGPSSynced, isCurrent=isCurrent, severity=severity, stateStr=stateStr)
-         
+            self.environStateSet.setState(StGPSSynced, severity=severity, stateStr=stateStr)
     
     def _updNTPStatus(self, dataList, isCurrent, keyVar=None):
         isRunning, server, stratum = dataList[0:3]
@@ -381,62 +370,20 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.ntpStatusWdgSet[2].set(stratumStr, isCurrent=isCurrent, severity=severity)
         stateStr = "%s %s %s" % (isRunningStr, serverStr, stratumStr)
         if severity == RO.Constants.sevNormal and isCurrent:
-            self.environStateSet.clearState(DevNTPStatus)
+            self.environStateSet.clearState(StNTPStatus)
         else:
-            self.environStateSet.setState(DevNTPStatus, isCurrent=isCurrent, severity=severity, stateStr=stateStr)
+            self.environStateSet.setState(StNTPStatus, severity=severity, stateStr=stateStr)
 
     def _updEnvironStateSet(self, *args):
         """Environmental state set updated"""
         state = self.environStateSet.getFirstState()
         #print "_updEnvironStateSet; first state=", state
         if not state:
-            self.environSummaryWdg.set("OK", isCurrent=True, severity=RO.Constants.sevNormal)
+            self.environSummaryWdg.set("OK", severity=RO.Constants.sevNormal)
         else:
              summaryStr = "%s: %s" % (state.name, state.stateStr)
-             self.environSummaryWdg.set(summaryStr, isCurrent=state.isCurrent, severity=state.severity)
+             self.environSummaryWdg.set(summaryStr, severity=state.severity)
 
-    def _updFilter(self, filterName, isCurrent, keyVar=None):
-        self._showFilterTimer(False)
-        if filterName != None and filterName.lower() == "unknown":
-            severity = RO.Constants.sevError
-            self.filterUserWdg.setDefault(
-                None,
-                isCurrent = isCurrent,
-            )
-        else:
-            severity = RO.Constants.sevNormal
-            self.filterUserWdg.setDefault(
-                filterName,
-                isCurrent = isCurrent,
-            )
-
-        self.filterCurrWdg.set(
-            filterName,
-            isCurrent = isCurrent,
-            severity = severity,
-        )
-
-    def _updFilterNames(self, filterNames, isCurrent, keyVar=None):
-        if not filterNames or None in filterNames:
-            return
-
-        self.filterUserWdg.setItems(filterNames, isCurrent=isCurrent)
-        
-        # set width of slit and filter widgets
-        # setting both helps keep the widget from changing size
-        # if one is replaced by a timer.
-        maxNameLen = max([len(fn) for fn in filterNames])
-        maxNameLen = max(maxNameLen, 3) # room for "Out" for slitOPath
-        self.filterCurrWdg["width"] = maxNameLen
-
-    def _updFilterTime(self, filterTime, isCurrent, keyVar=None):
-        if filterTime == None or not isCurrent:
-            self._showFilterTimer(False)
-            return
-        
-        self._showFilterTimer(True)
-        self.filterTimerWdg.start(filterTime, newMax = filterTime)
-    
 
 if __name__ == '__main__':
     root = RO.Wdg.PythonTk()
@@ -448,29 +395,8 @@ if __name__ == '__main__':
     
     TestData.dispatch()
     
-    testFrame.restoreDefault()
-
-    def printCmds():
-        try:
-            cmdList = testFrame.getStringList()
-        except ValueError, e:
-            print "Command error:", e
-            return
-        if cmdList:
-            print "Commands:"
-            for cmd in cmdList:
-                print cmd
-        else:
-            print "(no commands)"
-    
     bf = Tkinter.Frame(root)
-    cfgWdg = RO.Wdg.Checkbutton(bf, text="Config", defValue=True)
-    cfgWdg.pack(side="left")
-    Tkinter.Button(bf, text='Cmds', command=printCmds).pack(side='left')
-    Tkinter.Button(bf, text='Current', command=testFrame.restoreDefault).pack(side='left')
     Tkinter.Button(bf, text='Demo', command=TestData.animate).pack(side='left')
     bf.pack()
-    
-    testFrame.gridder.addShowHideControl(testFrame.ConfigCat, cfgWdg)
     
     root.mainloop()
