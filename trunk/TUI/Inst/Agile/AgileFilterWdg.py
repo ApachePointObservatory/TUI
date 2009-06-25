@@ -155,7 +155,7 @@ class AgileFilterWdg(object):
         self.slideInfoWdg.set(slideInfoStr, isCurrent=slideIsCurr)
 
     def updFwNames(self, filtNameList, isCurrent, keyVar=None):
-        print "updFwNames(filtNameList = %s, isCurrent = %s)" % (filtNameList, isCurrent)
+        #print "updFwNames(filtNameList = %s, isCurrent = %s)" % (filtNameList, isCurrent)
         if not isCurrent:
             return
         

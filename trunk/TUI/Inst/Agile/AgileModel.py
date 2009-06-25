@@ -51,26 +51,17 @@ class _Model (object):
         )
         
         # Filter wheel and filter slide
-
-        self.currFilter = keyVarFact(
-            keyword = "currFilter",
-            converters = (
-                RO.CnvUtil.asIntOrNone,
-                str,
-                RO.CnvUtil.BoolOrNoneFromStr(trueStrs="In", falseStrs="Out", badStrs="?"),
-                str,
-                RO.CnvUtil.asFloatOrNone,
-            ),
-            nval=5,
-            description = """Information about current filter:
-* slotNum: filter wheel slot number
-* slotName: name of filter in filterwheel slot
-* slide position: one of In/Out/?
-* slide name: name of filter in filter slide if slide is In, else ""
-* focusOffset: focus offset in um
-""",
-        )
+        # make sure fwNames comes before currFilter
         
+        self.fwConnState = keyVarFact(
+            keyword = "fwConnState",
+            nval = 2,
+            description = """Filter wheel connection state:
+            - state: one of Connected, Disconnected, Connecting, Disconnecting
+            - description: explanation for state (if any)
+            """,
+        )
+
         self.fwConfigPath  = keyVarFact(
             keyword = "fSlideConfig",
             converters = (str, RO.CnvUtil.asFloatOrNone),
@@ -113,27 +104,37 @@ class _Model (object):
         self.fwStatus  = keyVarFact(
             keyword = "fwStatus",
             converters = (
-                RO.CnvUtil.IntOrNoneFromStr(badStrs="-1"),
-                RO.CnvUtil.IntOrNoneFromStr(badStrs="-1"),
+                RO.CnvUtil.asIntOrNone,
+                RO.CnvUtil.asIntOrNone,
                 RO.CnvUtil.asIntOrNone,
                 RO.CnvUtil.asFloatOrNone,
             ),
             nval = 4,
             description = """Filter wheel status:
-* currSlot: current slot; source is -1 if unknown
-* desSlot: desired slot; source -1 if unknown
-* statusWord: status word as hex constant (0x...); source is ? if unknown
-* estRemTime: estimated remaining time for current command (sec); source is NaN if unknown
+* currSlot: current slot
+* desSlot: desired slot
+* statusWord: status word as hex constant (0x...)
+* estRemTime: estimated remaining time for current command (sec)
 """,
         )
 
-        self.fwConnState = keyVarFact(
-            keyword = "fwConnState",
-            nval = 2,
-            description = """Filter wheel connection state:
-            - state: one of Connected, Disconnected, Connecting, Disconnecting
-            - description: explanation for state (if any)
-            """,
+        self.currFilter = keyVarFact(
+            keyword = "currFilter",
+            converters = (
+                RO.CnvUtil.asIntOrNone,
+                str,
+                RO.CnvUtil.BoolOrNoneFromStr(trueStrs="In", falseStrs="Out", badStrs="?"),
+                str,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            nval=5,
+            description = """Information about current filter:
+* slotNum: filter wheel slot number
+* slotName: name of filter in filterwheel slot
+* slide position: one of In/Out/?
+* slide name: name of filter in filter slide if slide is In, else ""
+* focusOffset: focus offset in um
+""",
         )
 
         # Detector
