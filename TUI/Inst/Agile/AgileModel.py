@@ -12,8 +12,10 @@ or register ROWdg widgets to automatically display updating values.
 Note: expStatus is omitted because agileExpose outputs similar information
 that is picked up by the exposure model.
 
+History:
 2008-11-10 ROwen    preliminary; does not include support for the filterwheel
 2009-04-17 ROwen    Added many new keywords.
+2009-06-24 ROwen    Added filter keywords.
 """
 __all__ = ["getModel"]
 import RO.CnvUtil
@@ -48,38 +50,91 @@ class _Model (object):
             dispatcher = self.dispatcher,
         )
         
-        # Filter
+        # Filter wheel and filter slide
+
+        self.currFilter = keyVarFact(
+            keyword = "currFilter",
+            converters = (
+                RO.CnvUtil.asIntOrNone,
+                str,
+                RO.CnvUtil.BoolOrNoneFromStr(trueStrs="In", falseStrs="Out", badStrs="?"),
+                str,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            nval=5,
+            description = """Information about current filter:
+* slotNum: filter wheel slot number
+* slotName: name of filter in filterwheel slot
+* slide position: one of In/Out/?
+* slide name: name of filter in filter slide if slide is In, else ""
+* focusOffset: focus offset in um
+""",
+        )
         
-#         self.filterNames = keyVarFact(
-#             keyword = "filter_names",
-#             nval = [1,None],
-#             description = "Names of available filters",
-#         )
-# 
-#         self.filter = keyVarFact(
-#             keyword = "filter_done",
-#             description = "Name of current filter",
-#         )
-# 
-#         self.filterTime  = keyVarFact(
-#             keyword = "filter_ttc",
-#             converters = RO.CnvUtil.asInt,
-#             description = "Expected time to completion of filter move (sec)",
-#             allowRefresh = False,
-#         )
-#         
-#         self.filterMoving  = keyVarFact(
-#             keyword = "filter_moving",
-#             converters = RO.CnvUtil.asBool,
-#             description = "True if filter change occurring, False otherwise",
-#         )
-#         
-#         self.filterPos = keyVarFact(
-#             keyword = "filter_pos",
-#             nval = 3,
-#             converters = int,
-#             description = "Position of each filter wheel",
-#         )
+        self.fwConfigPath  = keyVarFact(
+            keyword = "fSlideConfig",
+            converters = (str, RO.CnvUtil.asFloatOrNone),
+            nval = 2,
+            description = "Filter slide configuration: filter name, focus offset (um)",
+        )
+        
+        self.fwConfigPath  = keyVarFact(
+            keyword = "fwConfigPath",
+            description = "Path of filter wheel config file",
+        )
+        
+        self.fwNames = keyVarFact(
+            keyword = "fwNames",
+            nval = [1,None],
+            description = "Name of filter in each filter wheel slot; name is ? if unknown",
+        )
+
+        self.fwMoveDuration  = keyVarFact(
+            keyword = "fwMoveDuration",
+            converters = RO.CnvUtil.asInt,
+            description = "Expected time to completion of filter move (sec)",
+            allowRefresh = False,
+        )
+
+        self.fwOffsets = keyVarFact(
+            keyword = "fwOffsets",
+            converters = RO.CnvUtil.asFloatOrNone,
+            nval = [1,None],
+            description = "Focus offset of filter in each filter wheel slot; offset is NaN if unknown",
+        )
+
+        self.fwSlotMinMax = keyVarFact(
+            keyword = "fwSlotMinMax",
+            converters = RO.CnvUtil.asIntOrNone,
+            nval = 2,
+            description = "Minimum and maximum filterwheel slot number",
+        )
+        
+        self.fwStatus  = keyVarFact(
+            keyword = "fwStatus",
+            converters = (
+                RO.CnvUtil.IntOrNoneFromStr(badStrs="-1"),
+                RO.CnvUtil.IntOrNoneFromStr(badStrs="-1"),
+                RO.CnvUtil.asIntOrNone,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            nval = 4,
+            description = """Filter wheel status:
+* currSlot: current slot; source is -1 if unknown
+* desSlot: desired slot; source -1 if unknown
+* statusWord: status word as hex constant (0x...); source is ? if unknown
+* estRemTime: estimated remaining time for current command (sec); source is NaN if unknown
+""",
+        )
+
+        self.fwConnState = keyVarFact(
+            keyword = "fwConnState",
+            nval = 2,
+            description = """Filter wheel connection state:
+            - state: one of Connected, Disconnected, Connecting, Disconnecting
+            - description: explanation for state (if any)
+            """,
+        )
 
         # Detector
         

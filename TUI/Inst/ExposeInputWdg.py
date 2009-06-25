@@ -57,6 +57,8 @@ History:
                     Bug fix: max window value not updated when bin factor changed.
 2009-05-04 ROwen    Modified to use expModel.instInfo.maxNumExp instead of constant _MaxNumExp
 2009-05-06 ROwen    Modified to use getEvery download preference isntead of autoGet.
+2009-06-25 ROwen    Made exposure time units more reliably stay next to exposure time entry
+                    by packing them into a frame and gridding that, instead of gridding them separately.
 """
 import Tkinter
 import RO.InputCont
@@ -88,7 +90,7 @@ class ExposeInputWdg (Tkinter.Frame):
         self.updatingBin = False
         self.binsMatch = True
         
-        gr = RO.Wdg.Gridder(self, sticky="w")
+        gr = RO.Wdg.Gridder(master=self, sticky="w")
         self.gridder = gr
 
         prefFrame = Tkinter.Frame(self)
@@ -150,9 +152,12 @@ class ExposeInputWdg (Tkinter.Frame):
         )
         if len(expTypes) > 1:
             gr.gridWdg("Type", typeFrame, colSpan=5, sticky="w")
+        
+        timeFrame = Tkinter.Frame(self)
 
         timeUnitsVar = Tkinter.StringVar()
-        self.timeWdg = RO.Wdg.DMSEntry (self,
+        self.timeWdg = RO.Wdg.DMSEntry (
+            master = timeFrame,
             minValue = self.expModel.instInfo.minExpTime,
             maxValue = self.expModel.instInfo.maxExpTime,
             isRelative = True,
@@ -164,10 +169,19 @@ class ExposeInputWdg (Tkinter.Frame):
             helpText = "Exposure time",
             helpURL = helpURL,
         )
-        wdgSet = gr.gridWdg("Time", self.timeWdg, timeUnitsVar)
+        self.timeWdg.pack(side="left")
+        timeUnitsWdg = RO.Wdg.StrLabel(
+            master = timeFrame,
+            textvariable = timeUnitsVar,
+            helpText = "Units of exposure time",
+            helpURL = helpURL,
+        )
+        timeUnitsWdg.pack(side="left")
+        wdgSet = gr.gridWdg("Time", timeFrame)
         self.timeWdgSet = wdgSet.wdgSet
         
-        self.numExpWdg = RO.Wdg.IntEntry(self,
+        self.numExpWdg = RO.Wdg.IntEntry(
+            master = self,
             defValue = 1,
             minValue = 1,
             maxValue = self.expModel.instInfo.maxNumExp,
