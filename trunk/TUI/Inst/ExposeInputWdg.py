@@ -178,7 +178,7 @@ class ExposeInputWdg (Tkinter.Frame):
         )
         timeUnitsWdg.pack(side="left")
         wdgSet = gr.gridWdg("Time", timeFrame)
-        self.timeWdgSet = wdgSet.wdgSet
+        self.timeWdgSet = [wdgSet.wdgSet[0], self.timeWdg, timeUnitsWdg]
         
         self.numExpWdg = RO.Wdg.IntEntry(
             master = self,
