@@ -19,6 +19,7 @@ History:
                     - Show OK instead of "Camera: Connected" when all is well.
                     - Show "Connection Failed/Failing" instead of "Failed/Failing" to make the display of
                       those two connection states clearer. The other connection states need no clarification.
+                    - Show filter wheel moving or homing as a warning instead of a normal state.
 """
 import Tkinter
 import RO.Constants
@@ -198,7 +199,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.fwHomedWdg = RO.Wdg.StrLabel(
             master = self,
             anchor = "w",
-            helpText = "State of filter wheel motor",
+            helpText = "Filter wheel motor state",
             helpURL = self.HelpPrefix + "StFWMotor",
         )
        
@@ -305,25 +306,20 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     def _updFWStatus(self, fwStatus, isCurrent, keyVar=None):
         #print "_updFWStatus(fwStatus=%s, isCurrent=%s)" % (fwStatus, isCurrent)
         statusWord = fwStatus[2]
+        motorSev = RO.Constants.sevWarning
         if statusWord == None:
             motorStr = "?"
-            motorSev = RO.Constants.sevWarning
         else:
             if statusWord & 0x0201 != 0:
                 motorStr = "Not Homed"
-                motorSev = RO.Constants.sevWarning
             elif statusWord & 0x004 != 0:
                 motorStr = "Disabled"
-                motorSev = RO.Constants.sevWarning
             elif statusWord & 0x008 != 0:
                 motorStr = "Controller Error"
-                motorSev = RO.Constants.sevWarning
             elif statusWord & 0x0400 != 0:
                 motorStr = "Is Homing"
-                motorSev = RO.Constants.sevNormal
             elif statusWord & 0x1002 != 0:
                 motorStr = "Is Moving"
-                motorSev = RO.Constants.sevNormal
             else:
                 motorStr = "OK"
                 motorSev = RO.Constants.sevNormal
