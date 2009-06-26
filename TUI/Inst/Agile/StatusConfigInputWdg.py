@@ -15,6 +15,10 @@ History:
 2009-04-17 ROwen    Added full evironmental display
 2009-04-20 ROwen    Commented out a debug print statement.
 2009-06-25 ROwen    Remove filter controls.
+2009-06-25 ROwen    Tweaked environment display:
+                    - Show OK instead of "Camera: Connected" when all is well.
+                    - Show "Connection Failed/Failing" instead of "Failed/Failing" to make the display of
+                      those two connection states clearer. The other connection states need no clarification.
 """
 import Tkinter
 import RO.Constants
@@ -239,29 +243,13 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         argDict = {self.EnvironCat: showTemps}
         self.gridder.showHideWdg (**argDict)
     
-    def _updCameraConnState(self, cameraConnState, isCurrent, keyVar=None):
-        stateStr = cameraConnState[0]
-        descrStr = cameraConnState[1]
-        if not stateStr:
-            stateStr = "?"
-        isConnected = stateStr.lower() == "connected"
-        if isConnected:
-            severity = RO.Constants.sevNormal
-        else:
-            severity = RO.Constants.sevWarning
+    def _updCameraConnState(self, connState, isCurrent, keyVar=None):
+        stateStr, severity = parseConnState(connState)
         self.cameraConnStateWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
         self.environStateSet.setState(StCameraConn, severity=severity, stateStr=stateStr)
     
-    def _updFWConnState(self, fwConnState, isCurrent, keyVar=None):
-        stateStr = fwConnState[0]
-        descrStr = fwConnState[1]
-        if not stateStr:
-            stateStr = "?"
-        isConnected = stateStr.lower() == "connected"
-        if isConnected:
-            severity = RO.Constants.sevNormal
-        else:
-            severity = RO.Constants.sevWarning
+    def _updFWConnState(self, connState, isCurrent, keyVar=None):
+        stateStr, severity = parseConnState(connState)
         self.fwConnStateWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
         self.environStateSet.setState(StFWConn, severity=severity, stateStr=stateStr)
     
@@ -282,7 +270,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             self.environStateSet.setState(StCCDTemp, severity = severity, stateStr=stateStr)
         else:
             self.environStateSet.clearState(StCCDTemp)
-        
     
     def _updCCDSetTemp(self, dataList, isCurrent, keyVar=None):
         #print "_updCCDSetTemp(dataList=%s, isCurrent=%s)" % (dataList, isCurrent)
@@ -378,11 +365,29 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         """Environmental state set updated"""
         state = self.environStateSet.getFirstState()
         #print "_updEnvironStateSet; first state=", state
-        if not state:
+        if not state or state.severity == RO.Constants.sevNormal:
             self.environSummaryWdg.set("OK", severity=RO.Constants.sevNormal)
         else:
              summaryStr = "%s: %s" % (state.name, state.stateStr)
              self.environSummaryWdg.set(summaryStr, severity=state.severity)
+
+def parseConnState(connState):
+    """Parse a connction state (stateStr, descrStr)
+    
+    Return: stateStr (suitably modified), severity
+    """
+    stateStr = connState[0]
+    descrStr = connState[1]
+    if not stateStr:
+        stateStr = "?"
+    isConnected = stateStr.lower() == "connected"
+    if "fail" in stateStr.lower():
+        stateStr = "Connection " + stateStr
+    if isConnected:
+        severity = RO.Constants.sevNormal
+    else:
+        severity = RO.Constants.sevWarning
+    return stateStr, severity
 
 
 if __name__ == '__main__':
