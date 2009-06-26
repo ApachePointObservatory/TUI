@@ -57,7 +57,7 @@ History:
                     Bug fix: max window value not updated when bin factor changed.
 2009-05-04 ROwen    Modified to use expModel.instInfo.maxNumExp instead of constant _MaxNumExp
 2009-05-06 ROwen    Modified to use getEvery download preference isntead of autoGet.
-2009-06-25 ROwen    Made exposure time units more reliably stay next to exposure time entry
+2009-06-26 ROwen    Made exposure time units more reliably stay next to exposure time entry
                     by packing them into a frame and gridding that, instead of gridding them separately.
 """
 import Tkinter
@@ -177,7 +177,7 @@ class ExposeInputWdg (Tkinter.Frame):
             helpURL = helpURL,
         )
         timeUnitsWdg.pack(side="left")
-        wdgSet = gr.gridWdg("Time", timeFrame)
+        wdgSet = gr.gridWdg("Time", timeFrame, colSpan=5)
         self.timeWdgSet = [wdgSet.wdgSet[0], self.timeWdg, timeUnitsWdg]
         
         self.numExpWdg = RO.Wdg.IntEntry(
@@ -189,7 +189,7 @@ class ExposeInputWdg (Tkinter.Frame):
             helpText = "Number of exposures in the sequence",
             helpURL = helpURL,
         )
-        gr.gridWdg("#Exp", self.numExpWdg) #, row=-1, col=4)
+        gr.gridWdg("#Exp", self.numExpWdg)
         self.grid_columnconfigure(5, weight=1)
         
         self.camWdgs = []
