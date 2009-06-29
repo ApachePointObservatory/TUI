@@ -35,6 +35,8 @@ History:
 2008-02-21 ROwen    Modified to use direct RO path instead of relying on the symlink
                     (which was not working when trying to build 1.4.5).
 2009-05-07 ROwen    Updated the build instructions.
+2009-06-29 ROwen    Updated for recent matplotlib (a new way to find data files)
+                    and snack 2.2.10 Windows distribution (snack2.2->snacklib)
 """
 from distutils.core import setup
 import os
@@ -111,13 +113,12 @@ for resBase in ("Bitmaps",):
  
 # Add tcl snack libraries
 pythonDir = os.path.dirname(sys.executable)
-snackSubDir = "tcl\\snack2.2"
+snackSubDir = "tcl\\snacklib"
 snackDir = os.path.join(pythonDir, snackSubDir)
 addDataFiles(dataFiles, snackDir, snackSubDir)
 
 # Add matplotlib's data files.
-matplotlibDataPath = matplotlib.get_data_path()
-addDataFiles(dataFiles, matplotlibDataPath, "matplotlibdata")
+dataFiles += matplotlib.get_py2exe_datafiles()
 
 if NDataFilesToPrint > 0:
     print "\nData files:"
