@@ -10,6 +10,7 @@
 2005-01-05 ROwen    Added Read Only button to test code.
 2006-04-10 ROwen    Updated Sort button help text because actors are now sorted.
 2007-07-27 ROwen    Modified to pay command-completed sounds.
+2009-07-06 ROwen    Modified for updated TestData.
 """
 import Tkinter
 import RO.KeyVariable
@@ -139,26 +140,31 @@ class PermsWdg(Tkinter.Frame):
 
 
 if __name__ == "__main__":
-    root = RO.Wdg.PythonTk()
-    root.resizable(False, True)
-
     import TestData
+    root = TestData.tester.tuiModel.tkRoot
+    root.resizable(False, True)
+    
+    DefReadOnly = False
     
     testFrame = PermsWdg(master=root)
     testFrame.pack(side="top", expand=True, fill="both")
+    testFrame.inputWdg._setReadOnly(DefReadOnly)
 
     def doReadOnly(but):
         readOnly = but.getBool()
         testFrame.inputWdg._setReadOnly(readOnly)
     
     butFrame = Tkinter.Frame(root)
+
+    def animate():
+        TestData.tester.runDataSet(TestData.AnimDataSet)
     
-    Tkinter.Button(butFrame, text="Demo", command=TestData.animate).pack(side="left")
+    Tkinter.Button(butFrame, text="Demo", command=animate).pack(side="left")
     
     RO.Wdg.Checkbutton(butFrame, text="Read Only", callFunc=doReadOnly).pack(side="left")
 
     butFrame.pack(side="top")
-    
-    TestData.start()
+
+    TestData.tester.dispatch(TestData.MainData)
 
     root.mainloop()

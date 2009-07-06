@@ -1,13 +1,8 @@
-#!/usr/bin/env python
-import RO.Alg
-import TUI.TUIModel
+import TUI.Base.TestDispatcher
 
-tuiModel = TUI.TUIModel.getModel(True)
-dispatcher = tuiModel.dispatcher
-cmdr = tuiModel.getCmdr()
-actor = "agile"
+tester = TUI.Base.TestDispatcher.TestDispatcher(actor="agile", delay=0.5)
 
-MainDataSet = (
+MainData = (
     "cameraConnState=Connected, ''",
     "fwConnState=Connected, ''",
     'fwNames="Open", "MK_J", "MK_H", "?", "MK_L", "MK_M"',
@@ -23,8 +18,7 @@ MainDataSet = (
     "gpsSynced=T",
     "ntpStatus=T, 'galileo.apo.nms', 1",
 )
-# each element of animDataSet is a full set of data to be dispatched,
-# hence each element is a list of keyvar, value tuples
+
 AnimDataSet = (
     ("fwConnState=Disconnected, ''",),
     ('fwStatus=-1, -1, ?, NaN',),
@@ -59,29 +53,3 @@ FWAnimDataSet = (
     ('fwStatus=2, 2, 0x1000, 1.0',),
     ('fwStatus=2, 2, 0x0000, 0.0',),
 )
-
-MsgPrefix = "%s %s %s %s " % (cmdr, 11, actor, ":")
-
-def dispatch(dataSet=None):
-    """Dispatch a set of data, i.e. a list of keyword, value tuples"""
-    if dataSet == None:
-        dataSet = MainDataSet
-    msgStr = MsgPrefix + "; ".join(dataSet)
-    print "Dispatching data:", msgStr
-    dispatcher.doRead(None, msgStr)
-
-def animate(dataSetList=None):
-    if dataSetList == None:
-        dataSetList = AnimDataSet
-    _animate(iter(dataSetList))    
-    
-def _animate(dataIter=None):
-    if dataIter == None:
-        dataIter = iter(AnimDataSet)
-    try:
-        data = dataIter.next()
-    except StopIteration:
-        return
-    dispatch(data)
-    
-    tuiModel.tkRoot.after(1500, animate, dataIter)

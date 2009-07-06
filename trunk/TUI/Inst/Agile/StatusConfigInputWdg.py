@@ -20,6 +20,7 @@ History:
                     - Show "Connection Failed/Failing" instead of "Failed/Failing" to make the display of
                       those two connection states clearer. The other connection states need no clarification.
                     - Show filter wheel moving or homing as a warning instead of a normal state.
+2009-07-02 ROwen    Modified for updated TestData.
 """
 import Tkinter
 import RO.Constants
@@ -387,17 +388,20 @@ def parseConnState(connState):
 
 
 if __name__ == '__main__':
-    root = RO.Wdg.PythonTk()
-
     import TestData
+    tester = TestData.tester
+    root = tester.tuiModel.tkRoot
         
-    testFrame = StatusConfigInputWdg (root)
+    testFrame = StatusConfigInputWdg(root)
     testFrame.pack()
     
-    TestData.dispatch()
+    tester.dispatch(TestData.MainData)
+    
+    def animate():
+        tester.runDataSet(TestData.AnimDataSet)
     
     bf = Tkinter.Frame(root)
-    Tkinter.Button(bf, text='Demo', command=TestData.animate).pack(side='left')
+    Tkinter.Button(bf, text='Demo', command=animate).pack(side='left')
     bf.pack()
     
     root.mainloop()
