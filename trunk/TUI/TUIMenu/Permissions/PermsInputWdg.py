@@ -25,7 +25,7 @@ and because the transition has to occur somewhere.
 2006-04-10 ROwen    Fix PR 314: if a new actor was added, it was not properly displayed.
                     Modified so "sort" sorts actors as well as programs.
 2006-10-31 ROwen    Fix PR 511: program name widgets too narrow on unix.
-2009-07-06 ROwen    Fix PR 946: permissions window does not handle new actors properly.
+2009-07-06 ROwen    Fix PR 940: permissions window does not handle new actors properly.
                     Modified to always sort actors; only programs may be out of order.
                     Modified for updated TestData.
 """
