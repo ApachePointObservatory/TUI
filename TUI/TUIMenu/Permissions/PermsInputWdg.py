@@ -7,12 +7,6 @@ perms terminology "register" and "unregister" because they work
 better in function calls when one might be toggling the state
 and because the transition has to occur somewhere.
 
-To do:
-- Consider some kind of warning for users that are connected but are NOT in the permissions list,
-  for instance show them as deleted for non-read-only users? How for read-only users?
-  Perhaps use a read background in both cases. Note that this makes the already-complicated logic
-  even messier.
-
 2003-12-19 ROwen    Preliminary version; html help is broken.
 2003-12-29 ROwen    Implemented html help.
 2004-07-22 ROwen    Updated for new RO.KeyVariable
@@ -31,6 +25,9 @@ To do:
 2006-04-10 ROwen    Fix PR 314: if a new actor was added, it was not properly displayed.
                     Modified so "sort" sorts actors as well as programs.
 2006-10-31 ROwen    Fix PR 511: program name widgets too narrow on unix.
+2009-07-06 ROwen    Fix PR 946: permissions window does not handle new actors properly.
+                    Modified to always sort actors; only programs may be out of order.
+                    Modified for updated TestData.
 """
 import Tkinter
 import RO.Constants
@@ -52,6 +49,8 @@ except NameError:
 _ProgBegRow = 4
 
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
+
+_NewActorDelayMS = 1000 # display disable delay (ms) while adding or removing actors
 
 class PermsInputWdg(Tkinter.Frame):
     """Inputs:
@@ -80,6 +79,7 @@ class PermsInputWdg(Tkinter.Frame):
         self._progDict = {} # prog name: prog perms
         self._nextRow = _ProgBegRow
         self._readOnly = True
+        self._updActorTimer = None
         
         self.permsModel = PermsModel.getModel()
         
@@ -124,15 +124,13 @@ class PermsInputWdg(Tkinter.Frame):
     def sort(self):
         """Sort actors and existing programs.
         """
-        oldActors = self._actors[:]
         self._actors.sort()
-        if oldActors != self._actors:
-            for wdg in self._titleWdgSet:
-                wdg.destroy()
-            col = 1
-            for actor in self._actors:
-                self._addTitle(actor, col)
-                col += 1
+        for wdg in self._titleWdgSet:
+            wdg.destroy()
+        col = 1
+        for actor in self._actors:
+            self._addTitle(actor, col)
+            col += 1
         
         self._lockoutWdg.display(row=self._lockoutRow, actors=self._actors)
         
@@ -193,7 +191,7 @@ class PermsInputWdg(Tkinter.Frame):
 #               titleSpacer.winfo_width(), mainSpacer.winfo_width(),
 #           )
             if titleSpacer.winfo_width() > mainSpacer.winfo_width():
-                mainSpacer["width"] = titleSpacer.winfo_width()     
+                mainSpacer["width"] = titleSpacer.winfo_width()  
         titleSpacer.bind("<Configure>", dotitle)
         
         def domain(evt):
@@ -206,37 +204,31 @@ class PermsInputWdg(Tkinter.Frame):
 
     def _updActors(self, actors, isCurrent=True, **kargs):
         """Perms list of actors updated.
-        
-        Add any that we didn't already know about.
         """
-#       print "%s._updActors(%r)" % (self.__class__, actors,)
+#         print "%s._updActors(%r)" % (self.__class__, actors,)
         if not isCurrent:
             return
-
-        currActorSet = set(self._actors)
-        newActorSet = set(actors)
-        if len(currActorSet - newActorSet) > 0:
-            missingActors = list(currActorSet - newActorSet)
-            missingActors.sort()
-            raise ValueError("%r: new actors %r is missing existing actors %r" % (self, newActorSet, missingActors))
-
-        newActors = list(newActorSet - currActorSet)
-        if not newActors:
+        
+        actors = sorted(actors)
+        if actors == self._actors:
             return
         
-        newActors.sort()
-        col = len(self._actors) + 1
-        self._actors += newActors
+        if not self._readOnly and self._actors:
+            self._statusBar.setMsg("Updating actors", severity=RO.Constants.sevWarning, isTemp = True, duration=_NewActorDelayMS)
+            if self._updActorTimer:
+                self.after_cancel(self._updActorTimer)
+            self._setReadOnly(True)
+            self._updActorTimer = self.after(_NewActorDelayMS, self._setReadOnly, False)
 
-        # display new actor labels and update self._actors
-        for actor in newActors:
-            self._addTitle(actor, col)
-            col += 1
+        self._actors = actors
 
         # set actors in lockout and each program
         self._lockoutWdg.setActors(self._actors)
         for progPerms in self._progDict.itervalues():
             progPerms.setActors(self._actors)
+
+        # display new header and everything
+        self.sort()
 
     def _updPrograms(self, programs, isCurrent=True, **kargs):
         """Hub's list of registered programs updated.
@@ -292,7 +284,7 @@ class PermsInputWdg(Tkinter.Frame):
         """
         if not isCurrent:
             return
-#       print "_updAuthList(%r)" % (progAuthList,)
+#         print "_updAuthList(%r)" % (progAuthList,)
         
         prog = progAuthList[0].upper()
         authActors = progAuthList[1:]
@@ -305,6 +297,7 @@ class PermsInputWdg(Tkinter.Frame):
 
         isNew = prog not in self._progDict
         if isNew:
+#             print "program %s is not in program dict; adding" % (prog,)
             self._addProg(prog)
 
         progPerms = self._progDict[prog]
@@ -319,8 +312,16 @@ class PermsInputWdg(Tkinter.Frame):
         
         self._lockoutWdg.setCurrActors(lockedActors)
 
+# class _Actors(object):
+#     """An ordered collection of actors
+#     """
+#     def __init__(self):
+#         self.actors = []
+#     
+#     def set(self, actors):
+        
 
-class _BasePerms:
+class _BasePerms(object):
     """Basic set of permissions.
     
     Display current locked actors as a set of checkbuttons.
@@ -343,6 +344,7 @@ class _BasePerms:
         prog = "",
         helpSuffix = "",
     ):
+#         print "_BasePerms(master=%s, actors=%s, readOnly=%s, row=%s, prog=%s)" % (master, actors, readOnly, row, prog)
         self._master = master
         self._prog = prog
         self._readOnly = readOnly
@@ -379,7 +381,7 @@ class _BasePerms:
         Raises ValueError if the set of actors does not match.
         """
         # check actors
-        #print "%s.display" % (self,)
+#         print "%s.display(row=%s, actors=%s)" % (self, row, actors)
         if set(actors) != set(self._actorWdgDict.keys()):
             sortedDispActors = actors[:]
             sortedDispActors.sort()
@@ -404,26 +406,21 @@ class _BasePerms:
     
     def setActors(self, actors):
         """Set the list of actors.
-        Once the object is created, the list can only be extended.
-
-        Raises ValueError if actors is not an extension of the current list.
         """
         #print "%s.setActors(%r); existing actors=%s" % (self.__class__, actors, self._actors)
+        if self._actors == actors:
+            return
+
         currActorSet = set(self._actors)
         newActorSet = set(actors)
-        if len(currActorSet - newActorSet) > 0:
-            missingActors = list(currActorSet - newActorSet)
-            missingActors.sort()
-            raise ValueError("%r: new actors %r is missing existing actors %r" % (self, newActorSet, missingActors))
 
-        newActors = list(newActorSet - currActorSet)
-        if not newActors:
-            return
-            
-        newActors.sort()
-        self._actors += newActors
-        
-        for actor in newActors:
+        # ungrid and delete any deleted actors
+        for actor in currActorSet - newActorSet:
+            self.actorWdgDict[actor].grid_forget()
+            del(self.actorWdgDict[actor])
+
+        # create any new actors (they will be gridded later as part of display)
+        for actor in newActorSet - currActorSet:
             if actor in self._actorWdgDict:
                 raise ValueError("%r: actor %r already exists" % (self, actor))
             
@@ -435,7 +432,7 @@ class _BasePerms:
                 command = self._actorCommand,
                 helpURL = self._helpURL,
             )
-        
+        self._actors = actors
         self.display(self._row, self._actors)
     
     def setCurrActors(self, currActors):
@@ -578,7 +575,7 @@ class _ProgPerms(_BasePerms):
     - statusBar object to handle commands (via doCmd)
     """
     def __init__(self, master, prog, actors, readOnly, row, statusBar):
-#       print "_ProgPerms(%r)" % (prog)
+#         print "_ProgPerms(master=%s, prog=%s, actors=%s, readOnly=%s, row=%s)" % (master, prog, actors, readOnly, row)
         _BasePerms.__init__(self,
             master = master,
             actors = actors,
@@ -883,14 +880,15 @@ class _ProgramWdg(_SettingsWdg):
 
 
 if __name__ == "__main__":
-    root = RO.Wdg.PythonTk()
-    root.resizable(False, False)
-
     import TestData
+    root = TestData.tester.tuiModel.tkRoot
+    root.resizable(False, False)
+    
+    DefReadOnly = False
     
     statusBar = RO.Wdg.StatusBar(
         master = root,
-        dispatcher = TestData.dispatcher
+        dispatcher = TestData.tester.tuiModel.dispatcher
     )
     
     testFrame = PermsInputWdg(
@@ -898,6 +896,7 @@ if __name__ == "__main__":
         statusBar = statusBar,
     )
     testFrame.pack()
+    testFrame._setReadOnly(DefReadOnly)
     
     statusBar.pack(expand="yes", fill="x")
     
@@ -928,13 +927,16 @@ if __name__ == "__main__":
     newEntryWdg.bind("<Return>", doNew)
     
     newEntryWdg.pack(side="left", anchor="w")
-
-    Tkinter.Button(butFrame, text="Demo", command=TestData.animate).pack(side="left")
     
-    RO.Wdg.Checkbutton(butFrame, text="Read Only", callFunc=doReadOnly).pack(side="left")
+    def animate():
+        TestData.tester.runDataSet(TestData.AnimDataSet)
+
+    Tkinter.Button(butFrame, text="Demo", command=animate).pack(side="left")
+    
+    RO.Wdg.Checkbutton(butFrame, text="Read Only", defValue=DefReadOnly, callFunc=doReadOnly).pack(side="left")
     
     butFrame.pack(anchor="w")
-
-    TestData.start()
+    
+    TestData.tester.dispatch(TestData.MainData)
 
     root.mainloop()

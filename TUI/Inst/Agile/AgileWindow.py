@@ -9,6 +9,7 @@ History:
 2009-02-25 ROwen    Added display of camera connection state.
                     Modified getExpCmdStr to raise an exception if the camera is not connected.
 2009-06-24 ROwen    Added filter widget.
+2009-07-02 ROwen    Modified for updated TestData.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
@@ -86,14 +87,11 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
 if __name__ == "__main__":
     import TestData
 
-    tlSet = TestData.tuiModel.tlSet
+    tlSet = TestData.tester.tuiModel.tlSet
 
     addWindow(tlSet)
     tlSet.makeVisible("Inst.%s" % (InstName,))
     
-    TestData.dispatch()
+    TestData.tester.dispatch(TestData.MainData)
     
-#    TestData.animate()
-#    TestData.animate(TestData.FWAnimDataSet)
-    
-    TestData.tuiModel.tkRoot.mainloop()
+    TestData.tester.tuiModel.tkRoot.mainloop()
