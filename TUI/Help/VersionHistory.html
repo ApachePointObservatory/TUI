@@ -15,164 +15,35 @@
 	<li>Windows: works with Windows Vista, XP and 2000.
 </ul>
 
-<h3>1.6b3-post 2009-07-09</h3>
-
-<p>Bug fixes:
-<ul>
-    <li>Permissions window: fixed an invalid member variable reference. Also fixed the test code by modifying TUI.Base.TestDispatcher (as described below).
-</ul>
-
-<p>Internal changes:
-<ul>
-    <li>TUI.Base.TestDispatcher: changed to dispatch one dataList item at a time. This allows the dataList to contain multiple instances of the same keyword.
-</ul>
-
-<h3>1.6b3 2009-07-06</h3>
+<h3>1.6 2009-07-09</h3>
 
 <p>Visible changes:
 <ul>
-    <li>Version History: updated links to 3.5m problem reports to point to new server.
-</ul>
-
-<p>Bug fix:
-<ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=946">PR 946</a> Permissions window does not handle new actors properly.
-</ul>
-
-<h3>1.6b2 2009-06-25</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Agile window now includes filter wheel controls (and entries in Environ related to the filter wheel).
-</ul>
-
-<h3>1.6b1 2009-05-06</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Overhauled image download
+    <li>Added support for Agile.
+    <li>Overhauled image download:
     <ul>
         <li>Users now have two new options for image download: only download every Nth exposure or only download current exposures (skip intermediate exposures if the connection is too slow to keep up). At present all this is controlled with a single integer: 0 for no download, N to download every Nth image (N=1 to download all of them) or -1 to download only current images. I have some ideas for improving the user interface if this is felt to be too tricky.
         <li>Images are now downloaded sequentially (though DIS images are downloaded in red/blue pairs). This should speed up download and prevent out-of-sequence download.
         <li>Please update your exposure prefs to set the desired default download behavior.
     </ul>
-</ul>
-
-<h3>1.6a11 2009-05-04</h3>
-
-<p>Visible changes:
-<ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=990">CR 990</a> Agile now allows specifying up to 99,999 exposures.
-</ul>
-
-<p>Bug fix:
-<ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=931">PR 931</a> cmd-W closes Status window on MacOS X.
-</ul>
-
-<h3>1.6a10 2009-04-17</h3>
-
-<p>Bug fix:
-<ul>
-    <li>Fixed a typo that messed up Agile temperature display (I'm not yet sure why the test code worked).
-</ul>
-
-<h3>1.6a9 2009-04-17</h3>
-
-<p>Visible changes:
-<ul>
     <li>The TUI menu now has an entry for the Status window, in case you minimize it or somehow succeed in closing it.
-    <li>Agile improvements:
-    <ul>
-        <li>The default overscan is now large enough to include a useful bias region
-        <li>Added display of additional (newly available) environmental information.
-    </ul>
+    <li>Slew window: removed the Stop button at request of APO because it is hard on the current telescope axis drives. Alternatives include: command a new slew (to supersede the current one), wait for the current slew to finish, or ask the obs specs for help. The Stop button will be restored when we upgrade to the new axis controllers.
+    <li>Version History: updated links to 3.5m problem reports to point to new server.
 </ul>
 
-<h3>1.6a8 2009-03-12</h3>
-
-<p>Bug fix:
+<p>Bug fixes:
 <ul>
 	<li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=965">PR 965</a> SPIcam focus script fails.
-</ul>
-
-<h3>1.6a7 2009-03-02</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Slew window: removed the Stop button at request of APO because it is hard on the current telescope axis drives. Alternatives include: command a new slew (to supersede the current one), wait for the current slew to finish, or ask the obs specs for help. The Stop button will be restored when we upgrade to the new axis controllers.
-    <li>Agile tweaks:
-    <ul>
-        <li>The "exposure begins" sound cue is only played once every 30 seconds, at the most. The shutter closed sound is never played (I would prefer to play it once at the end of a sequence, but that is tricky to make reliable.)
-        <li>The window shows the state of the camera connection
-        <li>Exposures are rejected while the camera is disconnected
-        <li>Added a Full button to restore full window
-    </ul>
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=946">PR 946</a> Permissions window does not handle new actors properly.
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=931">PR 931</a> cmd-W closes Status window on MacOS X.
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=905">PR 905</a> TUI not displaying tspec critical alarm state.
+    <li>NA2 Guider:Focus GMech script: fixed a bug that prevented it from restoring the original focus at the end if the script fails (it was trying to read original focus from the wrong BaseFocusScript member variable).
 </ul>
 
 <p>Internal changes:
 <ul>
     <li>TUI error log files are named by date and the 10 most recent previous log files are saved.
     <li>TUI error log files now include data sent to stdout as well as stderr. This means that the extra diagnostic information for PR 777 will now appear in the error log.
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li>Agile: the default/max value for the upper-right window controls was not adjusted to match the bin factor.
-    <li>NA2 Guider:Focus GMech script: fixed a bug that prevented it from restoring the original focus at the end if the script fails (it was trying to read original focus from the wrong BaseFocusScript member variable).
-</ul>
-
-<h3>1.6a6 2009-02-05</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Agile: removed Ext Sync exposure control (at Anjum's suggestion because it is too dangerous).
-</ul>
-
-<p>Bug fixes
-<ul>
-    <li>Agile: amplifier gain option Medium corrected to Med.
-</ul>
-
-<h3>1.6a5 2009-01-28</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Agile changes:
-    <ul>
-        <li>Added help document.
-        <li>Added Gain, Read Rate and Ext Sync exposure controls.
-        <li>Added default overscan.
-        <li>Combined the status/config and exposure windows into one window.
-    </ul>
-</ul>
-
-<h3>1.6a4 2008-12-15</h3>
-
-<p>Bug fixes
-<ul>
-    <li>Agile: bin=3 produced an invalid window due to a limits handling error in RO.Astro.ImageWindow.
-</ul>
-
-<h3>1.6a3 2008-11-18</h3>
-
-<p>Bug fixes
-<ul>
-    <li>Fixed another bug in the TSpec environment display.
-</ul>
-
-<h3>1.6a2 2008-11-17</h3>
-
-<p>Bug fixes
-<ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=905">PR 905</a> TUI not displaying tspec critical alarm state.
-</ul>
-
-<h3>1.6a1 2008-11-10</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Preliminary support for Agile. Once the hub can talk to agile the exposure controls should and temperature displays should work. There is no filterwheel control yet.
 </ul>
 
 <h3>1.5.1 2008-09-26</h3>
