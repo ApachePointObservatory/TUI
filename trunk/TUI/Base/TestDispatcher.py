@@ -6,6 +6,8 @@ History:
 2009-06-24 ROwen    Bug fix: test code was sending SlewEnds instead of SlewEnd.
 2009-07-09 ROwen    Modified dispatch to dispatch each item separately, thereby
                     allowing dataList to contain multiple instances of the same keyword.
+                    Modified to not print each dispatched message because the dispatcher
+                    was changed to does this itself.
 """
 import TUI.TUIModel
 
@@ -51,7 +53,6 @@ class TestDispatcher(object):
             msgCode = self.msgCode
         for dataItem in dataList:
             replyStr = "%s %s %s %s %s" % (cmdr, cmdID, actor, msgCode, dataItem)
-            print "Dispatching:", replyStr
             self.dispatcher.doRead(None, replyStr)
     
     def runDataSet(self, dataSet):
