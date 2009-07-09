@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 """Dispatch data for testing purposes
 
+History:
+2009-04-21 ROwen
 2009-06-24 ROwen    Bug fix: test code was sending SlewEnds instead of SlewEnd.
+2009-07-09 ROwen    Modified dispatch to dispatch each item separately, thereby
+                    allowing dataList to contain multiple instances of the same keyword.
 """
 import TUI.TUIModel
 
@@ -45,9 +49,10 @@ class TestDispatcher(object):
             actor = self.actor
         if msgCode == None:
             msgCode = self.msgCode
-        replyStr = "%s %s %s %s %s" % (cmdr, cmdID, actor, msgCode, "; ".join(dataList))
-        print "Dispatching:", replyStr
-        self.dispatcher.doRead(None, replyStr)
+        for dataItem in dataList:
+            replyStr = "%s %s %s %s %s" % (cmdr, cmdID, actor, msgCode, dataItem)
+            print "Dispatching:", replyStr
+            self.dispatcher.doRead(None, replyStr)
     
     def runDataSet(self, dataSet):
         """Dispatch a sequence of data, with a fixed pause between each entry.

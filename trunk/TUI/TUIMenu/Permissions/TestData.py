@@ -1,14 +1,15 @@
 import TUI.Base.TestDispatcher
 
-tester = TUI.Base.TestDispatcher.TestDispatcher(actor="perms", delay=0.5)
+testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("perms", delay=1.5)
+tuiModel = testDispatcher.tuiModel
 
-MainData = (
+MainDataList = (
     "actors=dis, echelle, tcc, tlamps, tspec",
     "programs=UW01, CL01, TU01",
     "lockedActors=tspec",
-    "authList=TU01, echelle, perms, tcc, tspec",
     "authList=CL01, tcc, dis, tspec, tlamps",
     "authList=UW01, tcc, echelle",
+    "authList=TU01, echelle, perms, tcc, tspec",
 )
 
 AnimDataSet = (
@@ -26,3 +27,9 @@ AnimDataSet = (
         "authList=CL01, apollo, echelle, perms, tcc, tspec",
     ),
 )
+
+def start():
+    testDispatcher.dispatch(MainDataList)
+    
+def animate(dataIter=None):
+    testDispatcher.runDataSet(AnimDataSet)

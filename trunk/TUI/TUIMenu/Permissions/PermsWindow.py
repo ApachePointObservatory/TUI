@@ -11,6 +11,7 @@
 2006-04-10 ROwen    Updated Sort button help text because actors are now sorted.
 2007-07-27 ROwen    Modified to pay command-completed sounds.
 2009-07-06 ROwen    Modified for updated TestData.
+2009-07-09 ROwen    Modified test code to look more like tuisdss.
 """
 import Tkinter
 import RO.KeyVariable
@@ -141,7 +142,7 @@ class PermsWdg(Tkinter.Frame):
 
 if __name__ == "__main__":
     import TestData
-    root = TestData.tester.tuiModel.tkRoot
+    root = TestData.tuiModel.tkRoot
     root.resizable(False, True)
     
     DefReadOnly = False
@@ -155,16 +156,13 @@ if __name__ == "__main__":
         testFrame.inputWdg._setReadOnly(readOnly)
     
     butFrame = Tkinter.Frame(root)
-
-    def animate():
-        TestData.tester.runDataSet(TestData.AnimDataSet)
     
-    Tkinter.Button(butFrame, text="Demo", command=animate).pack(side="left")
+    Tkinter.Button(butFrame, text="Demo", command=TestData.animate).pack(side="left")
     
     RO.Wdg.Checkbutton(butFrame, text="Read Only", callFunc=doReadOnly).pack(side="left")
 
     butFrame.pack(side="top")
-
-    TestData.tester.dispatch(TestData.MainData)
+    
+    TestData.start()
 
     root.mainloop()
