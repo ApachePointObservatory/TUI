@@ -28,6 +28,8 @@ and because the transition has to occur somewhere.
 2009-07-06 ROwen    Fix PR 940: permissions window does not handle new actors properly.
                     Modified to always sort actors; only programs may be out of order.
                     Modified for updated TestData.
+2009-07-09 ROwen    Bug fix: bad class instance reference.
+                    Modified test code to look more like tuisdss version.
 """
 import Tkinter
 import RO.Constants
@@ -292,7 +294,7 @@ class PermsInputWdg(Tkinter.Frame):
         if prog == self._tuiModel.getProgID().upper():
             # this is info about me (my program); check if I can set permissions
             readOnly = "perms" not in authActors
-#           print "prog=%s is me; readOnly=%s, currReadOnly=%s, actors=%s" % (prog, readOnly, self._readOnly, authActors)
+#             print "prog=%s is me; readOnly=%s, currReadOnly=%s, actors=%s" % (prog, readOnly, self._readOnly, authActors)
             self._setReadOnly(readOnly)
 
         isNew = prog not in self._progDict
@@ -312,14 +314,6 @@ class PermsInputWdg(Tkinter.Frame):
         
         self._lockoutWdg.setCurrActors(lockedActors)
 
-# class _Actors(object):
-#     """An ordered collection of actors
-#     """
-#     def __init__(self):
-#         self.actors = []
-#     
-#     def set(self, actors):
-        
 
 class _BasePerms(object):
     """Basic set of permissions.
@@ -416,8 +410,8 @@ class _BasePerms(object):
 
         # ungrid and delete any deleted actors
         for actor in currActorSet - newActorSet:
-            self.actorWdgDict[actor].grid_forget()
-            del(self.actorWdgDict[actor])
+            self._actorWdgDict[actor].grid_forget()
+            del(self._actorWdgDict[actor])
 
         # create any new actors (they will be gridded later as part of display)
         for actor in newActorSet - currActorSet:
@@ -469,6 +463,7 @@ class _BasePerms(object):
             actor for actor, wdg in self._actorWdgDict.iteritems()
             if wdg.getBool()
         ]
+        actorList.sort()
         cmdStr = "%s %s" % (self._getCmdPrefix(), ' '.join(actorList),)
         self._doCmd(cmdStr)
         
@@ -498,7 +493,7 @@ class _BasePerms(object):
             actor = "perms",
             cmdStr = cmdStr,
             callFunc = self._cmdFailed,
-            callTypes = 'f!',
+            callTypes = RO.KeyVariable.FailTypes,
         )
         self._statusBar.doCmd(cmd)
     
@@ -881,14 +876,14 @@ class _ProgramWdg(_SettingsWdg):
 
 if __name__ == "__main__":
     import TestData
-    root = TestData.tester.tuiModel.tkRoot
+    root = TestData.tuiModel.tkRoot
     root.resizable(False, False)
-    
+
     DefReadOnly = False
     
     statusBar = RO.Wdg.StatusBar(
         master = root,
-        dispatcher = TestData.tester.tuiModel.dispatcher
+        dispatcher = TestData.tuiModel.dispatcher
     )
     
     testFrame = PermsInputWdg(
@@ -927,16 +922,13 @@ if __name__ == "__main__":
     newEntryWdg.bind("<Return>", doNew)
     
     newEntryWdg.pack(side="left", anchor="w")
-    
-    def animate():
-        TestData.tester.runDataSet(TestData.AnimDataSet)
 
-    Tkinter.Button(butFrame, text="Demo", command=animate).pack(side="left")
+    Tkinter.Button(butFrame, text="Demo", command=TestData.animate).pack(side="left")
     
     RO.Wdg.Checkbutton(butFrame, text="Read Only", defValue=DefReadOnly, callFunc=doReadOnly).pack(side="left")
     
     butFrame.pack(anchor="w")
-    
-    TestData.tester.dispatch(TestData.MainData)
+
+    TestData.start()
 
     root.mainloop()
