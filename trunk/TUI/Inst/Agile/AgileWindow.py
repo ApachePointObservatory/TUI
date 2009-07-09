@@ -59,7 +59,7 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
             master = self.expInputWdg,
             statusBar = self.statusBar,
             gridder = gr,
-            helpURL = self.HelpPrefix + "filter",
+            helpPrefix = self.HelpPrefix,
         )
 #        gr.gridWdg(False, self.filterWdg, colSpan=5)
         

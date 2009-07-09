@@ -83,13 +83,13 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             text = "Environ",
             indicatoron = False,
             helpText = "Show/hide environment details",
-            helpURL = self.HelpPrefix + "Environment",
+            helpURL = self.HelpPrefix + "Environ",
         )
         
         self.environSummaryWdg = RO.Wdg.StrLabel(
             master = self,
             helpText = "Environment summary",
-            helpURL = self.HelpPrefix + "Environment",
+            helpURL = self.HelpPrefix + "Environ",
         )
 
         gr.gridWdg (
@@ -104,14 +104,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             master = self,
             anchor = "w",
             helpText = "Camera connection state",
-            helpURL = self.HelpPrefix + "CameraConn",
+            helpURL = self.HelpPrefix + "env_Camera",
         )
         gr.gridWdg("Camera", self.cameraConnStateWdg, cat = self.EnvironCat)
         
         self.ccdTempWdg = RO.Wdg.StrLabel(
             master = self,
             helpText = "Current CCD Temp (C)",
-            helpURL = self.HelpPrefix + "CCDTemp",
+            helpURL = self.HelpPrefix + "env_CCDTemp",
         )
         
         gr.gridWdg (
@@ -125,7 +125,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.ccdSetTempWdg = RO.Wdg.StrLabel(
             master = self,
             helpText = "Desired CCD Temp (C)",
-            helpURL = self.HelpPrefix + "CCDTemp",
+            helpURL = self.HelpPrefix + "env_CCDSetTemp",
         )
 
         gr.gridWdg (
@@ -143,7 +143,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 self.ccdTempLimitsFrame,
                 precision = 1,
                 width = _EnvWidth,
-                helpText = "Error limit for %s CCD temp." % (limitName.lower(),)
+                helpText = "Error limit for %s CCD temp." % (limitName.lower(),),
+                helpURL = self.HelpPrefix + "env_CCDTempLimits",
             )
             ccdTempLimitWdg.grid(row=0, column=col)
             self.ccdTempLimitsWdgSet.append(ccdTempLimitWdg)
@@ -160,7 +161,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             master = self,
             anchor = "w",
             helpText = "Is clock card synched to the GPS clock?",
-            helpURL = self.HelpPrefix + "GPSSynced",
+            helpURL = self.HelpPrefix + "env_GPSSynced",
         )
        
         gr.gridWdg(
@@ -175,6 +176,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             ntpStatusWdg = RO.Wdg.StrLabel(
                 self.ntpStatusFrame,
                 helpText = helpStr,
+                helpURL = self.HelpPrefix + "env_NTPStatus",
             )
             ntpStatusWdg.grid(row=0, column=col)
             self.ntpStatusWdgSet.append(ntpStatusWdg)
@@ -193,7 +195,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             master = self,
             anchor = "w",
             helpText = "Filter wheel connection state",
-            helpURL = self.HelpPrefix + "FWConn",
+            helpURL = self.HelpPrefix + "env_FilterWheel",
         )
         gr.gridWdg(StFWConn, self.fwConnStateWdg, cat = self.EnvironCat)
         
@@ -201,7 +203,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             master = self,
             anchor = "w",
             helpText = "Filter wheel motor state",
-            helpURL = self.HelpPrefix + "StFWMotor",
+            helpURL = self.HelpPrefix + "env_FilterWheelMotor",
         )
        
         gr.gridWdg(

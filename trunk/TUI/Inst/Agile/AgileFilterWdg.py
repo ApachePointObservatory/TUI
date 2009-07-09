@@ -24,7 +24,7 @@ class AgileFilterWdg(object):
         master,
         statusBar,
         gridder,
-        helpURL = None,
+        helpPrefix = None,
     ):
         self.statusBar = statusBar
 
@@ -43,7 +43,7 @@ class AgileFilterWdg(object):
             callFunc = self.enableButtons,
             defMenu = "Current",
             helpText =  "Agile filter",
-            helpURL = helpURL,
+            helpURL = helpPrefix + "FilterWheel",
         )
         self.userFilterWdg.pack(side="left")
         
@@ -52,7 +52,7 @@ class AgileFilterWdg(object):
             text = "Set Filter",
             callFunc = self.doApply,
             helpText = "Set Agile filter",
-            helpURL = helpURL,
+            helpURL = helpPrefix + "FilterWheel",
         )
         self.applyBtn.pack(side="left")
 
@@ -61,7 +61,7 @@ class AgileFilterWdg(object):
             text = "X",
             callFunc = self.doCancel,
             helpText = "Cancel filter command",
-            helpURL = helpURL,
+            helpURL = helpPrefix + "FilterWheel",
         )
         self.cancelBtn.pack(side="left")
 
@@ -70,7 +70,7 @@ class AgileFilterWdg(object):
             text = "Current Filter",
             callFunc = self.doCurrent,
             helpText = "Show current Agile filter",
-            helpURL = helpURL,
+            helpURL = helpPrefix + "FilterWheel",
         )
         self.currentBtn.setEnable(False)
         self.currentBtn.pack(side="left")
@@ -83,7 +83,7 @@ class AgileFilterWdg(object):
         self.slideInfoWdg = RO.Wdg.StrLabel(
             master = slideFrame,
             helpText = "Filter slide information",
-            helpURL = helpURL,
+            helpURL = helpPrefix + "FilterSlide",
         )
         self.slideInfoWdg.pack(side="left")
         gr.gridWdg("Filter Slide", slideFrame)
