@@ -73,10 +73,10 @@ Notes:
 2009-04-15 ROwen    Increased default Agile x overscan from 9 to 27.
 2009-05-04 ROwen    Added maxNumExp to instInfo and set it to 99999 for Agile.
 2009-05-06 ROwen    Modified to use Get Every preference instead of Auto Get.
+2009-07-09 ROwen    Removed unused import of os (found by pychecker).
 """
 __all__ = ['getModel']
 
-import os
 import Tkinter
 import RO.Alg
 import RO.Astro.ImageWindow
