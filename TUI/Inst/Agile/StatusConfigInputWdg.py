@@ -21,6 +21,8 @@ History:
                       those two connection states clearer. The other connection states need no clarification.
                     - Show filter wheel moving or homing as a warning instead of a normal state.
 2009-07-02 ROwen    Modified for updated TestData.
+2009-07-10 ROwen    Removed an inline conditional statement to be Python 2.4 compatible.
+                    Modified for updated TestData.
 """
 import Tkinter
 import RO.Constants
@@ -350,7 +352,10 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             serverStr = "?"
         else:
             serverStr = server.split(".")[0]
-        stratumStr = stratum if stratum != None else "?"
+        if stratum != None:
+            stratumStr = stratum
+        else:
+            stratumStr = "?"
         self.ntpStatusWdgSet[0].set(isRunningStr, isCurrent=isCurrent, severity=severity)
         self.ntpStatusWdgSet[1].set(serverStr, isCurrent=isCurrent, severity=severity)
         self.ntpStatusWdgSet[2].set(stratumStr, isCurrent=isCurrent, severity=severity)
@@ -391,19 +396,15 @@ def parseConnState(connState):
 
 if __name__ == '__main__':
     import TestData
-    tester = TestData.tester
-    root = tester.tuiModel.tkRoot
+    root = TestData.tuiModel.tkRoot
         
     testFrame = StatusConfigInputWdg(root)
     testFrame.pack()
     
-    tester.dispatch(TestData.MainData)
-    
-    def animate():
-        tester.runDataSet(TestData.AnimDataSet)
-    
     bf = Tkinter.Frame(root)
-    Tkinter.Button(bf, text='Demo', command=animate).pack(side='left')
+    Tkinter.Button(bf, text='Demo', command=TestData.animate).pack(side='left')
     bf.pack()
+
+    TestData.start()
     
     root.mainloop()

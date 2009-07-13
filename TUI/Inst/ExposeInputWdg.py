@@ -59,6 +59,7 @@ History:
 2009-05-06 ROwen    Modified to use getEvery download preference isntead of autoGet.
 2009-06-26 ROwen    Made exposure time units more reliably stay next to exposure time entry
                     by packing them into a frame and gridding that, instead of gridding them separately.
+2009-07-10 ROwen    Removed an inline conditional statement to be Python 2.4 compatible.
 """
 import Tkinter
 import RO.InputCont
@@ -256,11 +257,15 @@ class ExposeInputWdg (Tkinter.Frame):
             windowWdgFrame = Tkinter.Frame(self)
             maxWindowList = [minWindow + self.expModel.instInfo.imSize[ind] - 1 for ind in (0, 1, 0, 1)]
             for ind, helpStr in enumerate(("x begin", "y begin", "x end", "y end")):
+                if ind < 2:
+                    defValue = minWindow
+                else:
+                    defValue = maxWindowList[ind]
                 windowWdg = RO.Wdg.IntEntry(
                     windowWdgFrame,
                     minValue = minWindow,
                     maxValue = maxWindowList[ind],
-                    defValue = (minWindow if ind < 2 else maxWindowList[ind]),
+                    defValue = defValue,
                     defMenu = "Default",
                     callFunc = self._updWindow,
                     helpText = helpStr + " (binned pixels)",
@@ -448,10 +453,16 @@ class ExposeInputWdg (Tkinter.Frame):
         #print "_updImageSize"
         window = [wdg.getNum() for wdg in self.windowWdgSet]
         overscan = [wdg.getNum() for wdg in self.overscanWdgSet]
-        size = [1 + window[ii+2] - window[ii] for ii in range(2)]
-        overscanStrs = [" + %d" % (val,) if val > 0 else "" for val in overscan]
-        strSize = "%d%s x %d%s" % (size[0], overscanStrs[0], size[1], overscanStrs[1])
-        self.imageSizeWdg.set(strSize)
+        sizeStrList = []
+        for ii in range(2):
+            size = 1 + window[ii+2] - window[ii]
+            if overscan[ii] > 0:
+                sizeStr = "%d + %d" % (size, overscan[ii])
+            else:
+                sizeStr = "%d" % (size,)
+            sizeStrList.append(sizeStr)
+        fullSizeStr = " x ".join(sizeStrList)
+        self.imageSizeWdg.set(fullSizeStr)
    
     def _updWindow(self, wdg=None):
         """Window changed; update currUnbWindow and image size"""
