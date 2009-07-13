@@ -1,8 +1,9 @@
 import TUI.Base.TestDispatcher
 
-tester = TUI.Base.TestDispatcher.TestDispatcher(actor="agile", delay=0.5)
+testDispatcher = TUI.Base.TestDispatcher.TestDispatcher(actor="agile", delay=0.5)
+tuiModel = testDispatcher.tuiModel
 
-MainData = (
+MainDataList = (
     "cameraConnState=Connected, ''",
     "fwConnState=Connected, ''",
     'fwNames="Open", "MK_J", "MK_H", "?", "MK_L", "MK_M"',
@@ -53,3 +54,9 @@ FWAnimDataSet = (
     ('fwStatus=2, 2, 0x1000, 1.0',),
     ('fwStatus=2, 2, 0x0000, 0.0',),
 )
+
+def start():
+    testDispatcher.dispatch(MainDataList)
+
+def animate():
+    testDispatcher.runDataSet(AnimDataSet)
