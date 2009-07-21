@@ -38,6 +38,7 @@ History:
                     - Added keyword argument
                     - Output is now formatted like hub output.
 2009-04-21 ROwen    Renamed root to tkRoot.
+2009-07-20 ROwen    Modified to set the dispatcher to log messages to stdout in test mode.
 """
 import os
 import platform
@@ -93,6 +94,9 @@ class _Model (object):
             tkWdg = self.tkRoot,
             connection = connection,
         )
+        
+        if testMode:
+            self.dispatcher.setLogFunc(RO.KeyDispatcher.logToStdOut)
     
         # TUI preferences
         self.prefs = prefs = TUI.TUIPrefs.TUIPrefs()
