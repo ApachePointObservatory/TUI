@@ -33,6 +33,7 @@ History:
                     Added Prev and Next highlight buttons.
                     Clear "Removing highlight" message from status bar at instantiation.
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
+2009-07-22 ROwen    Bug fix: when an actor disappeared from the hub one could no longer filter on it.
 """
 import re
 import time
@@ -420,7 +421,9 @@ class TUILogWdg(Tkinter.Frame):
                 continue
             pref.addCallback(RO.Alg.GenericCallback(self._updSevTagColor, sevTag), callNow=True)
         
-        self.actorDict = {}
+        # dictionary of actor name, tag name pairs:
+        # <actor-in-lowercase>: act_<actor-in-lowercase>
+        self.actorDict = {"tui": "act_tui"}
     
         # set up and configure other tags
         hcPref = tuiModel.prefs.getPrefVar("Highlight Background")
@@ -1012,13 +1015,12 @@ class TUILogWdg(Tkinter.Frame):
         """
         if not actors:
             return
-        
-        actors = [actor.lower() for actor in actors]
-        actors.append("tui")
-        actors.sort()
-        
-        actorTuples = [(actor, "act_" + actor) for actor in actors]
-        self.actorDict = dict(actorTuples)
+
+        newActors = set(actor.lower() for actor in actors)
+        currActors = set(self.actorDict.keys())
+        sortedActors = sorted(list(newActors | currActors))
+
+        self.actorDict = dict((actor, "act_" + actor) for actor in sortedActors)
         
         blankAndActors = [""] + actors
         self.defActorWdg.setItems(blankAndActors, isCurrent = isCurrent)
