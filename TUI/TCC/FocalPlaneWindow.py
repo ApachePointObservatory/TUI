@@ -32,13 +32,17 @@ History:
 2005-06-06 ROwen    Bug fix: if rotator limits changed the current and target
                     rotator position might not be centered on the spiral.
 2005-06-08 ROwen    Changed Axis to a new style class.
+2009-03-31 ROwen    Updated for new TCC model.
+2009-07-19 ROwen    Updated for new opscore PVT handling.
 """
+import sys
 import Tkinter
 import tkFont
+import RO.CnvUtil
 import RO.MathUtil
 import RO.Wdg
 import RO.CanvasUtil
-import TUI.TCC.TCCModel
+import TUI.Models.TCCModel
 
 _HelpPage = "Telescope/FocalPlaneWin.html"
 
@@ -172,7 +176,7 @@ class FocalPlaneWdg (Tkinter.Frame):
     ):
         Tkinter.Frame.__init__(self, master)
         
-        self.model = TUI.TCC.TCCModel.getModel()
+        self.tccModel = TUI.Models.TCCModel.Model()
         
         self.instNameWdg = RO.Wdg.StrLabel(
             master = self,
@@ -258,19 +262,13 @@ class FocalPlaneWdg (Tkinter.Frame):
 
         self.cnv.bind('<Configure>', self._configureEvt)
 
-        # create RO key variables for the various quanities being displayed
-        self.model.instName.addROWdg(self.instNameWdg)
-
-        self.model.objInstAng.addPosCallback(self.userAxis.setAng)
-
-        self.model.spiderInstAng.addPosCallback(self.horizonAxis.setAng)
-        
-        self.model.axePos.addIndexedCallback(self.setRotCurrent, 2)
-        self.model.tccPos.addIndexedCallback(self.setRotTarget, 2)
-
-        self.model.rotLim.addCallback(self.setRotLim)
-        
-        self.model.iimScale.addCallback(self.setInstScale)
+        self.tccModel.inst.addValueCallback(self.instNameWdg.set)
+        self.tccModel.objInstAng.addValueCallback(self.userAxis.setAng, cnvFunc=RO.CnvUtil.posFromPVT)
+        self.tccModel.spiderInstAng.addValueCallback(self.horizonAxis.setAng, cnvFunc=RO.CnvUtil.posFromPVT)
+        self.tccModel.axePos.addCallback(self._axePosCallback)
+        self.tccModel.tccPos.addCallback(self._tccPosCallback)
+        self.tccModel.rotLim.addCallback(self._rotLimCallback)
+        self.tccModel.iimScale.addCallback(self._iimScaleCallback)
 
         self._setSize()
 
@@ -298,13 +296,13 @@ class FocalPlaneWdg (Tkinter.Frame):
         self.userAxis.labels = userLabels
         self.userAxis.draw()
 
-    def setInstScale(self, instScale, isCurrent=True, **kargs):
+    def _iimScaleCallback(self, keyVar):
         """Set the instrument scale: instrument pixels/degree on the sky"""
-        self.instScale = instScale
+        self.instScale = keyVar.valueList[0:2]
         mirrors = [1, 1]
-        for ind in range(2):
-            if instScale[ind]:
-                mirrors[ind] = RO.MathUtil.sign(instScale[ind])
+        for ind, scale in enumerate(self.instScale):
+            if scale:
+                mirrors[ind] = RO.MathUtil.sign(scale)
         self.horizonAxis.setMirrors(mirrors)
         self.userAxis.setMirrors(mirrors)
         self.instAxis.setMirrors(mirrors)
@@ -320,22 +318,23 @@ class FocalPlaneWdg (Tkinter.Frame):
 #       self.instLim = instLim
 #       self.draw()
 
-    def setRotLim(self, rotLim, isCurrent=True, **kargs):
+    def _rotLimCallback(self, keyVar):
         """Sets the rotator limits. rotLim = minPos, maxPos and other values which are ignored"""
-        self.rotWrapGauge.setAngLim(rotLim[0], rotLim[1])
+        rotMin, rotMax = keyVar[0:2]
+        self.rotWrapGauge.setAngLim(rotMin, rotMax)
         self._drawRotCurrent()
         self._drawRotTarget()
     
-    def setRotCurrent(self, rotCurrent, isCurrent=True, **kargs):
+    def _axePosCallback(self, keyVar):
         """Update rotator's current mount position.
         """
-        self.rotCurrent = rotCurrent
+        self.rotCurrent = keyVar[2]
         self._drawRotCurrent()
     
-    def setRotTarget(self, rotTarget, isCurrent=True, **kargs):
+    def _tccPosCallback(self, keyVar):
         """Update rotator's target mount position.
         """
-        self.rotTarget = rotTarget
+        self.rotTarget = keyVar[2]
         self._drawRotTarget()
             
     def _setSize(self):
@@ -449,56 +448,47 @@ class FocalPlaneWdg (Tkinter.Frame):
 
 if __name__ ==  '__main__':
     import random
-    import TUI.TUIModel
-
-    root = RO.Wdg.PythonTk()
-    # root = Tkinter.Tk()
-
-    kd = TUI.TUIModel.getModel(True).dispatcher
+    import TUI.Base.TestDispatcher
+    
+    testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("tcc", delay=0.2)
+    tuiModel = testDispatcher.tuiModel
+    root = tuiModel.tkRoot
     
     minAng = -350.0
     maxAng =  350.0
 
-    def animFunc(ang1=0, ang2=0):
-        ang1 = ang1 + 45
-        if ang1 > 360:
-            ang1 = 45
-            ang2 = ang2 + 45
-            if ang2 > 360:
-                return
-
-        rotAng = float(random.randint(int(minAng), int(maxAng)))
+    def doAnim(wdg=None):
+        animDataSet = []
+        for ang1 in range(0, 361, 45):
+            for ang2 in range(0, 361, 45):
+                rotAng = float(random.randint(int(minAng), int(maxAng)))
+                
+                dataList = (
+                    "ObjInstAng=%s, 0, 1" % (ang1,),
+                    "SpiderInstAng=%s, 0, 1" % (ang2),
+                    "AxePos=0, 0, %s" % (rotAng,),
+                    "inst=SPICam",
+                )
+                animDataSet.append(dataList)
         
-        dataDict = {
-            "ObjInstAng": (ang1, 0, 1),
-            "SpiderInstAng": (ang2, 0, 1),
-            "AxePos": (0, 0, rotAng),
-            "inst": ("SPICam",),
-        }
-
-        msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
-        kd.dispatch(msgDict)
-        root.update_idletasks()
-
-        root.after(200, animFunc, ang1, ang2)
+        testDispatcher.runDataSet(animDataSet)
+        
 
     testFrame = FocalPlaneWdg (root)
     testFrame.pack(fill = "both", expand = "yes")
-    Tkinter.Button(root, text="Demo", command=animFunc).pack(side="top")
+    Tkinter.Button(root, text="Demo", command=doAnim).pack(side="top")
 
     # initial data
-    dataDict = {
-        "CoordSys": ("ICRS", None),
-        "RotLim": (-360, 360, 3, 0.3, 0.3),
-        "ObjInstAng": (0, 0, 1),
-        "SpiderInstAng": (0, 0, 1),
-        "AxePos": (0, 0, 45),
-        "inst": ("SPICam",),
-        "IImScale": (-3000, 3000),
-    }
+    dataList = (
+        "CoordSys=ICRS, None",
+        "RotLim=-360, 360, 3, 0.3, 0.3",
+        "ObjInstAng=0, 0, 1",
+        "SpiderInstAng=0, 0, 1",
+        "AxePos=0, 0, 45",
+        "Inst=SPICam",
+        "IImScale=-3000, 3000",
+    )
 
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
-    kd.dispatch(msgDict)
+    testDispatcher.dispatch(dataList)
 
-
-    root.mainloop()
+    tuiModel.reactor.run()

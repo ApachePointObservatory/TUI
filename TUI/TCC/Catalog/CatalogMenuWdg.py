@@ -33,6 +33,7 @@ import RO.StringUtil
 import RO.Alg
 import RO.TkUtil
 import RO.Wdg
+import TUI.Base.Wdg
 import TUI.TCC.UserModel
 import ParseCat
 
@@ -48,7 +49,7 @@ class CatalogMenuWdg(Tkinter.Frame):
         it receives one argument: the selected TUI.TCC.TelTarget object
     - helpText:
     - helpURL: 
-    - statusBar: RO.Wdg.StatusBar in which to display catalog loading status
+    - statusBar: TUI.Base.Wdg.StatusBar in which to display catalog loading status
     """
     def __init__(self,
         master,
@@ -60,7 +61,7 @@ class CatalogMenuWdg(Tkinter.Frame):
         Tkinter.Frame.__init__(self, master)
         self.callFunc = callFunc
         self._catParser = ParseCat.CatalogParser()
-        userModel = TUI.TCC.UserModel.getModel()
+        userModel = TUI.TCC.UserModel.Model()
         self.userCatDict = userModel.userCatDict
         self.statusBar = statusBar
         
@@ -310,12 +311,12 @@ class _CatalogErrBox(Tkinter.Toplevel):
         self.destroy()
 
 if __name__ == "__main__":
-    import TUI.TUIModel
+    import TUI.Models.TUIModel
 
     root = RO.Wdg.PythonTk()
     root.resizable(width=0, height=0)
     
-    tuiModel = TUI.TUIModel.getModel(True)
+    tuiModel = TUI.Models.TUIModel.Model(True)
     
     def printObj(obj):
         print obj

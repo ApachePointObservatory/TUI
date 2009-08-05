@@ -1,7 +1,6 @@
 """Build TUI for Windows
 
-Open a terminal and cd to this directory. Then type:
-  setup.py py2exe
+  python buildtui.py py2exe
 
 Hints on including matplotlib came from the following
 (search for libgdk_pixbuf-2.0-0.dll):
@@ -34,9 +33,6 @@ History:
 2007-07-10 ROwen    Fixed for Python 2.5 (was referring to Python 2.4 for the snack directory).
 2008-02-21 ROwen    Modified to use direct RO path instead of relying on the symlink
                     (which was not working when trying to build 1.4.5).
-2009-05-07 ROwen    Updated the build instructions.
-2009-06-29 ROwen    Updated for recent matplotlib (a new way to find data files)
-                    and snack 2.2.10 Windows distribution (snack2.2->snacklib)
 """
 from distutils.core import setup
 import os
@@ -113,12 +109,13 @@ for resBase in ("Bitmaps",):
  
 # Add tcl snack libraries
 pythonDir = os.path.dirname(sys.executable)
-snackSubDir = "tcl\\snacklib"
+snackSubDir = "tcl\\snack2.2"
 snackDir = os.path.join(pythonDir, snackSubDir)
 addDataFiles(dataFiles, snackDir, snackSubDir)
 
 # Add matplotlib's data files.
-dataFiles += matplotlib.get_py2exe_datafiles()
+matplotlibDataPath = matplotlib.get_data_path()
+addDataFiles(dataFiles, matplotlibDataPath, "matplotlibdata")
 
 if NDataFilesToPrint > 0:
     print "\nData files:"

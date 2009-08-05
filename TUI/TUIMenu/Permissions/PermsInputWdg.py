@@ -25,23 +25,17 @@ and because the transition has to occur somewhere.
 2006-04-10 ROwen    Fix PR 314: if a new actor was added, it was not properly displayed.
                     Modified so "sort" sorts actors as well as programs.
 2006-10-31 ROwen    Fix PR 511: program name widgets too narrow on unix.
-2009-07-06 ROwen    Fix PR 940: permissions window does not handle new actors properly.
-                    Modified to always sort actors; only programs may be out of order.
-                    Modified for updated TestData.
-2009-07-09 ROwen    Bug fix: bad class instance reference.
-                    Modified test code to look more like tuisdss version.
+2009-04-01 ROwen    Modified to use opscore.actor.keyvar instead of RO.KeyVariable.
+2009-07-09 ROwen    Applied bug fixes from tui35m.
 """
 import Tkinter
 import RO.Constants
 import RO.Alg
-import RO.KeyVariable
 import RO.Wdg
-import TUI.TUIModel
+import opscore.actor.keyvar
+import TUI.Models.TUIModel
+import TUI.Base.Wdg
 import PermsModel
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 # first row for displaying program widgets
 # the preceding rows are: title labels, title width frames,
@@ -73,7 +67,7 @@ class PermsInputWdg(Tkinter.Frame):
         Tkinter.Frame.__init__(self, master)
         self._statusBar = statusBar
         self._titleFrame = titleFrame or self
-        self._tuiModel = TUI.TUIModel.getModel()
+        self._tuiModel = TUI.Models.TUIModel.Model()
         self._readOnlyCallback = readOnlyCallback
         
         self._titleWdgSet = []
@@ -83,12 +77,12 @@ class PermsInputWdg(Tkinter.Frame):
         self._readOnly = True
         self._updActorTimer = None
         
-        self.permsModel = PermsModel.getModel()
+        self.permsModel = PermsModel.Model()
         
-        self.permsModel.actors.addCallback(self._updActors)
-        self.permsModel.authList.addCallback(self._updAuthList)
-        self.permsModel.lockedActors.addCallback(self._updLockedActors)
-        self.permsModel.programs.addCallback(self._updPrograms)
+        self.permsModel.actors.addCallback(self._actorsCallback)
+        self.permsModel.authList.addCallback(self._authListCallback)
+        self.permsModel.lockedActors.addCallback(self._lockedActorsCallback)
+        self.permsModel.programs.addCallback(self._programsCallback)
         
         self._addTitle("", col = 0)
 
@@ -204,14 +198,14 @@ class PermsInputWdg(Tkinter.Frame):
                 titleSpacer["width"] = mainSpacer.winfo_width()     
         mainSpacer.bind("<Configure>", domain)
 
-    def _updActors(self, actors, isCurrent=True, **kargs):
+    def _actorsCallback(self, keyVar):
         """Perms list of actors updated.
         """
-#         print "%s._updActors(%r)" % (self.__class__, actors,)
-        if not isCurrent:
+#       print "%s._actorsCallback(%s)" % (self.__class__.__name__, keyVar,)
+        if not keyVar.isCurrent:
             return
         
-        actors = sorted(actors)
+        actors = sorted(keyVar.valueList)
         if actors == self._actors:
             return
         
@@ -232,19 +226,19 @@ class PermsInputWdg(Tkinter.Frame):
         # display new header and everything
         self.sort()
 
-    def _updPrograms(self, programs, isCurrent=True, **kargs):
+    def _programsCallback(self, keyVar):
         """Hub's list of registered programs updated.
         
         Delete old programs based on this info, but don't add new ones
         (instead, look for an authList entry for the new program,
         so we get auth info at the same time).
         """
-        if not isCurrent:
+#       print "%s._programsCallback(%s)" % (self.__class__.__name__, keyVar,)
+        if not keyVar.isCurrent:
             return
-#       print "_updPrograms(%r)" % (programs,)
 
         # raise program names to uppercase
-        programs = [prog.upper() for prog in programs]
+        programs = [prog.upper() for prog in keyVar.valueList]
 
         if self._tuiModel.getProgID().upper() not in programs:
 #           print "my prog=%s is not in programs=%s; currReadOnly=%s" % (prog, programs, self._readOnly)
@@ -277,24 +271,26 @@ class PermsInputWdg(Tkinter.Frame):
             if self._readOnlyCallback:
                 self._readOnlyCallback(self._readOnly)
     
-    def _updAuthList(self, progAuthList, isCurrent=True, **kargs):
+    def _authListCallback(self, keyVar):
         """New authList received.
         
         progAuthList is:
         - program name
         - 0 or more actors
         """
-        if not isCurrent:
+#       print "%s._authListCallback(%s)" % (self.__class__.__name__, keyVar)
+        if not keyVar.isCurrent:
             return
-#         print "_updAuthList(%r)" % (progAuthList,)
-        
+
+        progAuthList = keyVar.valueList
+
         prog = progAuthList[0].upper()
         authActors = progAuthList[1:]
     
         if prog == self._tuiModel.getProgID().upper():
             # this is info about me (my program); check if I can set permissions
             readOnly = "perms" not in authActors
-#             print "prog=%s is me; readOnly=%s, currReadOnly=%s, actors=%s" % (prog, readOnly, self._readOnly, authActors)
+#           print "prog=%s is me; readOnly=%s, currReadOnly=%s, actors=%s" % (prog, readOnly, self._readOnly, authActors)
             self._setReadOnly(readOnly)
 
         isNew = prog not in self._progDict
@@ -306,13 +302,13 @@ class PermsInputWdg(Tkinter.Frame):
         progPerms.setRegistered(True)
         progPerms.setCurrActors(authActors)
     
-    def _updLockedActors(self, lockedActors, isCurrent=True, **kargs):
+    def _lockedActorsCallback(self, keyVar):
         """Hub's locked actor list updated.
         """
-        if not isCurrent:
+        if not keyVar.isCurrent:
             return
         
-        self._lockoutWdg.setCurrActors(lockedActors)
+        self._lockoutWdg.setCurrActors(keyVar.valueList)
 
 
 class _BasePerms(object):
@@ -467,7 +463,7 @@ class _BasePerms(object):
         cmdStr = "%s %s" % (self._getCmdPrefix(), ' '.join(actorList),)
         self._doCmd(cmdStr)
         
-    def _cmdFailed(self, *args, **kargs):
+    def _cmdFailed(self, *args):
         """Called when a command fails; resets default state."""
         # handle name widget specially; it may not be an active control
         try:
@@ -489,11 +485,11 @@ class _BasePerms(object):
     def _doCmd(self, cmdStr):
         """Execute a command.
         """
-        cmd = RO.KeyVariable.CmdVar(
+        cmd = opscore.actor.keyvar.CmdVar(
             actor = "perms",
             cmdStr = cmdStr,
             callFunc = self._cmdFailed,
-            callTypes = RO.KeyVariable.FailTypes,
+            callCodes = opscore.actor.keyvar.FailedCodes,
         )
         self._statusBar.doCmd(cmd)
     
@@ -793,7 +789,7 @@ class _ProgramWdg(_SettingsWdg):
     """
     def __init__(self, *args, **kargs):
         # handle defaults and forced settings
-        tuiModel = TUI.TUIModel.getModel()
+        tuiModel = TUI.Models.TUIModel.Model()
         self._canUnreg = True # can program be unregistered? some are fixed
         kargs["indicatoron"] = False
         prog = kargs.get("prog")
@@ -880,10 +876,9 @@ if __name__ == "__main__":
     root.resizable(False, False)
 
     DefReadOnly = False
-    
-    statusBar = RO.Wdg.StatusBar(
+
+    statusBar = TUI.Base.Wdg.StatusBar(
         master = root,
-        dispatcher = TestData.tuiModel.dispatcher
     )
     
     testFrame = PermsInputWdg(
@@ -931,4 +926,4 @@ if __name__ == "__main__":
 
     TestData.start()
 
-    root.mainloop()
+    TestData.tuiModel.reactor.run()

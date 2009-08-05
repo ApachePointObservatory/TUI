@@ -6,11 +6,11 @@
                     Moved the code to a separate class.
                     Added test code.
 2004-05-18 ROwen    Stopped obtaining TUI model in addWindow; it was ignored.
-                    Thus stopped importing TUI.TUIModel in the main code.
+                    Thus stopped importing TUI.Models.TUIModel in the main code.
 2005-10-24 ROwen    Updated the acknowledgements to include WingIDE.
 2006-06-01 ROwen    Updated the acknowledgements to include Fritz Stauffer.
 2007-04-17 ROwen    Updated the acknowledgements to add "scripts".
-2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
+2009-03-31 ROwen    Modified for tuiModel.root -> tuiModel.tkRoot.
 """
 import sys
 import Image
@@ -22,7 +22,7 @@ import numpy
 import pyfits
 import RO.Wdg
 import TUI.Version
-import TUI.TUIModel
+import TUI.Models.TUIModel
 
 def addWindow(tlSet):
     tlSet.createToplevel(
@@ -33,7 +33,7 @@ def addWindow(tlSet):
     )
 
 def getVersionDict():
-    tuiModel = TUI.TUIModel.getModel()
+    tuiModel = TUI.Models.TUIModel.Model()
     res = {}
     res["tui"] = TUI.Version.VersionStr
     res["python"] = sys.version.split()[0]
@@ -80,10 +80,10 @@ With special thanks to:
 
 
 if __name__ == "__main__":
-    import TUI.TUIModel
+    import TUI.Models.TUIModel
     root = RO.Wdg.PythonTk()
 
-    tm = TUI.TUIModel.getModel(True)
+    tm = TUI.Models.TUIModel.Model(True)
     addWindow(tm.tlSet)
     tm.tlSet.makeVisible('TUI.About TUI')
 

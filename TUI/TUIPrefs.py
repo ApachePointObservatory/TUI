@@ -38,8 +38,7 @@ History:
 2007-09-05 ROwen    Fixed test code.
 2007-11-16 ROwen    Modified to allow a port as part of Host address.
 2008-07-07 ROwen    Added UMask preference.
-2009-05-06 ROwen    Changed Auto Get preference to Get Every.
-2009-05-12 ROwen    Changed default Debug Color from gray to purple.
+2009-07-14 ROwen    Added Bad Pixel Color preference.
 """
 #import pychecker.checker
 import os
@@ -92,7 +91,7 @@ class TUIPrefs(PrefVar.PrefSet):
             PrefVar.StrPrefVar(
                 name = "Host",
                 category = "Connection",
-                defValue = "hub35m.apo.nmsu.edu",
+                defValue = "hub25m.apo.nmsu.edu",
                 helpText = "IP address of remote computer (and optional port)",
                 helpURL = _HelpURL,
                 partialPattern = r"^[-_.a-zA-Z0-9]*( +[0-9]*)?$",
@@ -106,13 +105,11 @@ class TUIPrefs(PrefVar.PrefSet):
                 helpText = "Number files by file name or by directory?",
                 helpURL = _ExposuresHelpURL,
             ),
-            PrefVar.IntPrefVar(
-                name = "Get Every",
+            PrefVar.BoolPrefVar(
+                name = "Auto Get",
                 category = "Exposures",
-                defValue = 0,
-                minValue = -1,
-                maxValue = 999,
-                helpText = "Automatically download every Nth image (0=none; -1=skip excess)",
+                defValue = False,
+                helpText = "Automatically download images?",
                 helpURL = _ExposuresHelpURL,
             ),
             PrefVar.BoolPrefVar(
@@ -253,6 +250,13 @@ class TUIPrefs(PrefVar.PrefSet):
                 helpURL = _HelpURL,
             ),
             PrefVar.ColorPrefVar(
+                name = "Bad Pixel Color",
+                category = "Guide Colors",
+                defValue = "purple",
+                helpText = "Color for bad pixels",
+                helpURL = _HelpURL,
+            ),
+            PrefVar.ColorPrefVar(
                 name = "Masked Pixel Color",
                 category = "Guide Colors",
                 defValue = "green",
@@ -369,11 +373,20 @@ class TUIPrefs(PrefVar.PrefSet):
                 helpText = "Sound when highlighted text is added to log",
                 helpURL = _SoundHelpURL,
             ),
+            PrefVar.SoundPrefVar(
+                name = "Serious Alert",
+                category = "Sounds",
+                defValue = os.path.join(_SoundsDir, "SeriousAlert.wav"),
+                bellNum = 3,
+                helpText = "Sound for a serious or critical alert",
+                helpURL = _SoundHelpURL,
+            ),
         )
         PrefVar.PrefSet.__init__(self,
             prefList = prefList,
             defFileName = defFileName,
             defHeader = """Preferences for the Telescope User Interface\n""",
+            oldPrefInfo = {"Auto FTP": "Auto Get"},
         )
 
         try:

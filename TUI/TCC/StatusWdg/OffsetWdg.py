@@ -15,12 +15,14 @@ History:
 2004-05-18 ROwen    Bug fix: OffsetWdg._updObjXYOff used "except a, b:" instead of "except (a, b):"
                     to catch two classes of exception, so the second would not be caught.
                     Removed unused constant _ArcLabelWidth.
+2009-07-19 ROwen    Modified to work with new KeyVar and the way it handles PVTs.
 """
 import Tkinter
+import RO.CnvUtil
+import RO.CoordSys
 import RO.StringUtil
 import RO.Wdg
-import TUI.TCC.TCCModel
-import RO.CoordSys
+import TUI.Models.TCCModel
 
 _HelpPrefix = "Telescope/StatusWin.html#"
 _DataWidth = 11
@@ -33,7 +35,7 @@ class OffsetWdg (Tkinter.Frame):
         - master        master Tk widget -- typically a frame or window
         """
         Tkinter.Frame.__init__(self, master, **kargs)
-        self.tccModel = TUI.TCC.TCCModel.getModel()
+        self.tccModel = TUI.Models.TCCModel.Model()
         self.isArc = False
         gr = RO.Wdg.Gridder(self, sticky="w")
 
@@ -98,34 +100,39 @@ class OffsetWdg (Tkinter.Frame):
             )
 
         # track coordsys and objInstAng changes for arc/sky offset
-        self.tccModel.objSys.addIndexedCallback(self._updObjSys)
-        self.tccModel.objInstAng.addIndexedCallback(self._updObjXYOff)
+        self.tccModel.objSys.addCallback(self._objSysCallback)
+        self.tccModel.objInstAng.addCallback(self._updObjXYOff)
         
         # track objArcOff
-        self.tccModel.objArcOff.addCallback(self._updObjOff)
+        self.tccModel.objArcOff.addCallback(self._objArcOffCallback)
     
         # track boresight position
-        for ii in range(2):
-            self.tccModel.boresight.addROWdg(self.boreWdgSet[ii], ind=ii)
+        self.tccModel.boresight.addValueListCallback([wdg.set for wdg in self.boreWdgSet], cnvFunc=RO.CnvUtil.posFromPVT)
         
-    def _updObjSys (self, csysObj, isCurrent=True, **kargs):
+    def _objSysCallback (self, keyVar=None):
         """Object coordinate system updated; update arc offset labels
         """
-        # print "StatusWdg/OffsetWdg._updObjSys%r" % ((csysObj, isCurrent),)
-        posLabels = csysObj.posLabels()
+        # print "%s._objSysCallback(%s)" % (self.__class__.__name__, keyVar)
+        posLabels = self.tccModel.csysObj.posLabels()
         
         for ii in range(2):
             self.objLabelSet[ii]["text"] = posLabels[ii]
 
-    def _updObjOff(self, objOffPVT, isCurrent, **kargs):
+    def _objArcOffCallback(self, keyVar):
+        isCurrent = keyVar.isCurrent
+        if None in keyVar.valueList:
+            return
         for ii in range(2):
-            objOff = objOffPVT[ii].getPos()
+            objOff = RO.CnvUtil.posFromPVT(keyVar[ii])
             self.objOffWdgSet[ii].set(objOff, isCurrent)
         self._updObjXYOff()
 
     def _updObjXYOff(self, *args, **kargs):
-        objInstAngPVT, isCurrent = self.tccModel.objInstAng.getInd(0)
-        objInstAng = objInstAngPVT.getPos()
+        objInstAngPVT = self.tccModel.objInstAng[0]
+        if objInstAngPVT == None:
+            return
+        isCurrent = self.tccModel.objInstAng.isCurrent
+        objInstAng = RO.CnvUtil.posFromPVT(objInstAngPVT)
         objOff = [None, None]
         for ii in range(2):
             objOff[ii], arcCurr = self.objOffWdgSet[ii].get()
@@ -136,24 +143,22 @@ class OffsetWdg (Tkinter.Frame):
             objXYOff = (None, None)
         for ii in range(2):
             self.objXYOffWdgSet[ii].set(objXYOff[ii], isCurrent)
-        
-
+       
+       
 if __name__ == "__main__":
-    import TUI.TUIModel
+    import TestData
 
-    root = RO.Wdg.PythonTk()
+    tuiModel = TestData.tuiModel
 
-    kd = TUI.TUIModel.getModel(True).dispatcher
-        
-    testFrame = OffsetWdg (root)
+    testFrame = OffsetWdg(tuiModel.tkRoot)
     testFrame.pack()
 
-    dataDict = {
-        "ObjSys": ("ICRS", 0),
-        "ObjNetPos": (120.123450, 0.000000, 4494436859.66000, -2.345670, 0.000000, 4494436859.66000),
-        "RotType": ("Obj",),
-    }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
-    kd.dispatch(msgDict)
+    dataList = (
+        "ObjSys=ICRS, 0",
+        "ObjNetPos=120.123450, 0.000000, 4494436859.66000, -2.345670, 0.000000, 4494436859.66000",
+        "RotType=Obj",
+    )
 
-    root.mainloop()
+    TestData.testDispatcher.dispatch(dataList)
+
+    tuiModel.reactor.run()

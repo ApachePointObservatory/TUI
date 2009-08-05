@@ -33,25 +33,26 @@ History:
                     nextDownload: removed maskNum.
 2006-05-24 ROwen    setParams: added mode, removed count.
 2007-04-24 ROwen    Removed unused import of numarray.
-2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
+2009-03-31 ROwen    Modified to use twisted timers.
+2009-07-15 ROwen    Modified to work with sdss code.
 """
 import gc
 import os
 import re
 import resource
-import TUI.TUIModel
+import TUI.Models.TUIModel
 import TUI.TUIMenu.LogWindow
 import TUI.TUIMenu.DownloadsWindow
 import GuideModel
 import GuideWdg
+import TUI.Base.TestDispatcher
+import RO.SeqUtil
 
 g_actor = None
 g_ccdInfo = None
 
 # other constants you may wish to set
 g_expTime = 15.0
-g_thresh = 3.0
-g_radMult = 1.0
 g_Mode = "field"
 
 # leave alone
@@ -69,48 +70,38 @@ def dumpGarbage():
         if len(s) > 80: s = s[:77] + "..."
         print type(x), "\n ", s
 
-def dispatch(replyStr, actor=None):
+testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("gmech")
+tuiModel = testDispatcher.tuiModel
+
+def dispatch(replies, **kwargs):
     """Dispatch the reply string.
-    The string should start from the message type character
-    (thus program ID, actor and command ID are added).
-    """
-    global tuiModel, _CmdID, g_actor
-    cmdr = tuiModel.getCmdr()
-    actor = actor or g_actor
     
-    msgStr = "%s %d %s %s" % (cmdr, _CmdID, actor, replyStr)
-#   print "dispatching %r" % msgStr
+    Inputs:
+    - replies: a string or collection of strings to dispatch
+    - **kwargs: keyword arguments for TUI.Base.TestDispatcher.TestDispatcher.dispatch,
+        including actor and msgType
+    """
+    replyList = RO.SeqUtil.asCollection(replies)
+    tuiModel.reactor.callLater(0.2, testDispatcher.dispatch, replies, **kwargs)
 
-    tuiModel.tkRoot.after(20, tuiModel.dispatcher.doRead, None, msgStr)
-
-def setParams(expTime=None, thresh=None, radMult=None, mode=None):
-#   print "setParams(expTime=%r, thresh=%r, radMult=%r, mode=%r)" % (expTime, thresh, radMult, mode)
-    global g_expTime, g_thresh, g_radMult, g_mode
+def setParams(expTime=None, mode=None):
+#   print "setParams(expTime=%r, mode=%r)" % (expTime, mode)
+    global g_expTime, g_mode
     
     strList = []
 
     if expTime != None:
         g_expTime = float(expTime)
         strList.append("time=%.1f" % g_expTime)
-    if thresh != None:
-        g_thresh = float(thresh)
-        strList.append("fsActThresh=%.1f" % g_thresh)
-    if radMult != None:
-        g_radMult = float(radMult)
-        strList.append("fsActRadMult=%.1f" % g_radMult)
     if mode != None:
         g_mode = mode
         strList.append("guideMode=%s" % g_mode)
     if strList:
-        dispatch(
-            ": %s" % "; ".join(strList),
-        )
+        dispatch(": %s" % "; ".join(strList), msgCode=":")
 
 def showFile(fileName):
     incrCmdID()
-    dispatch(
-        ": imgFile=%s" % (fileName,),
-    )
+    dispatch("imgFile=%s" % (fileName,), msgCode=":")
     decrCmdID()
     findStars(fileName)
 
@@ -127,7 +118,7 @@ def init(actor, bias=0, readNoise=21, ccdGain=1.6, histLen=5):
     
     GuideWdg._HistLength = histLen
     
-    tuiModel = TUI.TUIModel.getModel(True)
+    tuiModel = TUI.Models.TUIModel.Model(True)
     g_actor = actor
     
     TUI.TUIMenu.DownloadsWindow._MaxLines = 5
@@ -137,9 +128,9 @@ def init(actor, bias=0, readNoise=21, ccdGain=1.6, histLen=5):
     TUI.TUIMenu.DownloadsWindow.addWindow(tuiModel.tlSet, visible=True)
     
     # set image root
-    dispatch('i httpRoot="hub35m.apo.nmsu.edu", "/images/"', actor="hub")
+    dispatch('httpRoot="hub35m.apo.nmsu.edu", "/images/"', actor="hub")
 
-def nextDownload(basePath, imPrefix, imNum, numImages=None, waitMs=2000):
+def nextDownload(basePath, imPrefix, imNum, numImages=None, waitTime=2.0):
     """Download a series of guide images from APO.
     Assumes the images are sequential.
     
@@ -152,12 +143,12 @@ def nextDownload(basePath, imPrefix, imNum, numImages=None, waitMs=2000):
     - numImages: number of images to download
         None of no limit
         warning: if not None then at least one image is always downloaded
-    - waitMs: interval in ms before downloading next image
+    - waitTime: interval (sec) before downloading next image
     """
     global tuiModel
 
     imName = "%s%04d.fits" % (imPrefix, imNum,)
-    dispatch('i files=g, 1, "%s", "%s", ""' % (basePath, imName))
+    dispatch('files=g, 1, "%s", "%s", ""' % (basePath, imName))
     #if (numImages - 1) % 20 == 0:
         #print "Image %s; resource usage: %s" % (imNum, resource.getrusage(resource.RUSAGE_SELF))
     if numImages != None:
@@ -165,9 +156,9 @@ def nextDownload(basePath, imPrefix, imNum, numImages=None, waitMs=2000):
         if numImages <= 0:
             #dumpGarbage()
             return
-    tuiModel.tkRoot.after(waitMs, nextDownload, basePath, imPrefix, imNum+1, numImages, waitMs)
+    tuiModel.reactor.callLater(waitTime, nextDownload, basePath, imPrefix, imNum+1, numImages, waitTime)
     
-def runDownload(basePath, imPrefix, startNum, numImages=None, waitMs=2000):
+def runDownload(basePath, imPrefix, startNum, numImages=None, waitTime=2.0):
     """Download a series of guide images from APO.
     Assumes the images are sequential.
     
@@ -183,7 +174,7 @@ def runDownload(basePath, imPrefix, startNum, numImages=None, waitMs=2000):
     - numImages: number of images to download
         None if no limit
         warning: if not None then at least one image is always downloaded
-    - waitMs: interval in ms before downloading next image
+    - waitTime: interval (sec) before downloading next image
     """
     #print "Image %s; resource usage: %s" % (startNum, resource.getrusage(resource.RUSAGE_SELF))
 
@@ -192,6 +183,6 @@ def runDownload(basePath, imPrefix, startNum, numImages=None, waitMs=2000):
         imPrefix = imPrefix,
         imNum = startNum,
         numImages = numImages,
-        waitMs = waitMs,
+        waitTime = waitTime,
     )
 

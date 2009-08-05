@@ -3,17 +3,20 @@
 
 History:
 2005-05-24 ROwen
-2005-05-26 ROwen    Bug fix: updIImScale was totally broken, so the nudger box
+2005-05-26 ROwen    Bug fix: _iimScaleCallback was totally broken, so the nudger box
                     labels were always to the right and above.
 2005-06-03 ROwen    Improved uniformity of indentation.
 2005-04-20 ROwen    All offsets are now computed.
+2009-04-01 ROwen    Modified to use new TCC model.
+2009-07-19 ROwen    Changed cmdVar.timeLimKeyword to timeLimKeyVar.
 """
 import Tkinter
+import RO.CnvUtil
 import RO.Constants
-import RO.KeyVariable
 import RO.Wdg
-import TUI.TUIModel
-import TUI.TCC.TCCModel
+import opscore.actor.keyvar
+import TUI.Base.Wdg
+import TUI.Models.TCCModel
 
 def addWindow(tlSet):
     """Create the window for TUI.
@@ -62,8 +65,7 @@ class NudgerWdg (Tkinter.Frame):
     def __init__(self, master):
         Tkinter.Frame.__init__(self, master)
         
-        self.tuiModel = TUI.TUIModel.getModel()
-        self.tccModel = TUI.TCC.TCCModel.getModel()
+        self.tccModel = TUI.Models.TCCModel.Model()
         
         self.arcSecPerPix = None
         self.iimScale = None
@@ -183,10 +185,8 @@ class NudgerWdg (Tkinter.Frame):
         self.cnv.create_line(_CnvRad, 0, _CnvRad, cnvSize, **kargs)
         self.cnv.create_line(0, _CnvRad, cnvSize, _CnvRad, **kargs)
     
-        self.statusBar = RO.Wdg.StatusBar(
+        self.statusBar = TUI.Base.Wdg.StatusBar(
             master = self,
-            dispatcher = self.tuiModel.dispatcher,
-            prefs = self.tuiModel.prefs,
             playCmdSounds = True,
             helpURL = _HelpPrefix + "StatusBar",
         )
@@ -199,8 +199,8 @@ class NudgerWdg (Tkinter.Frame):
         self.cnv.bind('<ButtonPress-1>', self.drawBegin)
         self.cnv.bind('<ButtonRelease-1>', self.drawEnd)
         
-        self.tccModel.iimScale.addCallback(self.updIImScale)
-        self.tccModel.objSys.addIndexedCallback(self.updObjSys, 0)
+        self.tccModel.iimScale.addCallback(self._iimScaleCallback)
+        self.tccModel.objSys.addCallback(self._objSysCallback, 0)
 
         self.updMaxOff()
         self.updOffType()
@@ -277,11 +277,11 @@ class NudgerWdg (Tkinter.Frame):
             return
         
         cmdStr = "offset/computed %s %.7f, %.7f" % (tccOffType, offDeg[0], offDeg[1])
-        cmdVar = RO.KeyVariable.CmdVar (
+        cmdVar = opscore.actor.keyvar.CmdVar (
             actor = "tcc",
             cmdStr = cmdStr,
             timeLim = 10,
-            timeLimKeyword="SlewDuration",
+            timeLimKeyVar = self.tccModel.slewDuration,
             isRefresh = False,
         )
         self.statusBar.doCmd(cmdVar)
@@ -290,8 +290,9 @@ class NudgerWdg (Tkinter.Frame):
         """Rotates offVec from inst to az/alt coords.
         Raises ValueError if cannot compute.
         """
-        spiderInstAngPVT, isCurrent = self.tccModel.spiderInstAng.getInd(0)
-        spiderInstAng = spiderInstAngPVT.getPos()
+        spiderInstAngPVT = self.tccModel.spiderInstAng[0]
+        isCurrent = self.tccModel.spiderInstAng.isCurrent
+        spiderInstAng = RO.CnvUtil.posFromPVT(spiderInstAngPVT)
         if not isCurrent or spiderInstAng == None:
             raise ValueError, "spiderInstAng unknown"
         if None in offVec:
@@ -302,15 +303,17 @@ class NudgerWdg (Tkinter.Frame):
         """Rotates objPos from inst to obj coords.
         Raises ValueError if cannot compute.
         """
-        objInstAngPVT, isCurrent = self.tccModel.objInstAng.getInd(0)
-        objInstAng = objInstAngPVT.getPos()
+        objInstAngPVT = self.tccModel.objInstAng[0]
+        isCurrent = self.tccModel.objInstAng.isCurrent
+        objInstAng = RO.CnvUtil.posFromPVT(objInstAngPVT)
         if not isCurrent or objInstAng == None:
             raise ValueError, "objInstAng unknown"
         if None in offVec:
             raise ValueError, "bug: unknown offset"
         return RO.MathUtil.rot2D(offVec, -objInstAng)
 
-    def updIImScale(self, iimScale, isCurrent, **kargs):
+    def _iimScaleCallback(self, keyVar):
+        iimScale = keyVar.valueList
         if None in iimScale:
             return
     
@@ -323,10 +326,10 @@ class NudgerWdg (Tkinter.Frame):
             self.clear()
             self.updOffType()
 
-    def updObjSys (self, csysObj, *args, **kargs):
+    def _objSysCallback (self, keyVar=None):
         """Updates the display when the coordinate system is changed.
         """
-        self.objSysLabels = csysObj.posLabels()
+        self.objSysLabels = self.tccModel.csysObj.posLabels()
         self.updOffType()
     
     def updMaxOff(self, wdg=None):
@@ -375,20 +378,21 @@ class NudgerWdg (Tkinter.Frame):
 
 
 if __name__ == '__main__':
-    root = RO.Wdg.PythonTk()
-    
-    kd = TUI.TUIModel.getModel(True).dispatcher
+    import TUI.Base.TestDispatcher
 
-    testFrame = NudgerWdg (root)
+    testDispatcher = TUI.Base.TestDispatcher.TestDispatcher(actor="tcc")
+    tuiModel = testDispatcher.tuiModel
+
+    testFrame = NudgerWdg(tuiModel.tkRoot)
     testFrame.pack()
+    tuiModel.tkRoot.resizable(width=0, height=0)
 
-    dataDict = {
-        "ObjSys": ("Gal", "2000"),
-        "ObjInstAng": ("30.0", "0.0", "1000.0"),
-        "SpiderInstAng": ("-30.0", "0.0", "1000.0"),
-    }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    dataList = (
+        "ObjSys=Gal, 2000",
+        "ObjInstAng=30.0, 0.0, 1000.0",
+        "SpiderInstAng=-30.0, 0.0, 1000.0",
+    )
 
-    kd.dispatch(msgDict)
+    testDispatcher.dispatch(dataList)
 
-    root.mainloop()
+    tuiModel.reactor.run()

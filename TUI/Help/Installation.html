@@ -3,7 +3,7 @@
 <head>
 	<title>TUI:Installation</title>
 </head>
-<body>
+	
 <h2><a href="index.html">TUI</a>:Installation</h2>
 
 <h2>Contents</h2>
@@ -33,7 +33,11 @@
 	</ul>
 </ul>
 
-<h3><a name="MacBuild"></a>Building From Source for MacOS X</h3>
+<h3>Notes for MacOS X</h3>
+
+<p>TUI for Mac requires at least MacOS X 10.3. It will quit instantly if you try to run it on MacOS X 10.2. This is a limitation of python's Mac application builder; it has nothing to do with TUI. If you are desperate to run TUI under 10.2 you can build it from source, as described below. But I strongly recommend upgrading to 10.3.
+
+<a name="MacBuild"></a><h3>Building From Source for MacOS X</h3>
 
 <p>If you prefer, you may install TUI from source and even build your own double-clickable version. See <a href="InstallationOnMac.html">Building TUI from Source On MacOS X</a> for details.
 
@@ -51,8 +55,8 @@
 <p>Requirements:
 
 <ul>
-	<li>Python 2.3 or later, with Tkinter support; 2.5.x is recommended and 2.6.x is likely to work (but as of 2009-04-17 I had not had a chance to test it). Note: TUI is <b>not</b> compatible with Python 3.0 (which is intentionally not backward compatible with Python 2.x).
-	<li>tcl/tk 8.3.x or later. 8.4.x is recommended. 8.5 may work (requires Python 2.6 or later) but as of 2009-04-17 I have not had a chance to test it.
+	<li>python 2.3 or later, with Tkinter support. 2.4.x is recommended.
+	<li>tcl/tk 8.3.x or later. 8.4.x is recommended.
 	<li>snack sound library (optional; used to play sound cues)
 	<li>The following python packages:
 	<ul>
@@ -189,13 +193,8 @@ python <i>path_to_runtui</i>/runtui.py # the path depends on where you unpacked 
 	<li>To uninstall TUI simply discard the folder you  unpacked.
 </ul>
 
-<h3><a name="WindowsBuild"></a>Building From Source for Windows X</h3>
-
-<p>If you prefer, you may install TUI from source and even build your own double-clickable version. See <a href="InstallationOnWindows.html">Building TUI from Source On Windows</a> for details.
-
 <h2><a name="History"></a>History</h2>
 <ul>
-    <li>2009-06-29 Added a reference to Building TUI from Source On Windows.
     <li>2007-07-09 Added a note about the NUMERIX environment variable.
     <li>2007-04-24 Modified to remove references to numarray and Numeric.
 	<li>2006-12-28 Added instructions to install numpy and matplotlib.

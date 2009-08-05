@@ -1,21 +1,18 @@
 #!/usr/bin/env python
 """Keep track of named states in sorted order.
-
-History:
-2009-04-17 ROwen
-2009-06-25 ROwen    Removed isCurrent support.
 """
 import RO.AddCallback
 
 class State(object):
-    def __init__(self, name, severity, stateStr):
+    def __init__(self, name, severity, isCurrent, stateStr):
         self.name = name
         self.severity = int(severity)
+        self.isCurrent = bool(isCurrent)
         self.stateStr = stateStr
     
     @property
     def values(self):
-        return (self.name, self.severity, self.stateStr)
+        return (self.name, self.severity, self.isCurrent, self.stateStr)
     
     def __getitem__(self, ind):
         return self.values[ind]
@@ -24,10 +21,10 @@ class State(object):
         return self.values == rhs.values
 
     def __str__(self):
-        return "%s, %s, %r" % (self.name, self.severity, self.stateStr)
+        return "%s, %s, %s, %r" % (self.name, self.severity, self.isCurrent, self.stateStr)
 
     def __repr__(self):
-        return "State(%s, %s, %r)" % (self.name, self.severity, self.stateStr)
+        return "State(%s, %s, %s, %r)" % (self.name, self.severity, self.isCurrent, self.stateStr)
 
 
 class StateSet(RO.AddCallback.BaseMixin):
@@ -72,19 +69,20 @@ class StateSet(RO.AddCallback.BaseMixin):
         if clearedState:
             self._doCallbacks()
      
-    def setState(self, name, severity, stateStr=""):
+    def setState(self, name, severity, isCurrent=True, stateStr=""):
         """Set a state
         
         Inputs:
         - name: device name
         - severity: severity; an integer (larger is more severe)
+        - isCurrent: is value current?; ignored if severity=None
         - stateStr: description of state; ignored if severity=None
         
         Raise ValueError if name unknown
         """
         if name not in self.priorityDict:
             raise ValueError("Unknown device %r" % (name,))
-        self.stateDict[name] = State(name, severity, stateStr)
+        self.stateDict[name] = State(name, severity, isCurrent, stateStr)
         self._doCallbacks()
     
     def getState(self, name):
@@ -103,7 +101,7 @@ class StateSet(RO.AddCallback.BaseMixin):
             return []
         sevList = []
         for state in self.stateDict.itervalues():
-            sevList.append((state.severity, self.priorityDict[state.name], state))
+            sevList.append((state.severity, not state.isCurrent, self.priorityDict[state.name], state))
         sevList.sort()
         sevList.reverse()
         return [item[-1] for item in sevList]
@@ -123,12 +121,12 @@ if __name__ == "__main__":
     
     predState = (None, None, None)
     
-    def setPredState(name, severity, stateStr=""):
+    def setPredState(name, severity, isCurrent=True, stateStr=""):
         global predState
         if name == None:
             predState = None
         else:
-            predState = State(name, severity, stateStr)
+            predState = State(name, severity, isCurrent, stateStr)
 
     def assertMainState(sd):
         global nFailures
@@ -138,34 +136,34 @@ if __name__ == "__main__":
             print "Assertion failed: pred = %s != %s = worst" % (predState, firstState)
     
     sd = StateSet(("A", "B", "C"), assertMainState)
-    setPredState("B", 1, "warning on B")
-    sd.setState("B", 1, "warning on B")
+    setPredState("B", 1, True, "warning on B")
+    sd.setState("B", 1, True, "warning on B")
 
-    setPredState("A", 1, "warning on A") # A trumps B
-    sd.setState("A", 1, "warning on A")
+    setPredState("A", 1, True, "warning on A") # A trumps B
+    sd.setState("A", 1, True, "warning on A")
 
-    setPredState("A", 1, "warning on A") # A trumps B and C
-    sd.setState("C", 1, "warning on C")
+    setPredState("A", 1, True, "warning on A") # A trumps B and C
+    sd.setState("C", 1, True, "warning on C")
 
-    setPredState("B", 1, "warning on B") # not current trumps current
-    sd.setState("B", 1, "warning on B")
+    setPredState("B", 1, False, "warning on B") # not current trumps current
+    sd.setState("B", 1, False, "warning on B")
 
-    setPredState("C", 2, "error on C") # error trumps warning
-    sd.setState("C", 2, "error on C")
+    setPredState("C", 2, True, "error on C") # error trumps warning
+    sd.setState("C", 2, True, "error on C")
     
-    setPredState("B", 2, "error on B") # B trumps A
-    sd.setState("B", 2, "error on B")
+    setPredState("B", 2, True, "error on B") # B trumps A
+    sd.setState("B", 2, True, "error on B")
 
-    setPredState("C", 2, "error on C") # restore prev condition: error trumps warning
-    sd.setState("B", 1,  "warning on B")
+    setPredState("C", 2, True, "error on C") # restore prev condition: error trumps warning
+    sd.setState("B", 1, False, "warning on B")
 
-    setPredState("B", 1, "warning on B") # restore prev condition: not current trumps current
-    sd.setState("C", 1, "warning on C")
+    setPredState("B", 1, False, "warning on B") # restore prev condition: not current trumps current
+    sd.setState("C", 1, True, "warning on C")
 
-    setPredState("A", 1, "warning on A") # restore prev condition: A trumps B and C
-    sd.setState("B", 1, "warning on B")
+    setPredState("A", 1, True, "warning on A") # restore prev condition: A trumps B and C
+    sd.setState("B", 1, True, "warning on B")
     
-    setPredState("B", 1, "warning on B") # restore prev condition: B trumps C
+    setPredState("B", 1, True, "warning on B") # restore prev condition: B trumps C
     sd.clearState("A")
     
     setPredState("C", 1, True, "warning on C") # warning on C is the only remaining condition

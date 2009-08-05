@@ -124,10 +124,11 @@ import random # for debug
 import numpy
 import Tkinter
 import RO.Wdg
+import RO.CnvUtil
 import RO.Constants
 import RO.StringUtil
-import TUI.TUIModel
-import TUI.TCC.TCCModel
+import TUI.Models.TUIModel
+import TUI.Models.TCCModel
 import TUI.Inst.ExposeModel
 import TUI.Guide.GuideModel
 from TUI.Inst.ExposeStatusWdg import ExposeStatusWdg
@@ -301,8 +302,8 @@ class BaseFocusScript(object):
         self.debugIterFWHM = None
         
         # get various models
-        self.tccModel = TUI.TCC.TCCModel.getModel()
-        self.tuiModel = TUI.TUIModel.getModel()
+        self.tccModel = TUI.Models.TCCModel.Model()
+        self.tuiModel = TUI.Models.TUIModel.Model()
         self.guideModel = TUI.Guide.GuideModel.getModel(self.gcamActor)
         
         # create and grid widgets
@@ -639,7 +640,7 @@ class BaseFocusScript(object):
         if self.tccInstPrefix and not sr.debug:
             # Make sure current instrument is correct
             try:
-                currInstName = sr.getKeyVar(self.tccModel.instName)
+                currInstName = sr.getKeyVar(self.tccModel.inst)
             except sr.ScriptError:
                 raise sr.ScriptError("current instrument unknown")
             if not currInstName.lower().startswith(self.tccInstPrefix.lower()):
@@ -1390,7 +1391,7 @@ class SlitviewerFocusScript(BaseFocusScript):
         if self.begBoreXYDeg == None:
             begBorePVTs = sr.getKeyVar(self.tccModel.boresight, ind=None)
             if not sr.debug:
-                begBoreXYDeg = [pvt.getPos() for pvt in begBorePVTs]
+                begBoreXYDeg = [RO.CnvUtil.posFromPVT(pvt) for pvt in begBorePVTs]
                 if None in begBoreXYDeg:
                     raise sr.ScriptError("current boresight position unknown")
                 self.begBoreXYDeg = begBoreXYDeg
