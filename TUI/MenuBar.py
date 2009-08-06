@@ -38,7 +38,8 @@ History:
 2005-07-07 ROwen    Modified for moved RO.TkUtil.
 2006-03-09 ROwen    Modified to avoid "improper exit" complaints
                     on Windows by explicitly destroying root on quit.
-2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
+2009-03-31 ROwen    Modified for tuiModel.root -> tuiModel.tkRoot.
+2009-07-23 ROwen    Modified for dispatcher change to refreshAllVar.
 """
 import Tkinter
 import RO.Alg
@@ -62,7 +63,7 @@ class MenuBar(object):
     in the Status window).
     """
     def __init__(self):
-        self.tuiModel = TUI.TUIModel.getModel()
+        self.tuiModel = TUI.Models.TUIModel.Model()
         self.tlSet = self.tuiModel.tlSet
         self.connection = self.tuiModel.dispatcher.connection
         
@@ -72,7 +73,7 @@ class MenuBar(object):
         if self.wsys == RO.TkUtil.WSysAqua:
             parentTL = self.tuiModel.tkRoot
         else:
-            parentTL = self.tlSet.getToplevel("TUI.Status")
+            parentTL = self.tlSet.getToplevel("None.Status")
         self.parentMenu = Tkinter.Menu(parentTL)
         parentTL["menu"] = self.parentMenu
         
@@ -215,7 +216,7 @@ class MenuBar(object):
         try:
             self.doDisconnect()
         finally:
-            self.tuiModel.tkRoot.quit()
+            self.tuiModel.reactor.stop()
             if RO.OS.PlatformName == "win":
                 # avoid "improper exit" complaints
                 self.tuiModel.tkRoot.destroy()
@@ -223,7 +224,7 @@ class MenuBar(object):
     def doRefresh(self):
         """Refresh all automatic variables.
         """
-        self.tuiModel.dispatcher.refreshAllVar(startOver=True)
+        self.tuiModel.dispatcher.refreshAllVar()
 
     def doSaveWindowPos(self):
         self.tlSet.writeGeomVisFile()
@@ -248,3 +249,14 @@ class MenuBar(object):
             self.tuiMenu.entryconfigure(self.connectMenuIndex, state="normal")
             self.tuiMenu.entryconfigure(self.connectMenuIndex+1, state="disabled")
             self.tuiMenu.entryconfigure(self.connectMenuIndex+2, state="disabled")
+
+
+if __name__ == "__main__":
+    import TUI.Base.TestDispatcher
+    
+    testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("tcc")
+    tuiModel = testDispatcher.tuiModel
+    
+    menuBar = MenuBar()
+
+    tuiModel.reactor.run()

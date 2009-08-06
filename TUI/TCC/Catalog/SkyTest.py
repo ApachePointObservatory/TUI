@@ -6,13 +6,14 @@ To Do:
 - Modify code somewhere so setting menu items, checkboxes, etc. is not case-or-abbrev-sensitive.
 """
 import RO.Wdg
-import TUI.TUIModel
+import TUI.Base.Wdg
+import TUI.Models.TUIModel
 from CatalogMenuWdg import CatalogMenuWdg
 from TUI.TCC.SkyWindow import SkyWdg
 
 root = RO.Wdg.PythonTk()
 
-tuiModel = TUI.TUIModel.getModel(True)
+tuiModel = TUI.Models.TUIModel.Model(True)
 
 sw = SkyWdg(root)
 sb = RO.Wdg.StatusBar(root)

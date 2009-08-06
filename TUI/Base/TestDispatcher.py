@@ -3,13 +3,12 @@
 
 History:
 2009-04-21 ROwen
-2009-06-24 ROwen    Bug fix: test code was sending SlewEnds instead of SlewEnd.
-2009-07-09 ROwen    Modified dispatch to dispatch each item separately, thereby
+2009-07-09 ROwen    Bug fix: test code was sending SlewEnds instead of SlewEnd.
+                    Modified dispatch to dispatch each item separately, thereby
                     allowing dataList to contain multiple instances of the same keyword.
-                    Modified to not print each dispatched message because the dispatcher
-                    was changed to does this itself.
+                    Modified to not print each dispatched message since the dispatcher already does this.
 """
-import TUI.TUIModel
+import TUI.Models.TUIModel
 
 class TestDispatcher(object):
     """Dispatch a set of data at regular intervals
@@ -20,13 +19,13 @@ class TestDispatcher(object):
         Inputs:
         - actor: default name of actor
         - cmdID: default command ID
-        - msgCode: default message code; one of :>iwe!
+        - msgCode: default message code; one of :>iwef! (opscore.actor.keyvar.AllCodes)
         - delay: default delay
         """
         self.actor = actor
         self.cmdID = int(cmdID)
         self.msgCode = str(msgCode)
-        self.tuiModel = TUI.TUIModel.getModel(True)
+        self.tuiModel = TUI.Models.TUIModel.Model(True)
         self.dispatcher = self.tuiModel.dispatcher
         self.dataSet = None
         self.cmdr = self.tuiModel.getCmdr()
@@ -41,7 +40,7 @@ class TestDispatcher(object):
         - cmdr: commander (program.username); defaults to me
         - actor: name of actor
         - cmdID: command ID (an integer)
-        - msgCode: message code; one of :>iwe!
+        - msgCode: message code; one of :>iwef! (opscore.actor.keyvar.AllCodes)
         """
         if cmdr == None:
             cmdr = self.cmdr
@@ -53,7 +52,7 @@ class TestDispatcher(object):
             msgCode = self.msgCode
         for dataItem in dataList:
             replyStr = "%s %s %s %s %s" % (cmdr, cmdID, actor, msgCode, dataItem)
-            self.dispatcher.doRead(None, replyStr)
+            self.dispatcher.dispatchReplyStr(replyStr)
     
     def runDataSet(self, dataSet):
         """Dispatch a sequence of data, with a fixed pause between each entry.
@@ -80,7 +79,7 @@ class TestDispatcher(object):
                     ("AxePos=-341.230, 39.023, 5.3", "TCCPos=-341.231, 39.024, 5.4"),
                 )
             - delay: time to wait for next item (sec)
-            - msgCode: one of >iwe!:
+            - msgCode: one of >iwef!: (opscore.actor.keyvar.AllCodes)
             - cmdID: command ID (an int)
             - cmdr: program_name.user_name
         """
@@ -98,8 +97,7 @@ class TestDispatcher(object):
             print "Test finished"
             return
         self.dispatch(**dataDict)
-        delayMS = int(delay * 1000 + 0.5)
-        self.tuiModel.tkRoot.after(delayMS, self._dispatchIter, dataDictIter)
+        self.tuiModel.reactor.callLater(delay, self._dispatchIter, dataDictIter)
 
 
 if __name__ == "__main__":
@@ -141,4 +139,4 @@ if __name__ == "__main__":
     )
     tccTester.runDataSet(animDataSet)
     
-    tccTester.tuiModel.tkRoot.mainloop()
+    tccTester.tuiModel.reactor.run()

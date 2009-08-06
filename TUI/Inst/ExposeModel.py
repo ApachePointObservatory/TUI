@@ -70,24 +70,21 @@ Notes:
 2008-12-15 ROwen    Reduce minimum exposure time for Agile to 0.3 seconds
 2009-01-28 ROwen    Changed canOverscan to defOverscan in instInfo.
 2009-02-24 ROwen    Added playExposureEnds to instInfo and set it False for Agile. 
-2009-04-15 ROwen    Increased default Agile x overscan from 9 to 27.
-2009-05-04 ROwen    Added maxNumExp to instInfo and set it to 99999 for Agile.
-2009-05-06 ROwen    Modified to use Get Every preference instead of Auto Get.
-2009-07-09 ROwen    Removed unused import of os (found by pychecker).
+2009-07-18 ROwen    Removed info about many 3.5m instruments. Still needs complete rewrite.
 """
 __all__ = ['getModel']
 
+import os
 import Tkinter
 import RO.Alg
 import RO.Astro.ImageWindow
 import RO.CnvUtil
 import RO.DS9
-import RO.KeyVariable
 import RO.SeqUtil
 import RO.StringUtil
+import opscore.actor.keyvar
 import TUI.HubModel
-import TUI.TUIModel
-import FileGetter
+import TUI.Models.TUIModel
 
 class _ExpInfo:
     """Exposure information for a camera
@@ -117,7 +114,6 @@ class _ExpInfo:
         instActor = None,
         minExpTime = 0.1,
         maxExpTime = 12 * 3600,
-        maxNumExp = 9999,
         camNames = None,
         expTypes = ("object", "flat", "dark", "bias"),
         canPause = True,
@@ -138,9 +134,8 @@ class _ExpInfo:
         else:
             self.instActor = instName.lower()
         self.exposeActor = "%sExpose" % (self.instActor,)
-        self.minExpTime = float(minExpTime)
-        self.maxExpTime = float(maxExpTime)
-        self.maxNumExp = int(maxNumExp)
+        self.minExpTime = minExpTime
+        self.maxExpTime = maxExpTime
         if camNames == None:
             camNames = ("",)
         self.camNames = camNames
@@ -175,47 +170,15 @@ def _getInstInfoDict():
     # instrument information
     _InstInfoList = (
         _ExpInfo(
-            instName = "agile",
-            imSize = (1024, 1024),
-            minExpTime = 0.3,
-            maxNumExp = 99999,
-            canPause = False,
-            canStop = False,
-            numBin = 1,
-            canWindow = True,
-            defOverscan = (27, 0),
-            playExposureEnds = False,
-        ),
-        _ExpInfo(
             instName = "DIS",
             imSize = (2048, 1028),
             minExpTime = 1, 
             camNames = ("blue", "red"),
         ),
         _ExpInfo(
-            instName = "Echelle",
-            imSize = (2048, 2048),
-        ),
-        _ExpInfo(
-            instName = "NICFPS",
-            imSize = (1024, 1024),
-            minExpTime = 0, 
-            expTypes = ("object", "flat", "dark"),
-            canPause = False,
-            canAbort = False,
-        ),
-        _ExpInfo(
             instName = "SPIcam",
             minExpTime = 0.76,
             imSize = (2048, 2048),
-        ),
-        _ExpInfo(
-            instName = "TSpec",
-            imSize = (2048, 1024),
-            minExpTime = 0.75,
-            expTypes = ("object", "flat", "dark"),
-            canPause = False,
-            canStop = False,
         ),
     )
     
@@ -231,34 +194,17 @@ _InstInfoDict = _getInstInfoDict()
 # each entry is instName: model
 _modelDict = {}
 
-class _BoolPrefVarCont:
-    """Class to set a Tkinter.BooleanVar from a RO.Pref boolean preference variable.
-    If the preference value changes, the variable changes, but not visa versa.
-    The contained var can be used as the var in a Checkbutton
+class _BoolPrefToVar:
+    """Class to set a Tkinter variable
+    from a RO.Pref preference variable.
+    If the preference value changes,
+    the variable changes, but not visa versa
     """
     def __init__(self, pref):
         self.var = Tkinter.BooleanVar()
-        pref.addCallback(self._prefCallback, callNow=True)
-    def _prefCallback(self, prefVal, pref=None):
-        self.var.set(prefVal)
-    def get(self):
-        """Return the current var value as a bool"""
-        return self.var.get()
-
-class _IntPrefVarCont:
-    """Class to set a Tkinter StringVar from a RO.Pref int preference variable.
-    If the preference value changes, the variable changes, but not visa versa.
-    The contained var can be used as the var in an entry widget
-    (I'd use a Tkinter.IntVar if I could, but it's not compatible with RO.Wdg.IntEntry).
-    """
-    def __init__(self, pref):
-        self.var = Tkinter.StringVar()
-        pref.addCallback(self._prefCallback, callNow=True)
-    def _prefCallback(self, prefVal, pref=None):
-        self.var.set(str(prefVal))
-    def get(self):
-        """Return the current var value as an int"""
-        return int(self.var.get())
+        pref.addCallback(self, callNow=True)
+    def __call__(self, prefVal, pref=None):
+        self.var.set(bool(prefVal))
 
 def getModel(instName):
     global _modelDict
@@ -273,12 +219,16 @@ def getModel(instName):
 class Model (object):
     def __init__(self, instName):
         self.instName = instName
-        self.instInfo = _InstInfoDict[instName.lower()]
+        self.instNameLow = instName.lower()
+        self.instInfo = _InstInfoDict[self.instNameLow]
         self.actor = self.instInfo.exposeActor
+        self.ds9WinDict = {}
         
-        self.tuiModel = TUI.TUIModel.getModel()
+        self.hubModel = TUI.HubModel.Model()
+        self.tuiModel = TUI.Models.TUIModel.Model()
         
-        keyVarFact = RO.KeyVariable.KeyVarFactory(
+        
+        keyVarFact = opscore.actor.keyvar.KeyVarFactory(
             actor = self.actor,
             dispatcher = self.tuiModel.dispatcher,
             converters = str,
@@ -420,16 +370,21 @@ class Model (object):
         # variables for items the user may toggle
         # pointers to prefs for items the user can only set via prefs
         # a pointer to the download widget
-        getEveryPref = self.tuiModel.prefs.getPrefVar("Get Every")
-        self.getEveryVarCont = _IntPrefVarCont(getEveryPref)
+        autoGetPref = self.tuiModel.prefs.getPrefVar("Auto Get")
+        self.autoGetVar = _BoolPrefToVar(autoGetPref).var
         viewImagePref = self.tuiModel.prefs.getPrefVar("View Image")
-        self.viewImageVarCont = _BoolPrefVarCont(viewImagePref)
+        self.viewImageVar = _BoolPrefToVar(viewImagePref).var
 
         self.getCollabPref = self.tuiModel.prefs.getPrefVar("Get Collab")
         self.ftpSaveToPref = self.tuiModel.prefs.getPrefVar("Save To")
         self.seqByFilePref = self.tuiModel.prefs.getPrefVar("Seq By File")
         
-        self._getFiles = FileGetter.FileGetter(self)
+        downloadTL = self.tuiModel.tlSet.getToplevel("TUI.Downloads")
+        self.downloadWdg = downloadTL and downloadTL.getWdg()
+        
+        if self.downloadWdg:
+            # set up automatic ftp; we have all the info we need
+            self.files.addCallback(self._updFiles)
 
     def formatExpCmd(self,
         expType = "object",
@@ -504,15 +459,111 @@ class Model (object):
     
         return " ".join(outStrList)
     
+    def _downloadFinished(self, camName, httpGet):
+        """Call when an image file has been downloaded"""
+        if httpGet.getState() != httpGet.Done:
+            return
+        ds9Win = self.ds9WinDict.get(camName)
+        try:
+            if not ds9Win:
+                if camName not in self.instInfo.camNames:
+                    raise RuntimeError("Unknown camera name %r for %s" % (camName, self.instName))
+                if camName:
+                    ds9Name = "%s_%s" % (self.instName, camName)
+                else:
+                    ds9Name = self.instName
+                ds9Win = RO.DS9.DS9Win(ds9Name, doOpen=True)
+                self.ds9WinDict[camName] = ds9Win
+            elif not ds9Win.isOpen():
+                ds9Win.doOpen()
+            ds9Win.showFITSFile(httpGet.toPath)
+        except (SystemExit, KeyboardInterrupt):
+            raise
+        except Exception, e:
+            self.tuiModel.logMsg(
+                msgStr = RO.StringUtil.strFromException(e),
+                severity = RO.Constants.sevError,
+            )
+    
     def _updExpState(self, expState, isCurrent, keyVar):
         """Set the durations to None (unknown) if data is from the cache"""
-        if keyVar.isGenuine():
+        if keyVar.isGenuine:
             return
         modValues = list(expState)
         modValues[3] = None
         modValues[4] = None
-        keyVar._valueList = tuple(modValues)
+        keyVar.valueList = tuple(modValues)
         
+    def _updFiles(self, fileInfo, isCurrent, keyVar):
+        """Call whenever a file is written
+        to start an ftp download (if appropriate).
+        
+        fileInfo consists of:
+        - cmdr (progID.username)
+        - host
+        - common root directory
+        - program and date subdirectory
+        - user subdirectory
+        - file name(s) for most recent exposure
+        """
+        if not isCurrent:
+            return
+#       print "_updFiles(%r, %r)" % (fileInfo, isCurrent)
+        if not self.autoGetVar.get():
+            return
+        if not keyVar.isGenuine:
+            # cached; avoid redownloading
+            return
+        
+        cmdr, dumHost, dumFromRootDir, progDir, userDir = fileInfo[0:5]
+        progID, username = cmdr.split(".")
+        fileNames = fileInfo[5:]
+        
+        host, fromRootDir = self.hubModel.httpRoot.get()[0]
+        if None in (host, fromRootDir):
+            errMsg = "Cannot download images; hub httpRoot keyword not available"
+            self.tuiModel.logMsg(errMsg, RO.Constants.sevWarning)
+            return
+        
+        if self.tuiModel.getProgID() not in (progID, "APO"):
+            # files are for a different program; ignore them unless user is APO
+            return
+        if not self.getCollabPref.getValue() and username != self.tuiModel.getUsername():
+            # files are for a collaborator and we don't want those
+            return
+        
+        toRootDir = self.ftpSaveToPref.getValue()
+
+        # save in userDir subdirectory of ftp directory
+        for ii in range(len(fileNames)):
+            fileName = fileNames[ii]
+            if fileName == "None":
+                continue
+
+            dispStr = "".join((progDir, userDir, fileName))
+            fromURL = "".join(("http://", host, fromRootDir, progDir, userDir, fileName))
+            toPath = os.path.join(toRootDir, progDir, userDir, fileName)
+            
+            doneFunc = None
+            if self.viewImageVar.get():
+                camName = RO.SeqUtil.get(self.instInfo.camNames, ii)
+                if camName != None:
+                    doneFunc = RO.Alg.GenericCallback(self._downloadFinished, camName)
+                else:
+                    self.tuiModel.logMsg(
+                        "More files than known cameras; cannot display image %s" % fileName,
+                        severity = RO.Constants.sevWarning,
+                    )
+            
+            self.downloadWdg.getFile(
+                fromURL = fromURL,
+                toPath = toPath,
+                isBinary = True,
+                overwrite = False,
+                createDir = True,
+                dispStr = dispStr,
+                doneFunc = doneFunc,
+            )
 
 def formatValList(name, valList, valFmt, numElts=None):
     #print "formatValList(name=%r, valList=%s, valFmt=%r, numElts=%s)" % (name, valList, valFmt, numElts)

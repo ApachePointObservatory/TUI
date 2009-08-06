@@ -55,11 +55,6 @@ History:
                     but depending on changes in the hub some of these features may be removed.
 2009-02-26 ROwen    Added Full button to set full window.
                     Bug fix: max window value not updated when bin factor changed.
-2009-05-04 ROwen    Modified to use expModel.instInfo.maxNumExp instead of constant _MaxNumExp
-2009-05-06 ROwen    Modified to use getEvery download preference isntead of autoGet.
-2009-06-26 ROwen    Made exposure time units more reliably stay next to exposure time entry
-                    by packing them into a frame and gridding that, instead of gridding them separately.
-2009-07-10 ROwen    Removed an inline conditional statement to be Python 2.4 compatible.
 """
 import Tkinter
 import RO.InputCont
@@ -67,6 +62,9 @@ import RO.SeqUtil
 import RO.StringUtil
 import RO.Wdg
 import ExposeModel
+
+# magic numbers
+_MaxNumExp = 9999
 
 _HelpURL = "Instruments/ExposeWin.html"
 
@@ -91,30 +89,29 @@ class ExposeInputWdg (Tkinter.Frame):
         self.updatingBin = False
         self.binsMatch = True
         
-        gr = RO.Wdg.Gridder(master=self, sticky="w")
+        gr = RO.Wdg.Gridder(self, sticky="w")
         self.gridder = gr
 
         prefFrame = Tkinter.Frame(self)
         
-        Tkinter.Label(prefFrame, text="Every").pack(side="left")
-        self.getEveryWdg = RO.Wdg.IntEntry (
+        self.autoGetWdg = RO.Wdg.Checkbutton (
             master = prefFrame,
-            var = self.expModel.getEveryVarCont.var,
-            width = 3,
+            text = "Auto Get",
+            var = self.expModel.autoGetVar,
             helpURL = helpURL,
-            helpText = "Download every Nth image (0=none; -1=skip excess)",
+            helpText = "Automatically download %s images?" % (self.expModel.instName,),
         )
-        self.getEveryWdg.pack(side="left")
+        self.autoGetWdg.pack(side="left")
 
         self.viewImageWdg = RO.Wdg.Checkbutton (
             master = prefFrame,
             text = "View Image",
-            var = self.expModel.viewImageVarCont.var,
+            var = self.expModel.viewImageVar,
             helpURL = helpURL,
-            helpText = "View downloaded images in ds9?",
+            helpText = "View downloaded %s images in ds9?" % (self.expModel.instName,),
         )
         self.viewImageWdg.pack(side="left")
-        self.getEveryWdg.addCallback(self.autoGetToggled, callNow=True)
+        self.autoGetWdg.addCallback(self.autoGetToggled, callNow=True)
 
         self.prefsTL = self.expModel.tuiModel.tlSet.getToplevel("TUI.Preferences")
         if self.prefsTL:
@@ -132,7 +129,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 #text = "Prefs",
             #)
         
-        gr.gridWdg("Download", prefFrame, colSpan=5, sticky="w")
+        gr.gridWdg("Prefs", prefFrame, colSpan=5, sticky="w")
 
         typeFrame = Tkinter.Frame(self)
         if expTypes != None:
@@ -153,12 +150,9 @@ class ExposeInputWdg (Tkinter.Frame):
         )
         if len(expTypes) > 1:
             gr.gridWdg("Type", typeFrame, colSpan=5, sticky="w")
-        
-        timeFrame = Tkinter.Frame(self)
 
         timeUnitsVar = Tkinter.StringVar()
-        self.timeWdg = RO.Wdg.DMSEntry (
-            master = timeFrame,
+        self.timeWdg = RO.Wdg.DMSEntry (self,
             minValue = self.expModel.instInfo.minExpTime,
             maxValue = self.expModel.instInfo.maxExpTime,
             isRelative = True,
@@ -170,27 +164,18 @@ class ExposeInputWdg (Tkinter.Frame):
             helpText = "Exposure time",
             helpURL = helpURL,
         )
-        self.timeWdg.pack(side="left")
-        timeUnitsWdg = RO.Wdg.StrLabel(
-            master = timeFrame,
-            textvariable = timeUnitsVar,
-            helpText = "Units of exposure time",
-            helpURL = helpURL,
-        )
-        timeUnitsWdg.pack(side="left")
-        wdgSet = gr.gridWdg("Time", timeFrame, colSpan=5)
-        self.timeWdgSet = [wdgSet.wdgSet[0], self.timeWdg, timeUnitsWdg]
+        wdgSet = gr.gridWdg("Time", self.timeWdg, timeUnitsVar)
+        self.timeWdgSet = wdgSet.wdgSet
         
-        self.numExpWdg = RO.Wdg.IntEntry(
-            master = self,
+        self.numExpWdg = RO.Wdg.IntEntry(self,
             defValue = 1,
             minValue = 1,
-            maxValue = self.expModel.instInfo.maxNumExp,
+            maxValue = _MaxNumExp,
             defMenu = "Minimum",
             helpText = "Number of exposures in the sequence",
             helpURL = helpURL,
         )
-        gr.gridWdg("#Exp", self.numExpWdg)
+        gr.gridWdg("#Exp", self.numExpWdg) #, row=-1, col=4)
         self.grid_columnconfigure(5, weight=1)
         
         self.camWdgs = []
@@ -257,15 +242,11 @@ class ExposeInputWdg (Tkinter.Frame):
             windowWdgFrame = Tkinter.Frame(self)
             maxWindowList = [minWindow + self.expModel.instInfo.imSize[ind] - 1 for ind in (0, 1, 0, 1)]
             for ind, helpStr in enumerate(("x begin", "y begin", "x end", "y end")):
-                if ind < 2:
-                    defValue = minWindow
-                else:
-                    defValue = maxWindowList[ind]
                 windowWdg = RO.Wdg.IntEntry(
                     windowWdgFrame,
                     minValue = minWindow,
                     maxValue = maxWindowList[ind],
-                    defValue = defValue,
+                    defValue = (minWindow if ind < 2 else maxWindowList[ind]),
                     defMenu = "Default",
                     callFunc = self._updWindow,
                     helpText = helpStr + " (binned pixels)",
@@ -321,7 +302,7 @@ class ExposeInputWdg (Tkinter.Frame):
         self.wdgAreSetUp = True
     
     def autoGetToggled(self, wdg=None):
-        doAutoGet = self.getEveryWdg.getNum() != 0
+        doAutoGet = self.autoGetWdg.getBool()
         self.viewImageWdg.setEnable(doAutoGet)
 
     def getEntryError(self):
@@ -453,16 +434,10 @@ class ExposeInputWdg (Tkinter.Frame):
         #print "_updImageSize"
         window = [wdg.getNum() for wdg in self.windowWdgSet]
         overscan = [wdg.getNum() for wdg in self.overscanWdgSet]
-        sizeStrList = []
-        for ii in range(2):
-            size = 1 + window[ii+2] - window[ii]
-            if overscan[ii] > 0:
-                sizeStr = "%d + %d" % (size, overscan[ii])
-            else:
-                sizeStr = "%d" % (size,)
-            sizeStrList.append(sizeStr)
-        fullSizeStr = " x ".join(sizeStrList)
-        self.imageSizeWdg.set(fullSizeStr)
+        size = [1 + window[ii+2] - window[ii] for ii in range(2)]
+        overscanStrs = [" + %d" % (val,) if val > 0 else "" for val in overscan]
+        strSize = "%d%s x %d%s" % (size[0], overscanStrs[0], size[1], overscanStrs[1])
+        self.imageSizeWdg.set(strSize)
    
     def _updWindow(self, wdg=None):
         """Window changed; update currUnbWindow and image size"""

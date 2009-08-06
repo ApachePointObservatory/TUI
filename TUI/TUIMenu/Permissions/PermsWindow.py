@@ -10,15 +10,17 @@
 2005-01-05 ROwen    Added Read Only button to test code.
 2006-04-10 ROwen    Updated Sort button help text because actors are now sorted.
 2007-07-27 ROwen    Modified to pay command-completed sounds.
-2009-07-06 ROwen    Modified for updated TestData.
-2009-07-09 ROwen    Modified test code to look more like tuisdss.
+2009-04-01 ROwen    Modified test code to use updated TestData.
+2009-07-09 ROwen    Modified test code to look more like tui35m.
+2009-07-18 ROwen    Bug fix: was sending an extra parameter to StatusBar.
 """
 import Tkinter
-import RO.KeyVariable
 import RO.Wdg
+import opscore.actor.keyvar
 import PermsModel
 import PermsInputWdg
-import TUI.TUIModel
+import TUI.Models.TUIModel
+import TUI.Base.Wdg
 
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
 
@@ -38,17 +40,15 @@ class PermsWdg(Tkinter.Frame):
     def __init__(self, master):
         Tkinter.Frame.__init__(self, master)
 
-        tuiModel = TUI.TUIModel.getModel()
+        tuiModel = TUI.Models.TUIModel.Model()
 
         self._titleFrame = Tkinter.Frame(self)
         self._titleFrame.grid(row=0, sticky="w")
         
-        self._permsModel = PermsModel.getModel()
+        self._permsModel = PermsModel.Model()
 
-        self._statusBar = RO.Wdg.StatusBar(
+        self._statusBar = TUI.Base.Wdg.StatusBar(
             master = self,
-            dispatcher = tuiModel.dispatcher,
-            prefs = tuiModel.prefs,
             playCmdSounds = True,
             summaryLen = 20,
         )
@@ -129,7 +129,7 @@ class PermsWdg(Tkinter.Frame):
 
         progName = wdg.getString().upper()
 
-        newCmd = RO.KeyVariable.CmdVar (
+        newCmd = opscore.actor.keyvar.CmdVar (
             cmdStr = "register " + progName,
             actor="perms",
             timeLim = 5,
@@ -165,4 +165,4 @@ if __name__ == "__main__":
     
     TestData.start()
 
-    root.mainloop()
+    tuiModel.reactor.run()

@@ -49,7 +49,6 @@ This is the main routine that calls everything else.
                     as required for use with pyinstaller 1.3.
 2007-12-20 ROwen    Import and configure matplotlib here and stop configuring it elsewhere. This works around
                     a problem in matplotlib 0.91.1: "use" can't be called after "import matplotlib.backends".
-2009-04-17 ROwen    Updated for new Status window name: None.Status->TUI.Status.
 """
 import os
 import sys
@@ -58,7 +57,7 @@ import TUI.BackgroundTasks
 import TUI.LoadStdModules
 import TUI.MenuBar
 import TUI.TUIPaths
-import TUI.TUIModel
+import TUI.Models.TUIModel
 import TUI.WindowModuleUtil
 import TUI.Version
 
@@ -86,7 +85,7 @@ def runTUI():
         pass
     
     # create and obtain the TUI model
-    tuiModel = TUI.TUIModel.getModel()
+    tuiModel = TUI.Models.TUIModel.Model()
     
     # set up background tasks
     backgroundHandler = TUI.BackgroundTasks.BackgroundKwds()
@@ -114,7 +113,7 @@ def runTUI():
     # add the main menu
     TUI.MenuBar.MenuBar()
     
-    root.mainloop()
+    tuiModel.reactor.run()
 
 if __name__ == "__main__":
     runTUI()

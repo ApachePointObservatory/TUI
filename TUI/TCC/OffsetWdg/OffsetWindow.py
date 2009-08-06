@@ -20,12 +20,16 @@ History:
 2004-06-22 ROwen    Modified for RO.Keyvariable.KeyCommand->CmdVar
 2005-01-05 ROwen    Changed level to severity for RO.Wdg.StatusBar.
 2005-08-02 ROwen    Modified for TUI.Sounds->TUI.PlaySound.
+2009-04-01 ROwen    Modified for tuisdss.
+2009-07-19 ROwen    Changed cmdVar.timeLimKeyword to timeLimKeyVar.
 """
 import Tkinter
 import RO.Constants
 import RO.Wdg
+import opscore.actor.keyvar
 import InputWdg
-import TUI.TUIModel
+import TUI.Base.Wdg
+import TUI.Models.TCCModel
 import TUI.PlaySound
 
 _HelpPrefix = "Telescope/OffsetWin.html#"
@@ -55,13 +59,11 @@ class OffsetWdg(Tkinter.Frame):
         self.inputWdg.pack(side="top", anchor="nw")
         self.inputWdg.addCallback(self._offsetEnable)
         
-        tuiModel = TUI.TUIModel.getModel()
+        self.tccModel = TUI.Models.TCCModel.Model()
 
         # set up the command monitor
-        self.statusBar = RO.Wdg.StatusBar(
+        self.statusBar = TUI.Base.Wdg.StatusBar(
             master = self,
-            dispatcher = tuiModel.dispatcher,
-            prefs = tuiModel.prefs,
             playCmdSounds = True,
             helpURL = _HelpPrefix + "StatusBar",
         )
@@ -136,11 +138,11 @@ class OffsetWdg(Tkinter.Frame):
         def offsetEnableShim(*args, **kargs):
             self._offsetEnable(True)
             
-        cmdVar = RO.KeyVariable.CmdVar (
+        cmdVar = opscore.actor.keyvar.CmdVar (
             actor = "tcc",
             cmdStr = cmdStr,
             timeLim = 10,
-            timeLimKeyword="SlewDuration",
+            timeLimKeyVar = self.tccModel.slewDuration,
             isRefresh = False,
             callFunc = offsetEnableShim,
         )
@@ -156,17 +158,20 @@ class OffsetWdg(Tkinter.Frame):
             self.offsetButton["state"] = "disabled"
 
 if __name__ == "__main__":
-    root = RO.Wdg.PythonTk()
+    import TUI.Base.TestDispatcher
 
-    kd = TUI.TUIModel.getModel(True).dispatcher
+    testDispatcher = TUI.Base.TestDispatcher.TestDispatcher(actor="tcc")
+    tuiModel = testDispatcher.tuiModel
+    root = tuiModel.tkRoot
 
     testFrame = OffsetWdg(root)
     testFrame.pack(anchor="nw")
+    tuiModel.tkRoot.resizable(width=0, height=0)
 
-    dataDict = {
-        "ObjInstAng": (30.0, 0.0, 1.0),
-    }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
-#   kd.dispatch(msgDict)
+    dataList = (
+        "ObjInstAng=30.0, 0.0, 1.0",
+    )
 
-    root.mainloop()
+    testDispatcher.dispatch(dataList)
+
+    tuiModel.reactor.run()

@@ -33,21 +33,21 @@ History:
                     Added Prev and Next highlight buttons.
                     Clear "Removing highlight" message from status bar at instantiation.
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
+2009-04-01 ROwen    Updated to use new style keyVars and cmdVars.
+                    Updated test code to use TUI.Base.TestDispatcher
 2009-07-22 ROwen    Bug fix: when an actor disappeared from the hub one could no longer filter on it.
 """
 import re
 import time
 import Tkinter
-try:
-    set
-except NameError:
-    from sets import Set as set
 import RO.Alg
 import RO.StringUtil
 import RO.TkUtil
 import RO.Wdg
+import opscore.actor.keyvar
+import TUI.Base.Wdg
 import TUI.HubModel
-import TUI.TUIModel
+import TUI.Models.TUIModel
 import TUI.PlaySound
 
 HelpURL = "TUIMenu/LogWin.html"
@@ -122,7 +122,7 @@ class TUILogWdg(Tkinter.Frame):
         """
         Tkinter.Frame.__init__(self, master, **kargs)
 
-        tuiModel = TUI.TUIModel.getModel()
+        tuiModel = TUI.Models.TUIModel.Model()
         tuiModel.dispatcher.setLogFunc(self.logMsg)
         self.dispatcher = tuiModel.dispatcher
         self.filterRegExpInfo = None
@@ -375,7 +375,7 @@ class TUILogWdg(Tkinter.Frame):
         self.grid_columnconfigure(0, weight=1)
         row += 1
         
-        self.statusBar = RO.Wdg.StatusBar(self, helpURL=HelpURL)
+        self.statusBar = TUI.Base.Wdg.StatusBar(self, helpURL=HelpURL)
         self.statusBar.grid(row=row, column=0, sticky="ew")
         row += 1
 
@@ -407,8 +407,8 @@ class TUILogWdg(Tkinter.Frame):
         
         cmdFrame.grid(row=5, column=0, columnspan=5, sticky="ew")
         
-        hubModel = TUI.HubModel.getModel()
-        hubModel.actors.addCallback(self.updActors)
+        hubModel = TUI.HubModel.Model()
+        hubModel.actors.addCallback(self._actorsCallback)
         
         # set up severity tags and tie them to color preferences
         self._severityPrefDict = RO.Wdg.WdgPrefs.getSevPrefDict()
@@ -534,12 +534,12 @@ class TUILogWdg(Tkinter.Frame):
                 raise RuntimeError("Cannot execute %r; no command found." % (actorCmdStr,))
     
             # issue the command
-            RO.KeyVariable.CmdVar (
+            cmdVar = opscore.actor.keyvar.CmdVar (
                 actor = actor,
                 cmdStr = cmdStr,
                 callFunc = self._cmdCallback,
-                dispatcher = self.dispatcher,
             )
+            self.dispatcher.executeCmd(cmdVar)
         except (SystemExit, KeyboardInterrupt):
             raise
         except Exception, e:
@@ -1010,19 +1010,19 @@ class TUILogWdg(Tkinter.Frame):
         allTags = tuple(tags) + tuple(self.getSeverityTags())
         self.logWdg.showTagsOr(allTags)
     
-    def updActors(self, actors, isCurrent, keyVar=None):
+    def _actorsCallback(self, keyVar):
         """Actor keyword callback.
         """
-        if not actors:
+        if not keyVar.valueList or None in keyVar.valueList:
             return
-
-        newActors = set(actor.lower() for actor in actors)
+            
+        isCurrent = keyVar.isCurrent
+        newActors = set(actor.lower() for actor in keyVar.valueList)
         currActors = set(self.actorDict.keys())
         sortedActors = sorted(list(newActors | currActors))
-
-        self.actorDict = dict((actor, "act_" + actor) for actor in sortedActors)
         
-        blankAndActors = [""] + actors
+        self.actorDict = dict((actor, "act_" + actor) for actor in sortedActors)
+        blankAndActors = [""] + sortedActors
         self.defActorWdg.setItems(blankAndActors, isCurrent = isCurrent)
         self.filterActorWdg.setItems(blankAndActors, isCurrent = isCurrent)
         self.highlightActorWdg.setItems(blankAndActors, isCurrent = isCurrent)
@@ -1042,12 +1042,12 @@ class TUILogWdg(Tkinter.Frame):
         #print "_updSevTagColor(sevTag=%r, color=%r, colorPref=%r)" % (sevTag, color, colorPref)
         self.logWdg.text.tag_configure(sevTag, foreground=color)
     
-    def _cmdCallback(self, msgType, msgDict, cmdVar):
+    def _cmdCallback(self, cmdVar):
         """Command callback; called when a command finishes.
         """
-        if cmdVar.didFail():
+        if cmdVar.didFail:
             TUI.PlaySound.cmdFailed()
-        elif cmdVar.isDone():
+        elif cmdVar.isDone:
             TUI.PlaySound.cmdDone()
 
     def __del__ (self, *args):
@@ -1059,9 +1059,12 @@ class TUILogWdg(Tkinter.Frame):
 if __name__ == '__main__':
     import sys
     import random
-    root = RO.Wdg.PythonTk()
+    import TUI.Base.TestDispatcher
+    
+    testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("tcc")
+    tuiModel = testDispatcher.tuiModel
+    root = tuiModel.tkRoot
     root.geometry("600x350")
-    tuiModel = TUI.TUIModel.getModel(testMode = True)
     
     testFrame = TUILogWdg (
         master=root,
@@ -1075,7 +1078,7 @@ if __name__ == '__main__':
     
     actors = ("ecam", "disExpose","dis", "keys")
 
-    hubModel = TUI.HubModel.getModel()
+    hubModel = TUI.HubModel.Model()
     hubModel.actors.set(actors)
 
     for ii in range(10):
@@ -1084,4 +1087,4 @@ if __name__ == '__main__':
             RO.Constants.sevWarning, RO.Constants.sevError))
         testFrame.logMsg("%s sample entry %s" % (actor, ii), actor=actor, severity=severity)
     
-    root.mainloop()
+    tuiModel.reactor.run()

@@ -11,7 +11,6 @@ History:
 2004-05-18 ROwen    Removed unused local variable in addWindow.
 2004-08-11 ROwen    Modified for updated RO.Wdg.Toplevel.
 2006-03-16 ROwen    Modified to use TestData module for testing.
-2009-04-17 ROwen    Added this window to the TUI menu.
 """
 import Tkinter
 import AxisStatus
@@ -19,13 +18,18 @@ import NetPosWdg
 import OffsetWdg
 import MiscWdg
 import RO.Wdg
+import TUI.Base.Wdg
 import SlewStatus
 
 def addWindow(tlSet):
     """Set up the main status window
+    Use name "None.Status" so it doesn't show up in any menu.
+    This is because the menus are in this very window --
+    so if you can select the menu, this window is already
+    the current window.
     """
     tlSet.createToplevel(
-        name = "TUI.Status",
+        name = "None.Status",
         defGeom = "+0+22",
         resizable = False,
         closeMode = RO.Wdg.tl_CloseDisabled,
@@ -79,7 +83,7 @@ class StatusWdg (Tkinter.Frame):
 
         # set up status bar; this is only for showing help,
         # not command status, so we can omit dispatcher and prefs
-        self.statusBar = RO.Wdg.StatusBar(
+        self.statusBar = TUI.Base.Wdg.StatusBar(
             master = self,
             helpURL = _HelpPrefix + "StatusBar",
         )
@@ -87,16 +91,13 @@ class StatusWdg (Tkinter.Frame):
     
 
 if __name__ == "__main__":
-    import TUI.TUIModel
     import TestData
+    
+    tuiModel = TestData.testDispatcher.tuiModel
 
-    root = RO.Wdg.PythonTk()
-
-    kd = TUI.TUIModel.getModel(True).dispatcher
-
-    testFrame = StatusWdg (root)
+    testFrame = StatusWdg(tuiModel.tkRoot)
     testFrame.pack()
 
-    TestData.runTest(kd)
+    TestData.runTest()
 
-    root.mainloop()
+    tuiModel.reactor.run()
