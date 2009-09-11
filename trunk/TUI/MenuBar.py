@@ -39,6 +39,7 @@ History:
 2006-03-09 ROwen    Modified to avoid "improper exit" complaints
                     on Windows by explicitly destroying root on quit.
 2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
+2009-09-10 ROwen    Modified to use TCC.StatusWdg.StatusWindow.WindowName for the status window name.
 """
 import Tkinter
 import RO.Alg
@@ -48,6 +49,7 @@ import RO.OS
 import RO.TkUtil
 import RO.Wdg
 import TUI.ScriptMenu
+import TCC.StatusWdg.StatusWindow
 
 class MenuBar(object):
     """Create TUI's application menu bar.
@@ -72,7 +74,9 @@ class MenuBar(object):
         if self.wsys == RO.TkUtil.WSysAqua:
             parentTL = self.tuiModel.tkRoot
         else:
-            parentTL = self.tlSet.getToplevel("TUI.Status")
+            parentTL = self.tlSet.getToplevel(TCC.StatusWdg.StatusWindow.WindowName)
+            if not parentTL:
+                raise RuntimeError("Could not find window %s" % (TCC.StatusWdg.StatusWindow.WindowName,))
         self.parentMenu = Tkinter.Menu(parentTL)
         parentTL["menu"] = self.parentMenu
         
