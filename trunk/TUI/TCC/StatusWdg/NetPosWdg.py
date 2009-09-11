@@ -14,6 +14,7 @@ History:
 2003-06-25 ROwen    Modified test case to handle message data as a dict
 2003-12-03 ROwen    Made object name longer (to match slew input widget).
 2004-02-04 ROwen    Modified _HelpURL to match minor help reorg.
+2009-09-09 ROwen    Modified to use TestData.
 """
 import Tkinter
 import RO.CoordSys
@@ -212,23 +213,21 @@ class NetPosWdg (Tkinter.Frame):
             self.netPos1Wdg.unitsWdg["text"] = RO.StringUtil.DMSStr
     
 if __name__ == "__main__":
-    import TUI.TUIModel
+    import TestData
 
-    root = RO.Wdg.PythonTk()
+    tuiModel = TestData.tuiModel
 
-    kd = TUI.TUIModel.getModel(True).dispatcher
-
-    testFrame = NetPosWdg (root)
+    testFrame = NetPosWdg(tuiModel.tkRoot)
     testFrame.pack()
 
-    dataDict = {
-        "ObjName": ("test object with a long name",),
-        "ObjSys": ("ICRS", 0),
-        "ObjNetPos": (120.123450, 0.000000, 4494436859.66000, -2.345670, 0.000000, 4494436859.66000),
-        "RotType": ("Obj",),
-        "RotPos": (3.456789, 0.000000, 4494436895.07921),
-    }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
-    kd.dispatch(msgDict)
+    dataList = (
+        "ObjName='test object with a long name'",
+        "ObjSys=ICRS, 0",
+        "ObjNetPos=120.123450, 0.000000, 4494436859.66000, -2.345670, 0.000000, 4494436859.66000",
+        "RotType=Obj",
+        "RotPos=3.456789, 0.000000, 4494436895.07921",
+    )
 
-    root.mainloop()
+    TestData.testDispatcher.dispatch(dataList)
+
+    tuiModel.tkRoot.mainloop()

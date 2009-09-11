@@ -15,6 +15,7 @@ History:
 2004-05-18 ROwen    Bug fix: OffsetWdg._updObjXYOff used "except a, b:" instead of "except (a, b):"
                     to catch two classes of exception, so the second would not be caught.
                     Removed unused constant _ArcLabelWidth.
+2009-09-09 ROwen    Modified to use TestData.
 """
 import Tkinter
 import RO.StringUtil
@@ -139,21 +140,20 @@ class OffsetWdg (Tkinter.Frame):
         
 
 if __name__ == "__main__":
-    import TUI.TUIModel
+    import TestData
 
-    root = RO.Wdg.PythonTk()
+    tuiModel = TestData.tuiModel
 
-    kd = TUI.TUIModel.getModel(True).dispatcher
-        
-    testFrame = OffsetWdg (root)
+    testFrame = OffsetWdg(tuiModel.tkRoot)
     testFrame.pack()
 
-    dataDict = {
-        "ObjSys": ("ICRS", 0),
-        "ObjNetPos": (120.123450, 0.000000, 4494436859.66000, -2.345670, 0.000000, 4494436859.66000),
-        "RotType": ("Obj",),
-    }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
-    kd.dispatch(msgDict)
+    dataList = (
+        "ObjSys=ICRS, 0",
+        "ObjInstAng=30.0, 0.0, 4494436859.66000",
+        "ObjArcOff=-0.012, 0.0, 4494436859.66000, -0.0234, 0.000000, 4494436859.66000",
+        "Boresight=0.0054, 0.0, 4494436859.66000, -0.0078, 0.000000, 4494436859.66000",
+    )
 
-    root.mainloop()
+    TestData.testDispatcher.dispatch(dataList)
+
+    tuiModel.tkRoot.mainloop()

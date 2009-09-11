@@ -22,6 +22,7 @@ History:
                     Improved guide state output to show camera (if state not Off or unknown).
 2008-03-25 ROwen    Actually modified GC Focus to get its value from the new gmech actor
                     (somehow that change did not actually occur on 2008-02-01).
+2009-09-09 ROwen    Modified to use TestData.
 """
 import time
 import Tkinter
@@ -277,24 +278,21 @@ class MiscWdg (Tkinter.Frame):
 
 
 if __name__ == "__main__":
-    import TUI.TUIModel
+    import TestData
 
-    root = RO.Wdg.PythonTk()
+    tuiModel = TestData.tuiModel
 
-    kd = TUI.TUIModel.getModel(True).dispatcher
-        
-    testFrame = MiscWdg (root)
+    testFrame = MiscWdg(tuiModel.tkRoot)
     testFrame.pack()
 
-    dataDict = {
-        "AxePos": (-350.999, 45, "NaN"),
-        "SecFocus": (570,),
-        "GCFocus": (-300,),
-        "Inst": ("DIS",),
-        "TCCStatus": ("TTT", "NNN"),
-    }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    dataList = (
+        "AxePos=-350.999, 45, NaN",
+        "SecFocus=570",
+        "GCFocus=-300",
+        "Inst=DIS",
+        "TCCStatus=TTT, NNN",
+    )
 
-    kd.dispatch(msgDict)
+    TestData.testDispatcher.dispatch(dataList)
 
-    root.mainloop()
+    tuiModel.tkRoot.mainloop()
