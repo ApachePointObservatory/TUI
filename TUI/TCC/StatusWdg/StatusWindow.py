@@ -12,6 +12,8 @@ History:
 2004-08-11 ROwen    Modified for updated RO.Wdg.Toplevel.
 2006-03-16 ROwen    Modified to use TestData module for testing.
 2009-04-17 ROwen    Added this window to the TUI menu.
+2009-09-09 ROwen    Moved this window to the TCC menu.
+                    Modified for changes in the TestData module.
 """
 import Tkinter
 import AxisStatus
@@ -25,7 +27,7 @@ def addWindow(tlSet):
     """Set up the main status window
     """
     tlSet.createToplevel(
-        name = "TUI.Status",
+        name = "TCC.Status",
         defGeom = "+0+22",
         resizable = False,
         closeMode = RO.Wdg.tl_CloseDisabled,
@@ -87,16 +89,12 @@ class StatusWdg (Tkinter.Frame):
     
 
 if __name__ == "__main__":
-    import TUI.TUIModel
     import TestData
+    root = TestData.tuiModel.tkRoot
 
-    root = RO.Wdg.PythonTk()
-
-    kd = TUI.TUIModel.getModel(True).dispatcher
-
-    testFrame = StatusWdg (root)
+    testFrame = StatusWdg(TestData.tuiModel.tkRoot)
     testFrame.pack()
 
-    TestData.runTest(kd)
+    TestData.runTest()
 
     root.mainloop()

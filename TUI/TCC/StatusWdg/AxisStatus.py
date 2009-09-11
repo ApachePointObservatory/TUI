@@ -2,7 +2,11 @@
 """Displays the axis position and various status.
 
 To do:
-- Offer some simple way of showing all status bits (as words)
+- Offer some simple way of showing all status bits (as words), e.g.:
+    - A ... or More button that appears when there is more than one bit to describe; this opens a new window
+    - Right-click to open a new window; this should display ... or something to indicate hidden info
+    - A disclosure triangle to expand the boxes vertically as required
+      (but if there is one per axis controller, then are they ganged or separate? I'd prefer ganged)
 
 History:
 2003-03-26 ROwen    Modified to use the tcc model.
@@ -42,6 +46,9 @@ History:
                     now it only plays if the status is newly bad,
                     but not if it changes from one bad state to another.
 2008-04-01 ROwen    Updated status bit descriptions for new axis controller.
+2009-09-10 ROwen    Modified to use TestData.
+                    Updated bit assignments to match new axis controllers.
+                    Bug fix: soft position limit bits were swapped.
 """
 import time
 import Tkinter
@@ -61,33 +68,33 @@ _CtrllrWaitSec = 1.0 # time for status of all 3 controllers to come in (sec)
 _SoundIntervalMS = 100 # time (ms) between the start of each sound (if more than one)
 
 ErrorBits = (
-    ( 6, 'Hit minimum limit switch'),
-    ( 7, 'Him maximum limit switch'),
-    (18, 'Motor 2 current limit'),
-    (19, 'Motor 1 current limit'),
-    (14, 'Servo error too large'),
-    ( 8, 'Low res encoder problem'),
-    ( 9, 'High res encoder problem'),
-    (10, 'A/D converter problem'),
-    (17, 'Limit switch connection problem'),
-    (20, 'Servo amp 2 power loss'),
-    (21, 'Servo amp 1 power loss'),
-    (22, 'Motor 2 bad connection'),
-    (23, 'Motor 1 bad connection'),
-    (11, 'Emergency stop switch'),
-    (12, 'Motor disabled'),
-    ( 2, 'Hit maximum soft limit'),
-    ( 3, 'Hit minimum soft limit'),
-    (16, '1 Hz clock signal lost'),
+    ( 6, "Minimum position limit switch"),
+    ( 7, "Maximum position limit switch"),
+    (11, "Stop button"),
+    (12, "Disable switch"),
+    
+    ( 8, "Overspeed limit"),
+    (14, "Servo error too large"),
+    (18, "Motor 2 current limit"),
+    (19, "Motor 1 current limit"),
+
+    ( 2, "Minimum position software limit"),
+    ( 3, "Maximum position software limit"),
+
+    (16, "1 Hz clock signal lost"),
+    (22, "Motor 2 bad connection"),
+    (23, "Motor 1 bad connection"),
+
+    (13, "Motor output disabled"),
 )
 WarningBits = (
-    ( 0, 'Motor control buffer empty'),
-    ( 1, 'Late position update'),
-    (24, 'Pos error too large to correct'),
-    ( 4, 'Velocity limited'),
-    ( 5, 'Acceleration limited'),
-    (29, 'Motor velocity too large'),
-    (30, 'Controller restarted'),
+    ( 0, "Motor control buffer empty"),
+    ( 1, "Time ran out on an interpolated move"),
+    (24, "Last fiducial error too large"),
+    ( 4, "Velocity limited"),
+    ( 5, "Acceleration limited"),
+    (29, "Motor velocity too large"),
+    (30, "Controller restarted"),
 )
 
 # commanded state dictionary:
@@ -330,16 +337,13 @@ class AxisStatusWdg(Tkinter.Frame):
 
             
 if __name__ == "__main__":
-    import TUI.TUIModel
     import TestData
 
-    root = RO.Wdg.PythonTk()
+    tuiModel = TestData.tuiModel
 
-    kd = TUI.TUIModel.getModel(True).dispatcher
-
-    testFrame = AxisStatusWdg (root)
+    testFrame = AxisStatusWdg(tuiModel.tkRoot)
     testFrame.pack()
 
-    TestData.runTest(kd)
+    TestData.runTest()
 
-    root.mainloop()
+    tuiModel.tkRoot.mainloop()

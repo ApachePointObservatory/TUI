@@ -44,6 +44,7 @@ History:
                     to make sure the timer is halted.
 2006-04-27 ROwen    Bug fix: halted countdown timer prematurely for track/stop.
                     Changed a tests from if <x> == True: to if <x>: (thanks pychecker).
+2009-09-09 ROwen    Modified to use TestData.
 """
 import sys
 import time
@@ -143,42 +144,28 @@ class SlewStatusWdg(Tkinter.Frame):
             self.doSlewEnd()
 
 if __name__ == "__main__":
-    import TUI.TUIModel
+    import TestData
 
-    root = RO.Wdg.PythonTk()
-    
-    kd = TUI.TUIModel.getModel(True).dispatcher
+    tuiModel = TestData.testDispatcher.tuiModel
+    kd = tuiModel.dispatcher
 
-    testFrame = SlewStatusWdg (root)
+    testFrame = SlewStatusWdg (tuiModel.tkRoot)
     testFrame.pack()
 
-    dtimeDataList = [
-        (1,  (("SlewDuration", (10.0,)), )),
-        (1,  (("TCCStatus", ("TTT", "NNN")), )),
-        (2,  (("TCCStatus", ("SSS", "NNN")), )),
-        (2,  (("TCCStatus", ("SSS", "NNN")), )),
-        (3,  (("SlewDuration", (5.0,)), )),
-        (2,  (("SlewDuration", (0.0,)), )),
-        (6, (("SlewDuration", (4.0,)), )),
-        (1,  (("TCCStatus", ("TTT", "NNN")), )),
-        (6, (("SlewDuration", (4.0,)), )),
-        (5,  (("SlewEnd", ()), )),
-    ]
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":None}
+    dataDictSet = (
+        dict(delay=1, dataList=("SlewDuration=10.0",)),
+        dict(delay=1, dataList=("TCCStatus=TTT, NNN",)),
+        dict(delay=2, dataList=("TCCStatus=SSS, NNN",)),
+        dict(delay=2, dataList=("TCCStatus=SSS, NNN",)),
+        dict(delay=3, dataList=("SlewDuration=5.0",)),
+        dict(delay=2, dataList=("SlewDuration=0.0",)),
+        dict(delay=6, dataList=("SlewDuration=4.0",)),
+        dict(delay=1, dataList=("TCCStatus=TTT, NNN",)),
+        dict(delay=6, dataList=("SlewDuration=4.0",)),
+        dict(delay=5, dataList=("SlewEnd",)),
+    )
 
-    def dispatchNext():
-        global dtimeDataList
-        dtime, dataList = dtimeDataList.pop(0)
-        msgDict["data"] = dict(dataList)
-        print "dispatching:", msgDict
-        kd.dispatch(msgDict)
-        if dtimeDataList:
-            print "waiting", dtime, "seconds"
-            root.after(int(dtime * 1000), dispatchNext)
-        else:
-            print "done"
-    
-    dispatchNext()
+    TestData.testDispatcher.runDataDictSet(dataDictSet)
 
-    root.mainloop()
+    tuiModel.tkRoot.mainloop()
         

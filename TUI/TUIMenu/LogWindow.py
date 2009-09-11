@@ -34,6 +34,8 @@ History:
                     Clear "Removing highlight" message from status bar at instantiation.
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
 2009-07-22 ROwen    Bug fix: when an actor disappeared from the hub one could no longer filter on it.
+2009-09-02 ROwen    Added support for sevCritical.
+                    Modified to be resistant to additions to RO.Wdg.WdgPrefs SevPrefDict.
 """
 import re
 import time
@@ -73,13 +75,15 @@ SevTagDict = {
     RO.Constants.sevNormal: "sev_normal",
     RO.Constants.sevWarning: "sev_warning",
     RO.Constants.sevError: "sev_error",
+    RO.Constants.sevCritical: "sev_critical",
 }
-SevTags = ("sev_debug", "sev_normal", "sev_warning", "sev_error")
+SevTags = ("sev_debug", "sev_normal", "sev_warning", "sev_error", "sev_critical")
 SevMenuTagsDict = dict(
     debug = SevTags,
     normal = SevTags[1:],
     warnings = SevTags[2:],
     errors = SevTags[3:],
+    critical = SevTags[4:],
     none = [],
 )
 
@@ -412,8 +416,8 @@ class TUILogWdg(Tkinter.Frame):
         
         # set up severity tags and tie them to color preferences
         self._severityPrefDict = RO.Wdg.WdgPrefs.getSevPrefDict()
-        for sev, pref in self._severityPrefDict.iteritems():
-            sevTag = SevTagDict[sev]
+        for sev, sevTag in SevTagDict.iteritems():
+            pref = self._severityPrefDict[sev]
             if sev == RO.Constants.sevNormal:
                 # normal color is already automatically updated
                 # but do make tag known to text widget
