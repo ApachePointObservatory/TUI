@@ -15,19 +15,12 @@
 	<li>Windows: works with Windows Vista, XP and 2000.
 </ul>
 
-<h3>1.6.2b2 2009-09-10</h3>
-
-<p>Bug fixes:
-<ul>
-    <li>Non-Mac versions broken due to not propagating new status window name to one location. I modified to code to prevent this problem in the future.
-</ul>
-
-<h3>1.6.2b1 2009-09-10</h3>
+<h3>1.6.2 2009-10-06</h3>
 
 <p>Visible changes:
 <ul>
     <li>The Status window is now listed under the TCC menu instead of the TUI menu.
-    <li>The axis status bit translations have been updated for the new axis controllers.
+    <li>Axis controller status display has been updated for the new axis controllers.
 </ul>
 
 <p>Bug fixes:
@@ -39,6 +32,7 @@
 <p>Internal changes:
 <ul>
     <li>Collecting information from the hub when connecting is now much more efficient and will not repeat commands when information is missing.
+    <li>Window names are now module constants, to make changing window names safer.
 </ul>
 
 <h3>1.6.1 2009-07-20</h3>
