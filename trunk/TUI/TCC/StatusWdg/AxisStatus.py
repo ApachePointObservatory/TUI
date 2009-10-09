@@ -49,6 +49,7 @@ History:
 2009-09-10 ROwen    Modified to use TestData.
                     Updated bit assignments to match new axis controllers.
                     Bug fix: soft position limit bits were swapped.
+2009-10-09 ROwen    Changed bit 14 description from "Servo error..." to "Motion error...".
 """
 import time
 import Tkinter
@@ -74,7 +75,7 @@ ErrorBits = (
     (12, "Disable switch"),
     
     ( 8, "Overspeed limit"),
-    (14, "Servo error too large"),
+    (14, "Motion error too large"),
     (18, "Motor 2 current limit"),
     (19, "Motor 1 current limit"),
 
