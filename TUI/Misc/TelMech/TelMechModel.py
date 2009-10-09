@@ -27,6 +27,7 @@ information about that category of device.
                     Modified stateToBoolOrNone to use ? as "unknown value".
 2007-09-17 ROwen    Put the tertiary position names in order of increasing tertiary rotation angle.
 2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
+2009-10-09 ROwen    Implement CR 1060: Change order of tertiary ports.
 """
 __all__ = ["getModel"]
 
@@ -216,14 +217,14 @@ class _Model (object):
         self._addCat(
             catName = "Eyelids",
             devNames = (
-                "NA2",
-                "TR3",
-                "BC2",
-                "TR4",
                 "NA1",
                 "TR1",
                 "BC1",
                 "TR2",
+                "NA2",
+                "TR3",
+                "BC2",
+                "TR4",
             ),
             isOpenShut = True,
         )
