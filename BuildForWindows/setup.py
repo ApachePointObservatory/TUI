@@ -37,6 +37,7 @@ History:
 2009-05-07 ROwen    Updated the build instructions.
 2009-06-29 ROwen    Updated for recent matplotlib (a new way to find data files)
                     and snack 2.2.10 Windows distribution (snack2.2->snacklib)
+2009-10-22 ROwen    Removed installation of snack (now that TUI uses pygame to play sounds).
 """
 from distutils.core import setup
 import os
@@ -111,12 +112,6 @@ for resBase in ("Bitmaps",):
     fromDir = os.path.join(roRoot, toSubDir)
     addDataFiles(dataFiles, fromDir, toSubDir)
  
-# Add tcl snack libraries
-pythonDir = os.path.dirname(sys.executable)
-snackSubDir = "tcl\\snacklib"
-snackDir = os.path.join(pythonDir, snackSubDir)
-addDataFiles(dataFiles, snackDir, snackSubDir)
-
 # Add matplotlib's data files.
 dataFiles += matplotlib.get_py2exe_datafiles()
 
