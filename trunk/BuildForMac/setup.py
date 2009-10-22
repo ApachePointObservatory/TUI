@@ -46,6 +46,7 @@ History:
 2008-01-29 ROwen    Modified to put tcl snack in a new location that is now supported by runtuiWithLog.py
                     and no longer requires that the Tcl/Tk Framework be installed.
                     Other tweaks to better support not including the Tcl/Tk Framework.
+2009-10-22 ROwen    Removed installation of snack (now that TUI uses pygame to play sounds).
 """
 import os
 import platform
@@ -104,15 +105,6 @@ setup(
         )
     ),
 )
-
-# Copy tcl/tk snack extension
-print "*** Copying tcl snack library ***"
-snackSrcDir = "/Library/Tcl/snack2.2"
-if not os.path.isdir(snackSrcDir):
-    print "Warning: could not find snack dir: %r" % (snackSrcDir,)
-else:
-    snackDestDir = os.path.join(contentsDir, "Resources", "tcllib", "snack2.2")
-    shutil.copytree(snackSrcDir, snackDestDir)
 
 # Delete Tcl/Tk documentation
 tclFrameworkDir = os.path.join(contentsDir, "Frameworks", "Tcl.framework")
