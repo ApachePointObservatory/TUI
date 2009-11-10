@@ -66,7 +66,6 @@ import TUI.Version
 try:
     import matplotlib
     matplotlib.use("TkAgg")
-    matplotlib.rcParams["numerix"] = "numpy"
 except ImportError:
     pass
 

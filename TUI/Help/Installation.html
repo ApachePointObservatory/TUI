@@ -59,7 +59,7 @@
 		<li>Python Image Library (PIL)
 		<li>matplotlib
 		<li>pyfits 1.1 or later
-		<li>pygame (optional but highly recommended because it is used to play sound cues)
+		<li>pygame.mixer (optional but highly recommended because it is used to play sound cues)
 	</ul>
 	<li><a name="ds9option"></a>The following are optional, but highly recommended. Both are needed if you want to automatically display science images (via the View Image preference) and are also handy for taking a detailed look at guider images (via the DS9 button on guider windows).
 	<ul>
@@ -127,7 +127,7 @@ Python ???  # is this the new version you just installed? If not, did you specif
 	
 	<li>Download and install <a href="http://matplotlib.sourceforge.net/">matplotlib</a>. You must install a new enough version that it supports numpy (I would give specifics but I can't find the information at the matplotlib site). If you build matplotlib from source then you must install numpy and Tcl/Tk before building matplotlib so it will be built to work with those packages.
 
-	<li>Download and install <a href="http://www.pygame.org/">pygame</a>. This is optional but strongly recommended; it is used to play sound cues.
+	<li>Download and install <a href="http://www.pygame.org/">pygame</a>, making sure to build pygame.mixer. This is optional but strongly recommended; it is used to play sound cues. Note that pygame requires SDL (library and header files) and pygame.mixer requires SDL_Mixer.
 	
 	<li>Download and install <a href="http://hea-www.harvard.edu/RD/ds9/">ds9 and xpa</a>. These are <a href="#ds9option">optional</a> but strongly recommended; they are used to display sicence images.
 

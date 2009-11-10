@@ -40,6 +40,8 @@ History:
 2008-07-07 ROwen    Added UMask preference.
 2009-05-06 ROwen    Changed Auto Get preference to Get Every.
 2009-05-12 ROwen    Changed default Debug Color from gray to purple.
+2009-11-09 ROwen    Added Play Sounds preference.
+                    Changed name of preferences file from TUIPrefs to <ApplicationName>Prefs.
 """
 #import pychecker.checker
 import os
@@ -47,6 +49,7 @@ import sys
 import Tkinter
 import tkFont
 import TUI
+import TUI.Version
 import RO.OS
 from RO.Prefs import PrefVar
 from RO.Prefs import PrefWdg
@@ -60,7 +63,7 @@ def _getPrefsFile():
     prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
     if prefsDir == None:
         raise RuntimeError("Cannot determine prefs dir")
-    prefsName = RO.OS.getPrefsPrefix() + "TUIPrefs"
+    prefsName = "%s%sPrefs" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
     return os.path.join(prefsDir, prefsName)
 
 _SoundsDir = RO.OS.getResourceDir(TUI, "Sounds")
@@ -260,13 +263,19 @@ class TUIPrefs(PrefVar.PrefSet):
                 helpURL = _HelpURL,
             ),
             
+            PrefVar.BoolPrefVar(
+                name = "Play Sounds",
+                category = "Sounds",
+                defValue = True,
+                helpText = "Play sound cues?",
+                helpURL = _SoundHelpURL,
+            ),
             PrefVar.SoundPrefVar(
                 name = "Axis Halt",
                 category = "Sounds",
                 defValue = os.path.join(_SoundsDir, "AxisHalt.wav"),
                 bellNum = 3,
-                bellDelay = 100,
-                helpText = "Sound for some axis halting",
+                helpText = "Sound for axis halt",
                 helpURL = _SoundHelpURL,
             ),
             PrefVar.SoundPrefVar(

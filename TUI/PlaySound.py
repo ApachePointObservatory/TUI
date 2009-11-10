@@ -13,14 +13,21 @@ Gets the sounds from TUI preferences.
 2005-08-02 ROwen    Moved from Sounds/PlaySounds.py -> PlaySound.py
 2006-04-14 ROwen    Added guideModeChanges.
 2006-10-24 ROwen    Added logHighlightedText.
+2009-11-09 ROwen    Added support for Play Sounds preference.
 """
+import TUI.TUIModel
+
 _Prefs = None
+_PlaySoundsPref = None
 def _playSound(name):
-    global _Prefs
+    if name == None:
+        return
+    global _Prefs, _PlaySoundsPref
     if _Prefs == None:
-        import TUI.TUIModel
         _Prefs = TUI.TUIModel.getModel().prefs
-    _Prefs.getPrefVar(name).play()
+        _PlaySoundsPref = _Prefs.getPrefVar("Play Sounds")
+    if _PlaySoundsPref.getValue():
+        _Prefs.getPrefVar(name).play()
 
 def axisHalt():
     _playSound("Axis Halt")
