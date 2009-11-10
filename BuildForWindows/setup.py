@@ -38,6 +38,7 @@ History:
 2009-06-29 ROwen    Updated for recent matplotlib (a new way to find data files)
                     and snack 2.2.10 Windows distribution (snack2.2->snacklib)
 2009-10-22 ROwen    Removed installation of snack (now that TUI uses pygame to play sounds).
+2009-11-09 ROwen    Modified to use TUI.Version.ApplicationName.
 """
 from distutils.core import setup
 import os
@@ -61,6 +62,7 @@ tuiRoot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 roRoot = os.path.join(tuiRoot, "ROPackage", "python")
 sys.path = [tuiRoot, roRoot] + sys.path
 import TUI.Version
+appName = TUI.Version.ApplicationName
 mainProg = os.path.join(tuiRoot, "runtui.py")
 
 NDataFilesToPrint = 5 # number of data files to print, per directory
@@ -127,7 +129,7 @@ if NDataFilesToPrint > 0:
 
 versDate = TUI.Version.VersionStr
 appVers = versDate.split()[0]
-distDir = "TUI_%s_Windows" % (appVers,)
+distDir = "%s_%s_Windows" % (appName, appVers)
 
 inclModules = [
 #    "email.Utils", # needed for Python 2.5.0
@@ -167,7 +169,7 @@ setup(
     windows=[ # windows= for no console, console= for console
         dict(
             script = mainProg,
-            dest_base = "TUI",
+            dest_base = appName,
             icon_resources = [(1, "TUI.ico")],
         ),
     ],
