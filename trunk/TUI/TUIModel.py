@@ -39,6 +39,7 @@ History:
                     - Output is now formatted like hub output.
 2009-04-21 ROwen    Renamed root to tkRoot.
 2009-07-20 ROwen    Modified to set the dispatcher to log messages to stdout in test mode.
+2009-10-03 ROwen    Changed name of prefs file from TUIGeom to <ApplicationName>Geom.
 """
 import os
 import platform
@@ -53,7 +54,7 @@ import RO.TkUtil
 import RO.Wdg
 import Tkinter
 import TUI.TUIPrefs
-from TUI.Version import VersionDate, VersionName
+import TUI.Version
 
 _theModel = None
 
@@ -61,7 +62,7 @@ def _getGeomFile():
     geomDir = RO.OS.getPrefsDirs(inclNone=True)[0]
     if geomDir == None:
         raise RuntimeError("Cannot determine prefs dir")
-    geomName = RO.OS.getPrefsPrefix() + "TUIGeom"
+    geomName = "%s%sGeom" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
     return os.path.join(geomDir, geomName)
 
 def getModel(testMode = False):
@@ -185,7 +186,7 @@ def getBaseHelpURL():
 def getLoginExtra():
     """Return extra login data"""
     versName, versDate = TUI.Version.VersionStr.split()
-    versData = " ".join((VersionDate, VersionName))
+    versData = " ".join((TUI.Version.VersionDate, TUI.Version.VersionName))
     platData = platform.platform()
 # the following code fails on intel Macs
 # at least with python 2.4.2;

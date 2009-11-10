@@ -47,6 +47,7 @@ History:
                     and no longer requires that the Tcl/Tk Framework be installed.
                     Other tweaks to better support not including the Tcl/Tk Framework.
 2009-10-22 ROwen    Removed installation of snack (now that TUI uses pygame to play sounds).
+2009-11-09 ROwen    Modified to get application name from TUI.Version.
 """
 import os
 import platform
@@ -66,7 +67,7 @@ roRoot = os.path.join(tuiRoot, "ROPackage")
 sys.path = [roRoot, tuiRoot] + sys.path
 import TUI.Version
 
-appName = "TUI"
+appName = TUI.Version.ApplicationName
 mainProg = os.path.join(tuiRoot, "runtuiWithLog.py")
 iconFile = "%s.icns" % appName
 appPath = os.path.join("dist", "%s.app" % (appName,))
@@ -82,7 +83,7 @@ inclModules = (
 inclPackages = (
     "TUI",
     "RO",
-    "matplotlib",
+    "matplotlib", # py2app already does this, but it doesn't hurt to insist
 )
 
 plist = Plist(
@@ -119,7 +120,7 @@ else:
     print "*** Tcl/Tk Framework is NOT part of the application package ***"
 
 print "*** Creating disk image ***"
-appName = "TUI_%s_Mac" % shortVersStr
+appName = "%s_%s_Mac" % (appName, shortVersStr)
 destFile = os.path.join("dist", appName)
 args=("hdiutil", "create", "-srcdir", appPath, destFile)
 retCode = subprocess.call(args=args)
