@@ -12,27 +12,26 @@
 <ul>
 	<li>Mac: works with MacOS X 10.6, 10.5 and 10.4 and is a universal binary. MacOS X 10.3.9 is no longer supported, though it may work (one known problems is that you cannot save window positions; this is due to a bug in Tcl/Tk that will never be fixed).
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
-	<li>Windows: works with Windows Vista, XP and 2000.
+	<li>Windows: works with Windows Vista, XP and 2000. I don't know if it runs on Windows 7.
 </ul>
 
 <h3>Warning for unix users</h3>
 
 <p>TUI 1.7.0 uses pygame instead of snack to play sound files. If you want to hear sound cues (instead of just beeps) you must install the pygame package.
 
-<h3>1.7.0b1-post 2009-11-09</h3>
+<h3>1.7.0 2010-01-11</h3>
 
 <p>Visible changes:
 <ul>
-    <li>Added "Play Sounds" preference. This turns off all sounds except "Command Done" and "Command Failed" in response to your own commands. This allows users to quietly monitor what is going on, or running multiple TUIs in the same room with only one playing sound cues.
-</ul>
-
-<h3>1.7.0b1 2009-10-22</h3>
-
-<p>Visible changes:
-<ul>
+    <li>Added "Play Sounds" preference. This turns off all sounds except "Command Done" and "Command Failed" in response to your own commands. This allows users to quietly monitor what is going, and allows running multiple TUIs in the same room with only one playing sound cues.
     <li>Implemented <a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1060">PR 1060</a>: in the Enclosure window, reorder the tertiary ports so they are listed from the (new) minimum to maximum position.
     <li>Status window: changed axis controller bit 14 description from "Servo error too large" to "Motion error too large".
+</ul>
+
+<p>Internal changes:
+<ul>
     <li>Uses pygame to play sounds instead of snack. Unix users must install the python package pygame to hear sound cues.
+    <li>Focus scripts: reduces the minimum focus correction from 50 &micro;m to 25 &micro;m.
 </ul>
 
 <p>Bug fixes:

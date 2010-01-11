@@ -117,6 +117,7 @@ History:
 2008-08-14 ROwen    CR 818: take a final full-frame exposure if script windows
                     (or, as before, if boresight was restored).
 2009-03-02 ROwen    Added a brief header for PR 777 diagnostic output.
+2009-11-23 ROwen    Reduced MinFocusIncr from 50 to 25 um.
 """
 import inspect
 import math
@@ -255,7 +256,7 @@ class BaseFocusScript(object):
     WinSizeMult = 2.5 # window radius = centroid radius * WinSizeMult
     FocGraphMargin = 5 # margin on graph for x axis limits, in um
     MaxFocSigmaFac = 0.5 # maximum allowed sigma of best fit focus as a multiple of focus range
-    MinFocusIncr = 50 # minimum focus increment, in um
+    MinFocusIncr = 25 # minimum focus increment, in um
     def __init__(self,
         sr,
         gcamActor,
