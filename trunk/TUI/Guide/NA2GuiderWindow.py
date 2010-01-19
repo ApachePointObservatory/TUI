@@ -26,6 +26,7 @@ History:
                     Removed preliminary attempt at a countdown timer (for now).
 2008-07-02 ROwen	Updated for changes to TUI.Base.FocusWdg.
 					Changed format from %.1f to %.0f.
+2010-01-19 ROwen    Bug fix: some help strings said Echelle instead of NA2.
 """
 import Tkinter
 import RO.InputCont
@@ -140,7 +141,7 @@ class GMechFilterWdg(Tkinter.Frame):
         RO.Wdg.StrLabel(
             master=self,
             text="Filter",
-            helpText = "Echelle slitviewer filter",
+            helpText = "NA2 slitviewer filter",
             helpURL = _HelpURL,
         ).grid(row=0, column=col)
         col += 1
@@ -156,9 +157,9 @@ class GMechFilterWdg(Tkinter.Frame):
             col += 1
 
         if showCurrFilter:
-            userFilterHelp = "Desired Echelle slitviewer filter"
+            userFilterHelp = "Desired NA2 slitviewer filter"
         else:
-            userFilterHelp = "Echelle slitviewer filter"
+            userFilterHelp = "NA2 slitviewer filter"
         
         self.userFilterWdg = RO.Wdg.OptionMenu(
             master = self,
