@@ -85,7 +85,7 @@ class GMechFocusWdg(TUI.Base.FocusWdg.FocusWdg):
     def __init__(self, master, statusBar):
         TUI.Base.FocusWdg.FocusWdg.__init__(self,
             master,
-            name = "gcam",
+            name = "NA2 guider",
             statusBar = statusBar,
             increments = (1000, 2000, 4000),
             defIncr = 2000,
@@ -141,7 +141,7 @@ class GMechFilterWdg(Tkinter.Frame):
         RO.Wdg.StrLabel(
             master=self,
             text="Filter",
-            helpText = "NA2 slitviewer filter",
+            helpText = "NA2 guider filter",
             helpURL = _HelpURL,
         ).grid(row=0, column=col)
         col += 1
@@ -157,9 +157,9 @@ class GMechFilterWdg(Tkinter.Frame):
             col += 1
 
         if showCurrFilter:
-            userFilterHelp = "Desired NA2 slitviewer filter"
+            userFilterHelp = "Desired NA2 guider filter"
         else:
-            userFilterHelp = "NA2 slitviewer filter"
+            userFilterHelp = "NA2 guider filter"
         
         self.userFilterWdg = RO.Wdg.OptionMenu(
             master = self,
