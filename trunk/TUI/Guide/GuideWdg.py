@@ -827,7 +827,7 @@ class GuideWdg(Tkinter.Frame):
             text = "Mode: "
         ).pack(side="left")
         
-        if self.guideModel.gcamInfo.slitViewer:
+        if self.guideModel.gcamInfo.isSlitViewer:
             guideModes = ("Boresight", "Field Star", "Manual")
             valueList = ("boresight", "field", "manual")
             helpText = (
@@ -1163,7 +1163,7 @@ class GuideWdg(Tkinter.Frame):
             if not self.imDisplayed():
                 raise RuntimeError("Ctrl-click requires an image")
         
-            if not self.guideModel.gcamInfo.slitViewer:
+            if not self.guideModel.gcamInfo.isSlitViewer:
                 raise RuntimeError("Ctrl-click requires a slit viewer")
         
             if self.gim.mode != "normal": # recode to use a class constant
@@ -2064,7 +2064,7 @@ class GuideWdg(Tkinter.Frame):
                 for starData in starDataList:
                     self.showStar(starData)
             
-            if self.guideModel.gcamInfo.slitViewer and imHdr:
+            if self.guideModel.gcamInfo.isSlitViewer and imHdr:
                 boreXYIraf = (imHdr.get("CRPIX1"), imHdr.get("CRPIX2"))
                 if None not in boreXYIraf:
                     # boresight position known; display it
