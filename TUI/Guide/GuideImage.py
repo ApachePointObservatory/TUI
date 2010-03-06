@@ -220,7 +220,6 @@ class GuideImage(BasicImage):
             isLocal = isLocal,
         )
 
-
     def getFITSObj(self):
         """Return the pyfits image object, or None if unavailable.
         

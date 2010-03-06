@@ -189,6 +189,8 @@ History:
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
                     Bug fix: could download the same image twice.
 2008-05-15 ROwen    Modified to use new doStretch argument for MaskInfo.
+2010-03-02 ROwen    Added some doc strings.
+                    Modified to expect gcamInfo.isSlitViewer instead of slitViewer.
 """
 import atexit
 import os
@@ -241,7 +243,7 @@ _DebugMem = False # print a message when a file is deleted from disk?
 _DebugBtnEnable = False # print messages that help debug button enable?
 
 class CmdInfo(object):
-    """Information about an image-related command"""
+    """Information about one image-related command"""
     Centroid = "c"
     Findstars = "f"
     def __init__(self,
@@ -308,6 +310,8 @@ class CurrCmds(object):
 
 
 class HistoryBtn(RO.Wdg.Button):
+    """Arrow button to show the previous or next image in a list
+    """
     _InfoDict = {
         (False, False): ("show previous image", u"\N{BLACK LEFT-POINTING TRIANGLE}"),
         (False, True):  ("show previous OUT OF SEQUENCE image", u"\N{WHITE LEFT-POINTING TRIANGLE}"),
@@ -318,6 +322,13 @@ class HistoryBtn(RO.Wdg.Button):
         master,
         isNext = True,
     **kargs):
+        """Create an image history arrow button
+    
+        Inputs:
+        - master: master widget
+        - isNext: True for a "next image" button, False for a "previous image" button
+        **kargs: keyword arguments for RO.Wdg.Button
+        """
         self.isNext = bool(isNext)
         self.isGap = False
         if self.isNext:

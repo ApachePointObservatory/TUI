@@ -52,6 +52,7 @@ Warning: the config stuff will probably be modified.
 2008-04-23 ROwen    Get expState from the cache (finally) but null out the times.
                     Modified expState so durations can be None or 0 for unknown (was just 0).
 2008-07-24 ROwen    Fixed CR 851: changed tcam default bin factor to 2 (from 1).
+2010-03-04 ROwen    Changed gcam info field slitViewer to isSlitViewer.
 """
 __all__ = ['getModel']
 
@@ -65,7 +66,7 @@ class _GCamInfo:
     
     Inputs:
     - min/maxExpTime: minimum and maximum exposure time (sec)
-    - slitViewer: True if a slit viewer
+    - isSlitViewer: True if a slit viewer
     """
     def __init__(self,
         imSize,
@@ -73,14 +74,14 @@ class _GCamInfo:
         maxExpTime = 3600,
         defBinFac = 1,
         defExpTime = 5,
-        slitViewer = False,
+        isSlitViewer = False,
     ):
         self.imSize = imSize
         self.minExpTime = float(minExpTime)
         self.maxExpTime = float(maxExpTime)
         self.defBinFac = defBinFac
         self.defExpTime = defExpTime
-        self.slitViewer = bool(slitViewer)
+        self.isSlitViewer = bool(isSlitViewer)
 
 # dictionary of instrument information
 # instrument names must be lowercase
@@ -91,11 +92,11 @@ _GCamInfoDict = {
     ),
     "ecam": _GCamInfo(
         imSize = (512, 512),
-        slitViewer = True,
+        isSlitViewer = True,
     ),
     "dcam": _GCamInfo(
         imSize = (512, 512),
-        slitViewer = True,
+        isSlitViewer = True,
     ),
     "nfocus":_GCamInfo(
         imSize = (1024, 1024),
@@ -106,7 +107,7 @@ _GCamInfoDict = {
     ),
     "tcam":_GCamInfo(
         imSize = (1024, 1024),
-        slitViewer = True,
+        isSlitViewer = True,
         defBinFac = 2,
     )
 }

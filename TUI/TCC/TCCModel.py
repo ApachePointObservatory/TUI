@@ -44,6 +44,7 @@ or register ROWdg widgets to automatically display updating values.
                     Modified _cnvObjSys to raise ValueError instead of returning None for bad values.
 2008-02-01 ROwen    Fixed rotType; it was always set to None due to an error in _cnvRotType.
 2008-03-25 ROwen    Removed obsolete gcFocus; get gmech focus from the gmech actor.
+2010-03-04 ROwen    Added moveItems.
 """
 import RO.CnvUtil
 import RO.CoordSys
@@ -218,6 +219,28 @@ class _Model (object):
         )
         
         # slew info; do not try to refresh these keywords
+        
+        self.moveItems = keyVarFact(
+            keyword = "MoveItems",
+            nval = 1,
+            converters = str,
+            description = """Indicates which user-set position attributes have been changed for a move.
+
+This keyword always appears with Moved or SlewBeg, and never appears any other time.
+The value is a string containing the following characters, each of which is either
+"Y" (yes, this item changed) or "N" (no, this item did not change):
+0   object name
+1   any of object position, coordinate system, epoch, proper motion, etc., but NOT offset (see below)
+2   object magnitude
+3   object offset
+4   arc offset (e.g. for drift-scanning)
+5   boresight position
+6   rotator angle or type of rotation
+7   guide offset
+8   calibration offset
+""",
+            allowRefresh = False,
+        )
         
         self.slewDuration = keyVarFact(
             keyword="SlewDuration",

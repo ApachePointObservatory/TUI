@@ -20,10 +20,11 @@ import AgileModel
 import AgileFilterWdg
 
 InstName = StatusConfigInputWdg.StatusConfigInputWdg.InstName
+WindowName = "Inst.%s" % (InstName,)
 
 def addWindow(tlSet):
     tlSet.createToplevel (
-        name = "Inst.%s" % (InstName,),
+        name = WindowName,
         defGeom = "+676+280",
         resizable = False,
         wdgFunc = AgileExposeWindow,
@@ -91,7 +92,7 @@ if __name__ == "__main__":
     tlSet = TestData.tuiModel.tlSet
 
     addWindow(tlSet)
-    tlSet.makeVisible("Inst.%s" % (InstName,))
+    tlSet.makeVisible(WindowName)
     
     TestData.start()
     

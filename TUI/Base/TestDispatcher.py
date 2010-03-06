@@ -8,8 +8,10 @@ History:
                     allowing dataList to contain multiple instances of the same keyword.
                     Modified to not print each dispatched message because the dispatcher
                     was changed to does this itself.
+2010-03-05 ROwen    Modified the dispatch method to accept a single keyword string or a collection.
 """
 import TUI.TUIModel
+import RO.SeqUtil
 
 class TestDispatcher(object):
     """Dispatch a set of data at regular intervals
@@ -32,11 +34,12 @@ class TestDispatcher(object):
         self.cmdr = self.tuiModel.getCmdr()
         self.delay = float(delay)
 
-    def dispatch(self, dataList, cmdr=None, cmdID=None, actor=None, msgCode=None):
+    def dispatch(self, keywords, cmdr=None, cmdID=None, actor=None, msgCode=None):
         """Dispatch a list of data imemdiately
         
         Inputs:
-        - dataList: a collection of key=value strings, for example:
+        - keywords: one or a sequence of keyword=value strings. Examples:
+            "Version=1.0"
             ("AxePos=-342.563, 38.625, 5.4", "TCCPos=-342.563, 38.625, 5.0")
         - cmdr: commander (program.username); defaults to me
         - actor: name of actor
@@ -51,8 +54,8 @@ class TestDispatcher(object):
             actor = self.actor
         if msgCode == None:
             msgCode = self.msgCode
-        for dataItem in dataList:
-            replyStr = "%s %s %s %s %s" % (cmdr, cmdID, actor, msgCode, dataItem)
+        for keyword in RO.SeqUtil.asCollection(keywords):
+            replyStr = "%s %s %s %s %s" % (cmdr, cmdID, actor, msgCode, keyword)
             self.dispatcher.doRead(None, replyStr)
     
     def runDataSet(self, dataSet):

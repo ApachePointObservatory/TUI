@@ -40,6 +40,7 @@ History:
 2009-04-21 ROwen    Renamed root to tkRoot.
 2009-07-20 ROwen    Modified to set the dispatcher to log messages to stdout in test mode.
 2009-10-03 ROwen    Changed name of prefs file from TUIGeom to <ApplicationName>Geom.
+2010-03-05 ROwen    Modified to send version number without date to simplify the display in the Users window.
 """
 import os
 import platform
@@ -185,8 +186,6 @@ def getBaseHelpURL():
 
 def getLoginExtra():
     """Return extra login data"""
-    versName, versDate = TUI.Version.VersionStr.split()
-    versData = " ".join((TUI.Version.VersionDate, TUI.Version.VersionName))
     platData = platform.platform()
 # the following code fails on intel Macs
 # at least with python 2.4.2;
@@ -201,7 +200,7 @@ def getLoginExtra():
     platData = " ".join((platData, wsysData))
     
     return "type=TUI version=%r platform=%r" % \
-        (versData, platData)
+        (TUI.Version.VersionName, platData)
     
 
 if __name__ == "__main__":

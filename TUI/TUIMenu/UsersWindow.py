@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 """Users window (display a list of users).
 
+To do:
+- tweak tab stops
+- consider hiding (or allowing to hide) monitor clients
+- test what happens during a failed login
+
 2003-12-06 ROwen
 2003-12-17 ROwen    Added addWindow and renamed to UsersWindow.py.
 2004-05-18 ROwen    Stopped obtaining TUI model in addWindow; it was ignored.
@@ -10,6 +15,8 @@
 2004-09-14 ROwen    Stopped importing TUI.TUIModel since it wasn't being used.
 2004-11-18 ROwen    Added code to silently handle usernames with no ".".
 2005-01-06 ROwen    Modified to indicate the current user with an underline.
+2010-03-05 ROwen    Modified to show client name and version.
+                    Modified to not show monitor clients.
 """
 import time
 import Tkinter
@@ -24,13 +31,103 @@ _HelpPage = "TUIMenu/UsersWin.html"
 def addWindow(tlSet):
     tlSet.createToplevel(
         name = "TUI.Users",
-        defGeom = "170x170+0+722",
+        defGeom = "300x125+0+722",
         visible = False,
         resizable = True,
         wdgFunc = UsersWdg,
     )
 
-class UsersWdg (Tkinter.Frame):
+class User(object):
+    """Information about a user
+    
+    cmdr: commander ID = program_name.user_name
+    userInfo: data from hub user keyword (or None if unknown). If known:
+    - cmdrID (program.name)
+    - client name (typically "TUI" or "monitor")
+    - client version (sortable)
+    - system info (e.g. platform.platform())
+    - IP address (numeric)
+    ? FQDN (if supplied)
+    """
+    def __init__(self, cmdr, userInfo=None):
+        self.cmdr = cmdr
+        try:
+            self.prog, self.user = self.cmdr.split(".", 1)
+        except Exception:
+            self.prog = self.cmdr
+            self.user = "?"
+
+        self._userInfo = userInfo
+        self._disconnTime = None
+    
+    def setDisconnected(self):
+        """Specify that this user has just disconnected.
+        
+        Warning: only call if the user is presently marked as connected
+        
+        Raise RuntimeError if user already marked as disconnected
+        """
+        if not self.isConnected:
+            raise RuntimeError("%s already disconnected" % (self,))
+        self._disconnTime = time.time()
+
+    def setConnected(self):
+        """Specify that this user is connected.
+        
+        Safe to call even if the user is already connected.
+        """
+        self._disconnTime = None
+
+    def setUserInfo(self, userInfo):
+        """Modify the user information list (value of user keyword)
+        """
+        self._userInfo = userInfo
+        self._disconnTime = None
+
+    @property
+    def isConnected(self):
+        """Return True if user is connected, False otherwise
+        """
+        return self._disconnTime == None
+    
+    @property
+    def disconnTime(self):
+        """Return time when user disconnected, or None if connected
+        
+        The returned time is the time returned by time.time()
+        """
+        return self._disconnTime
+    
+    @property
+    def clientName(self):
+        """Return the client name, e.g. "TUI" or "monitor", or "?" if unknown
+        """
+        if self._userInfo:
+            return self._userInfo[1] or "?"
+        else:
+            return "?"
+
+    @property
+    def clientVersion(self):
+        """Return the client version, or "?" if unknown
+        """
+        if self._userInfo:
+            return self._userInfo[2] or "?"
+        else:
+            return "?"
+
+    @property
+    def userInfo(self):
+        return self._userInfo
+
+    def __str__(self):
+        return "User(%s)" % (self.cmdr,)
+    
+    def __repr__(self):
+        return "User(cmdr=%s; connected=%s; disconnTime=%s; userInfo=%s)" % \
+            (self.cmdr, self.isConnected, self.disconnTime, self.userInfo)
+
+class UsersWdg(Tkinter.Frame):
     """Display the current users and those recently logged out.
     
     Inputs:
@@ -44,7 +141,7 @@ class UsersWdg (Tkinter.Frame):
         master=None,
         retainSec=300,
         height = 10,
-        width = 20,
+        width = 50,
     **kargs):
         Tkinter.Frame.__init__(self, master, **kargs)
         
@@ -58,8 +155,10 @@ class UsersWdg (Tkinter.Frame):
         # time to show deleted users
         self._retainSec = retainSec
         
-        self.afterID = None
+        # dictionary of user name: User object
+        self.userDict = dict()
         
+        self.updateTimerID = None
                 
         self.yscroll = Tkinter.Scrollbar (
             master = self,
@@ -68,7 +167,8 @@ class UsersWdg (Tkinter.Frame):
         self.text = Tkinter.Text (
             master = self,
             yscrollcommand = self.yscroll.set,
-            wrap = "word",
+            wrap = "none",
+            tabs = "1.6c left 4c left 6.2c left",
             height = height,
             width = width,
         )
@@ -80,7 +180,6 @@ class UsersWdg (Tkinter.Frame):
             wdg = self.text,
             helpURL = _HelpPage,
         )
-
         
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
@@ -88,60 +187,94 @@ class UsersWdg (Tkinter.Frame):
         self.text.tag_configure("del", overstrike=True)
         self.text.tag_configure("me", underline=True)
 
-        hubModel.users.addCallback(self.updCmdrs)
+        hubModel.user.addCallback(self.updUser, callNow=False)
+        hubModel.users.addCallback(self.updUsers)
 
-    def updCmdrs(self, cmdrList, isCurrent=True, keyVar=None):
-        """Current commander list updated.
+    def cancelUpdate(self):
+        """Cancel update timer
+        """
+        if self.updateTimerID:
+            self.updateTimerID = self.after_cancel(self.updateTimerID)
+        
+    def scheduleUpdate(self, afterMS=1000):
+        """Schedule a new update
+        """
+        self.cancelUpdate()
+        self.updateTimerID = self.after(afterMS, self.updDisplay)
+
+    def updDisplay(self):
+        """Display current data.
+        """
+        self.cancelUpdate()
+        
+        myCmdr = self.tuiModel.getCmdr()
+        maxDisplayTime = time.time() - self._retainSec
+
+        self.text.delete("1.0", "end")
+        doScheduleUpdate = False
+        deleteCmdrList = []
+        for cmdr in sorted(self.userDict.keys()):
+            userObj = self.userDict[cmdr]
+            if userObj.clientName == "monitor":
+                continue
+            if userObj.isConnected:
+                tagList = ["curr"]
+            elif userObj.disconnTime < maxDisplayTime:
+                deleteCmdrList.append(cmdr)
+                continue
+            else:
+                tagList = ["del"]
+                doScheduleUpdate = True
+            if cmdr == myCmdr:
+                tagList.append("me")
+            displayStr = "%s\t%s\t%s\t%s\n" % \
+                (userObj.prog, userObj.user, userObj.clientName, userObj.clientVersion)
+            self.text.insert("end", displayStr, " ".join(tagList))
+
+        for cmdr in deleteCmdrList:
+            del(self.userDict[cmdr])
+        
+        if doScheduleUpdate:
+            self.updateTimerID = self.after(1000, self.updDisplay)
+
+    def updUser(self, userInfo, isCurrent, keyVar=None):
+        """User keyword callback; add user data to self.userDict"""
+        if (not isCurrent) or (userInfo == None):
+            return
+        cmdr = userInfo[0]
+        oldUserObj = self.userDict.get(cmdr, None)
+        if oldUserObj:
+            oldUserObj.setUserInfo(userInfo)
+        else:
+            self.userDict[cmdr] = User(cmdr, userInfo)
+        self.scheduleUpdate()
+
+    def updUsers(self, newCmdrList, isCurrent=True, keyVar=None):
+        """Users keyword callback. The value is a list of commander IDs.
         """
         if not isCurrent:
             # set background to notCurrent?
             return
 
-        # remove users from deleted list if they appear in the new list
-        self._delCmdrTimeList = [cmdrTime for cmdrTime in self._delCmdrTimeList
-            if cmdrTime[0] in self._cmdrList]
+        for cmdr in newCmdrList:
+            userObj = self.userDict.get(cmdr, None)
+            if userObj:
+                if not userObj.isConnected:
+                    userObj.setConnected()
+            else:
+                self.userDict[cmdr] = User(cmdr)
 
-        # add newly deleted users to deleted list
-        for cmdr in self._cmdrList:
-            if cmdr not in cmdrList:
-                self._delCmdrTimeList.append((cmdr, time.time()))
-        
-        # save commander list
-        self._cmdrList = cmdrList
+        # handle disconnected users (those in my userDict that aren't in newCmdrList)
+        # handle timeout and final deletion in updDisplay, since it has to remove
+        # stale entries even if the users keyword hasn't changed.
+        disconnCmdrSet = set(self.userDict.keys()) - set(newCmdrList)
+        for cmdr in disconnCmdrSet:
+            userObj = self.userDict[cmdr]
+            if userObj.isConnected:
+                userObj.setDisconnected()
 
         self.updDisplay()
-    
-    def updDisplay(self):
-        """Display current data.
-        """
-        if self.afterID:
-            self.afterID = self.after_cancel(self.afterID)
 
-        # remove users from deleted list if they've been around for too long
-        maxDelTime = time.time() - self._retainSec
-        self._delCmdrTimeList = [cmdrTime for cmdrTime in self._delCmdrTimeList
-            if cmdrTime[1] > maxDelTime]
-        
-        myProgCmdr = self.tuiModel.getCmdr()
-
-        userTagList = [(cmdr, "curr") for cmdr in self._cmdrList]
-        if self._delCmdrTimeList:
-            userTagList += [(cmdrTime[0], "del") for cmdrTime in self._delCmdrTimeList]
-        userTagList.sort()
-        self.text.delete("1.0", "end")
-        for cmdr, tag in userTagList:
-            try:
-                prog, user = cmdr.split(".", 1)
-                if cmdr == myProgCmdr:
-                    tag = "me"
-            except StandardError:
-                prog = cmdr
-                user = "???"
-            userStr = "%s\t%s\n" % (prog, user)
-            self.text.insert("end", userStr, tag)
-        
-        if self._delCmdrTimeList:
-            self.afterID = self.after(1000, self.updDisplay)
 
 if __name__ == "__main__":
     root = RO.Wdg.PythonTk()

@@ -60,6 +60,7 @@ History:
 2009-06-26 ROwen    Made exposure time units more reliably stay next to exposure time entry
                     by packing them into a frame and gridding that, instead of gridding them separately.
 2009-07-10 ROwen    Removed an inline conditional statement to be Python 2.4 compatible.
+2010-03-01 ROwen    Made master argument explicit for all RO Widgets.
 """
 import Tkinter
 import RO.InputCont
@@ -94,11 +95,11 @@ class ExposeInputWdg (Tkinter.Frame):
         gr = RO.Wdg.Gridder(master=self, sticky="w")
         self.gridder = gr
 
-        prefFrame = Tkinter.Frame(self)
+        downloadCtrlFrame = Tkinter.Frame(self)
         
-        Tkinter.Label(prefFrame, text="Every").pack(side="left")
+        Tkinter.Label(downloadCtrlFrame, text="Every").pack(side="left")
         self.getEveryWdg = RO.Wdg.IntEntry (
-            master = prefFrame,
+            master = downloadCtrlFrame,
             var = self.expModel.getEveryVarCont.var,
             width = 3,
             helpURL = helpURL,
@@ -107,7 +108,7 @@ class ExposeInputWdg (Tkinter.Frame):
         self.getEveryWdg.pack(side="left")
 
         self.viewImageWdg = RO.Wdg.Checkbutton (
-            master = prefFrame,
+            master = downloadCtrlFrame,
             text = "View Image",
             var = self.expModel.viewImageVarCont.var,
             helpURL = helpURL,
@@ -119,7 +120,7 @@ class ExposeInputWdg (Tkinter.Frame):
         self.prefsTL = self.expModel.tuiModel.tlSet.getToplevel("TUI.Preferences")
         if self.prefsTL:
             showPrefsBtn = RO.Wdg.Button(
-                master = prefFrame,
+                master = downloadCtrlFrame,
                 text = "More...",
                 callFunc = self.showExposurePrefs,
                 helpText = "show global exposure prefs",
@@ -132,7 +133,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 #text = "Prefs",
             #)
         
-        gr.gridWdg("Download", prefFrame, colSpan=5, sticky="w")
+        gr.gridWdg("Download", downloadCtrlFrame, colSpan=5, sticky="w")
 
         typeFrame = Tkinter.Frame(self)
         if expTypes != None:
@@ -199,7 +200,7 @@ class ExposeInputWdg (Tkinter.Frame):
             cnFrame = Tkinter.Frame(self)
             for camName in camNames:
                 wdg = RO.Wdg.Checkbutton(
-                    cnFrame,
+                    master = cnFrame,
                     text = camName.capitalize(),
                     callFunc = self._camSelect,
                     defValue = True,
@@ -221,7 +222,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 raise RuntimeError("Invalid expModel.instInfo.numBin=%s" % (self.expModel.instInfo.numBin,))
             for ind, helpStr in enumerate(helpStrList):
                 binWdg = RO.Wdg.IntEntry(
-                    binWdgFrame,
+                    master = binWdgFrame,
                     defValue = self.expModel.instInfo.defBin[ind],
                     minValue = 1,
                     callFunc = self._updBinFactor,
@@ -240,14 +241,14 @@ class ExposeInputWdg (Tkinter.Frame):
         self.overscanWdgSet = []
         if self.expModel.instInfo.canWindow:
             self.showWindowBtn = RO.Wdg.Checkbutton(
-                self,
+                master = self,
                 text = "Image Size",
                 indicatoron = False,
                 helpText = "show/hide image size controls",
                 helpURL = helpURL,
             )
             self.imageSizeWdg = RO.Wdg.StrLabel(
-                self,
+                master = self,
                 helpText = "image size: x (+overscan) by y (+overscan) (binned pixels)",
                 helpURL = helpURL,
             )
@@ -262,7 +263,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 else:
                     defValue = maxWindowList[ind]
                 windowWdg = RO.Wdg.IntEntry(
-                    windowWdgFrame,
+                    master = windowWdgFrame,
                     minValue = minWindow,
                     maxValue = maxWindowList[ind],
                     defValue = defValue,
@@ -274,7 +275,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 self.windowWdgSet.append(windowWdg)
                 windowWdg.pack(side = "left")
             self.fullWindowWdg = RO.Wdg.Button(
-                windowWdgFrame,
+                master = windowWdgFrame,
                 text = "Full",
                 callFunc = self._doFullWindow,
                 helpText = "Set full window",
@@ -287,7 +288,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 overscanWdgFrame = Tkinter.Frame(self)
                 for ii, helpStr in enumerate(("x overscan", "y overscan")):
                     overscanWdg = RO.Wdg.IntEntry(
-                        overscanWdgFrame,
+                        master = overscanWdgFrame,
                         minValue = 0,
                         defValue = self.expModel.instInfo.defOverscan[ii],
                         defMenu = "Current",

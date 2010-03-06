@@ -13,6 +13,7 @@ or register ROWdg widgets to automatically display updating values.
 2004-08-25 ROwen    Added users (a new hub keyword) and commented out commanders.
 2005-07-08 ROwen    Added httpRoot.
 2006-03-30 ROwen    Added user.
+2010-03-05 ROwen    Modified to self-update user keyword via "status" command.
 """
 import RO.CnvUtil
 import RO.CoordSys
@@ -54,13 +55,13 @@ class _Model (object):
             nval = (5,None),
             description = """Information about a user:
             - cmdrID (program.name)
-            - client name (e.g. "TUI")
+            - client name (typically "TUI" or "monitor")
             - client version (sortable)
             - system info (e.g. platform.platform())
             - IP address (numeric)
             ? FQDN (if supplied)
             """,
-            allowRefresh = False,
+            refreshCmd = "status",
         )
         
         self.users = keyVarFact(

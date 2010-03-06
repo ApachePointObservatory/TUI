@@ -10,9 +10,11 @@ History:
 import RO.Alg
 import GuideWdg
 
+WindowName = "Guide.DIS Slitviewer"
+
 def addWindow(tlSet):
     return tlSet.createToplevel (
-        name = "Guide.DIS Slitviewer",
+        name = WindowName,
         defGeom = "+452+280",
         resizable = True,
         wdgFunc = RO.Alg.GenericCallback(GuideWdg.GuideWdg, actor="dcam"),

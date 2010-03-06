@@ -10,11 +10,13 @@ import RO.Alg
 import GuideWdg
 import TCameraModel
 
+WindowName = "Guide.TSpec Slitviewer"
+
 _HelpURL = "Guiding/TSpecSlitviewerWin.html"
 
 def addWindow(tlSet):
     return tlSet.createToplevel (
-        name = "Guide.TSpec Slitviewer",
+        name = WindowName,
         defGeom = "+452+280",
         resizable = True,
         wdgFunc = RO.Alg.GenericCallback(TSpecGuiderWdg),

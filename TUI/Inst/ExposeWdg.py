@@ -30,12 +30,14 @@ History:
 2007-06-22 ROwen    Modified to disallow pausing darks.
 2009-01-27 ROwen    Added getExpCmdStr method to allow instrument-specific behavior.
 2009-02-34 ROwen    Modified doExpose to handle RuntimeError from getExpCmdStr gracefully.
+2010-03-05 ROwen    Changed to use gridder instead of packer.
 """
 import Tkinter
 import RO.Alg
 import RO.Constants
 import RO.InputCont
 import RO.Wdg
+import RO.Wdg.GrayImageDispWdg
 import RO.KeyVariable
 import ExposeStatusWdg
 import ExposeInputWdg
@@ -65,18 +67,37 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         
         self.tuiModel = TUI.TUIModel.getModel()
         self.expModel = ExposeModel.getModel(instName)
+        
+        row = 0
 
         self.expStatusWdg = ExposeStatusWdg.ExposeStatusWdg(
             self,
             instName,
         )
-        self.expStatusWdg.pack(side="top", pady=2, expand="yes", fill="x")
+        self.expStatusWdg.grid(row=0, column=0, sticky="ew")
+        row += 1
         
         Tkinter.Frame(self,
 #           relief="ridge", # doesn't do anything; why not?
 #           border=2,       # doesn't do anything; why not?
             bg = "black",
-        ).pack(side="top", expand="yes", fill="x")
+        ).grid(row=row, column=0, sticky="ew")
+        row += 1
+
+        self.imageDispWdg = RO.Wdg.GrayImageDispWdg.GrayImageWdg(
+            master = self,
+        )
+        self.imageDispWdg.grid(row=row, column=0, sticky="news")
+        self.grid_rowconfigure(row, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        row += 1
+
+        Tkinter.Frame(self,
+#           relief="ridge", # doesn't do anything; why not?
+#           border=2,       # doesn't do anything; why not?
+            bg = "black",
+        ).grid(row=row, column=0, sticky="ew")
+        row += 1
 
         self.expInputWdg = ExposeInputWdg.ExposeInputWdg(
             self,
@@ -84,18 +105,21 @@ class ExposeWdg (RO.Wdg.InputContFrame):
 #           relief="ridge",
 #           border=1,
         )
-        self.expInputWdg.pack(side="top", expand="yes", fill="x")
+        self.expInputWdg.grid(row=row, column=0, sticky="ew")
+        row += 1
 
         self.statusBar = RO.Wdg.StatusBar(self,
             dispatcher = self.tuiModel.dispatcher,
             prefs = self.tuiModel.prefs,
             playCmdSounds = True,
         )
-        self.statusBar.pack(side="top", expand="yes", fill="x")
+        self.statusBar.grid(row=row, column=0, sticky="ew")
+        row += 1
         
         butFrame = Tkinter.Frame(self)
 
-        self.startWdg = RO.Wdg.Button(butFrame,
+        self.startWdg = RO.Wdg.Button(
+            master = butFrame,
             text = "Start",
             command = self.doExpose,
             helpURL = _HelpPrefix + "StartButton",
@@ -117,11 +141,12 @@ class ExposeWdg (RO.Wdg.InputContFrame):
                 ("abort", True):  "Stop the exposure and discard the data",
                 ("abort", False): "Stop the exposure sequence",
             }[(name, canDoExp)]
-            wdg = RO.Wdg.Button(butFrame,
-                    text = name.capitalize(),
-                    helpText = helpText,
-                    helpURL = _HelpPrefix + "%sButton" % (name,),
-                )
+            wdg = RO.Wdg.Button(
+                master = butFrame,
+                text = name.capitalize(),
+                helpText = helpText,
+                helpURL = _HelpPrefix + "%sButton" % (name,),
+            )
             if name == "pause":
                 wdg["width"] = 6
                 self.normalPauseText = helpText
@@ -143,7 +168,8 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         self.stopWdg = makeStopWdg("stop", showStop, instInfo.canStop)
         self.abortWdg = makeStopWdg("abort", instInfo.canAbort, instInfo.canAbort)
 
-        self.configWdg = RO.Wdg.Button(butFrame,
+        self.configWdg = RO.Wdg.Button(
+            master = butFrame,
             text = "Config...",
             command = self.doConfig,
             helpText = "Open the %s configure window" % self.expModel.instName,
@@ -151,7 +177,8 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         )
         self.configWdg.pack(side="right")
 
-        butFrame.pack(side="top", expand="yes", fill="x")
+        butFrame.grid(row=row, column=0, sticky="ew")
+        row += 1
         
         self.expModel.seqState.addIndexedCallback(self._seqStatusCallback, 5)
     
