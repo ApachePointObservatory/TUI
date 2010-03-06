@@ -38,17 +38,14 @@ import RO.Wdg
 import GuideWdg
 import GMechModel
 
+WindowName = "Guide.NA2 Guider"
+
 _HelpURL = "Guiding/NA2GuiderWin.html"
-
-# time limit for filter or focus change (sec)
-_ApplyTimeLim = 200
-_InitWdgWidth = 5
-
-MicronStr = RO.StringUtil.MuStr + "m"
+_FiltWidth = 5 # initial width for widgets that show filter name
 
 def addWindow(tlSet):
     return tlSet.createToplevel (
-        name = "Guide.NA2 Guider",
+        name = WindowName,
         defGeom = "+452+280",
         resizable = True,
         wdgFunc = NA2GuiderWdg,
@@ -148,7 +145,7 @@ class GMechFilterWdg(Tkinter.Frame):
         
         self.currFilterWdg = RO.Wdg.StrLabel(
             master = self,
-            width = _InitWdgWidth,
+            width = _FiltWidth,
             helpText = "Current NA2 guider filter",
             helpURL = _HelpURL,
         )
@@ -165,7 +162,7 @@ class GMechFilterWdg(Tkinter.Frame):
             master = self,
             items = (),
             autoIsCurrent = True,
-            width = _InitWdgWidth,
+            width = _FiltWidth,
             callFunc = self.enableButtons,
             helpText = userFilterHelp,
             helpURL = _HelpURL,

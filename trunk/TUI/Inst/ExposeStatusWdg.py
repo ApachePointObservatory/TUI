@@ -30,6 +30,7 @@ History:
 2008-02-26 ROwen    Bug fix: wasExposing was not updated from cached exposure state;
                     this should make the first "exposure begins" sound more reliable.
 2009-03-02 ROwen    Increased MinExposureBeginsSoundInterval from 9.9 to 29.9 seconds at Russet's request.
+2010-03-01 ROwen    Made master argument explicit for all RO Widgets.
 """
 __all__ = ["ExposeStatusWdg"]
 
@@ -58,7 +59,7 @@ class ExposeStatusWdg (Tkinter.Frame):
         self.tuiModel = self.expModel.tuiModel
         self.wasExposing = None # True, False or None if unknown
         self.minExposureBeginsSoundTime = 0
-        gr = RO.Wdg.Gridder(self, sticky="w")
+        gr = RO.Wdg.Gridder(master=self, sticky="w")
 
         self.seqStateWdg = RO.Wdg.StrLabel(
             master = self,
@@ -88,7 +89,8 @@ class ExposeStatusWdg (Tkinter.Frame):
         )
         gr.gridWdg("Exp Status", stateFrame, sticky="ew")
 
-        self.userWdg = RO.Wdg.StrLabel(self,
+        self.userWdg = RO.Wdg.StrLabel(
+            master = self,
             helpText = "Who is taking this exposure",
             helpURL = helpURL,
             anchor="w",
@@ -96,7 +98,8 @@ class ExposeStatusWdg (Tkinter.Frame):
         )
         gr.gridWdg("User", self.userWdg, sticky="ew")
 
-        self.commentWdg = RO.Wdg.StrLabel(self,
+        self.commentWdg = RO.Wdg.StrLabel(
+            master = self,
             helpText = "User's comment, if any",
             helpURL = helpURL,
             anchor="w",
@@ -114,7 +117,8 @@ class ExposeStatusWdg (Tkinter.Frame):
                 helpSuffix = ""
                 labelStr = "File"
 
-            wdg = RO.Wdg.StrLabel(self,
+            wdg = RO.Wdg.StrLabel(
+                master = self,
                 helpText = "File for current exposure" + helpSuffix,
                 helpURL = helpURL,
                 anchor = "w",

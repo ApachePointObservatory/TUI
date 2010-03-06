@@ -21,13 +21,14 @@ import RO.Wdg
 import TUI.Inst.Echelle.EchelleModel
 import GuideWdg
 
-_HelpURL = "Guiding/EchelleSlitviewerWin.html"
+WindowName = "Guide.Echelle Slitviewer"
 
+_HelpURL = "Guiding/EchelleSlitviewerWin.html"
 _FiltWidth = 5 # initial width for widgets that show filter name
 
 def addWindow(tlSet):
     return tlSet.createToplevel (
-        name = "Guide.Echelle Slitviewer",
+        name = WindowName,
         defGeom = "+452+280",
         resizable = True,
         wdgFunc = EchelleSlitviewerWdg,
