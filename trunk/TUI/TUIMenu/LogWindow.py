@@ -36,6 +36,7 @@ History:
 2009-07-22 ROwen    Bug fix: when an actor disappeared from the hub one could no longer filter on it.
 2009-09-02 ROwen    Added support for sevCritical.
                     Modified to be resistant to additions to RO.Wdg.WdgPrefs SevPrefDict.
+2010-03-10 ROwen    Added WindowName
 """
 import re
 import time
@@ -51,12 +52,14 @@ import RO.Wdg
 import TUI.HubModel
 import TUI.TUIModel
 import TUI.PlaySound
+import TUI.Version
 
 HelpURL = "TUIMenu/LogWin.html"
+WindowName = "%s.Log" % (TUI.Version.ApplicationName,)
 
 def addWindow(tlSet):
     tlSet.createToplevel(
-        name = "TUI.Log",
+        name = WindowName,
         defGeom = "603x413+430+280",
         resizable = True,
         visible = False,

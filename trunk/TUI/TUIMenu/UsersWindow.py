@@ -3,7 +3,6 @@
 
 To do:
 - tweak tab stops
-- consider hiding (or allowing to hide) monitor clients
 - test what happens during a failed login
 
 2003-12-06 ROwen
@@ -17,20 +16,24 @@ To do:
 2005-01-06 ROwen    Modified to indicate the current user with an underline.
 2010-03-05 ROwen    Modified to show client name and version.
                     Modified to not show monitor clients.
+2010-03-10 ROwen    Modified to also show system info.
+                    Removed unused import of RO.KeyVariable and RO.StringUtil.
+                    Added WindowName.
 """
 import time
 import Tkinter
-import RO.KeyVariable
-import RO.StringUtil
 import RO.Wdg
 import TUI.HubModel
 import TUI.TUIModel
+import TUI.Version
 
 _HelpPage = "TUIMenu/UsersWin.html"
 
+WindowName = "%s.Users" % TUI.Version.ApplicationName
+
 def addWindow(tlSet):
     tlSet.createToplevel(
-        name = "TUI.Users",
+        name = WindowName,
         defGeom = "300x125+0+722",
         visible = False,
         resizable = True,
@@ -117,6 +120,14 @@ class User(object):
             return "?"
 
     @property
+    def systemInfo(self):
+        """Return the client's system info, or "?" if unknown"""
+        if self._userInfo:
+            return self._userInfo[3] or "?"
+        else:
+            return "?"
+
+    @property
     def userInfo(self):
         return self._userInfo
 
@@ -168,7 +179,7 @@ class UsersWdg(Tkinter.Frame):
             master = self,
             yscrollcommand = self.yscroll.set,
             wrap = "none",
-            tabs = "1.6c left 4c left 6.2c left",
+            tabs = "1.6c 5.0c 6.7c 8.5c",
             height = height,
             width = width,
         )
@@ -227,20 +238,21 @@ class UsersWdg(Tkinter.Frame):
                 doScheduleUpdate = True
             if cmdr == myCmdr:
                 tagList.append("me")
-            displayStr = "%s\t%s\t%s\t%s\n" % \
-                (userObj.prog, userObj.user, userObj.clientName, userObj.clientVersion)
+            displayStr = "%s\t%s\t%s\t%s\t%s\n" % \
+                (userObj.prog, userObj.user, userObj.clientName, userObj.clientVersion, userObj.systemInfo)
             self.text.insert("end", displayStr, " ".join(tagList))
 
         for cmdr in deleteCmdrList:
             del(self.userDict[cmdr])
         
         if doScheduleUpdate:
-            self.updateTimerID = self.after(1000, self.updDisplay)
+            self.scheduleUpdate()
 
     def updUser(self, userInfo, isCurrent, keyVar=None):
         """User keyword callback; add user data to self.userDict"""
         if (not isCurrent) or (userInfo == None):
             return
+
         cmdr = userInfo[0]
         oldUserObj = self.userDict.get(cmdr, None)
         if oldUserObj:

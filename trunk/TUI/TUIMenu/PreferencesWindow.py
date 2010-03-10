@@ -2,17 +2,21 @@
 """Preferences window
 
 2003-12-17 ROwen
+2010-03-10 ROwen    Added WindowName
 """
 import RO.Alg
 import RO.Prefs.PrefWdg
 import TUI.TUIModel
+import TUI.Version
+
+WindowName = "%s.Preferences" % (TUI.Version.ApplicationName,)
 
 def addWindow(tlSet):
     tuiModel = TUI.TUIModel.getModel()
 
     # preferences window
     tlSet.createToplevel (
-        name = "TUI.Preferences",
+        name = WindowName,
         defGeom = "+62+116",
         resizable = False,
         visible = False,

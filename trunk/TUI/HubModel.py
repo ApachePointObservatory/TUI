@@ -59,7 +59,7 @@ class _Model (object):
             - client version (sortable)
             - system info (e.g. platform.platform())
             - IP address (numeric)
-            ? FQDN (if supplied)
+            ? fully qualified domain name (if supplied)
             """,
             refreshCmd = "status",
         )
