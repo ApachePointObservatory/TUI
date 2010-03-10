@@ -7,10 +7,13 @@
 2004-06-22 ROwen    Modified to use ScriptWdg->PythonWdg.
 """
 import RO.Wdg
+import TUI.Version
+
+WindowName = "%s.Python" % (TUI.Version.ApplicationName,)
 
 def addWindow(tlSet):
     tlSet.createToplevel (
-        name = "TUI.Python",
+        name = WindowName,
         defGeom = "+0+507",
         wdgFunc = RO.Wdg.PythonWdg,
         visible = False,

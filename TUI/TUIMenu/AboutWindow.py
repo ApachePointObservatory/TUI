@@ -11,6 +11,7 @@
 2006-06-01 ROwen    Updated the acknowledgements to include Fritz Stauffer.
 2007-04-17 ROwen    Updated the acknowledgements to add "scripts".
 2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
+2010-03-10 ROwen    Added WindowName
 """
 import sys
 import Image
@@ -21,12 +22,14 @@ except ImportError:
 import numpy
 import pyfits
 import RO.Wdg
-import TUI.Version
 import TUI.TUIModel
+import TUI.Version
+
+WindowName = "%s.About %s" % (TUI.Version.ApplicationName, TUI.Version.ApplicationName)
 
 def addWindow(tlSet):
     tlSet.createToplevel(
-        name = "TUI.About TUI",
+        name = WindowName,
         resizable = False,
         visible = False,
         wdgFunc = AboutWdg,
