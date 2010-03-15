@@ -84,20 +84,20 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         ).grid(row=row, column=0, sticky="ew")
         row += 1
 
-        self.imageDispWdg = RO.Wdg.GrayImageDispWdg.GrayImageWdg(
-            master = self,
-        )
-        self.imageDispWdg.grid(row=row, column=0, sticky="news")
-        self.grid_rowconfigure(row, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-        row += 1
-
-        Tkinter.Frame(self,
-#           relief="ridge", # doesn't do anything; why not?
-#           border=2,       # doesn't do anything; why not?
-            bg = "black",
-        ).grid(row=row, column=0, sticky="ew")
-        row += 1
+#         self.imageDispWdg = RO.Wdg.GrayImageDispWdg.GrayImageWdg(
+#             master = self,
+#         )
+#         self.imageDispWdg.grid(row=row, column=0, sticky="news")
+#         self.grid_rowconfigure(row, weight=1)
+#         self.grid_columnconfigure(0, weight=1)
+#         row += 1
+# 
+#         Tkinter.Frame(self,
+# #           relief="ridge", # doesn't do anything; why not?
+# #           border=2,       # doesn't do anything; why not?
+#             bg = "black",
+#         ).grid(row=row, column=0, sticky="ew")
+#         row += 1
 
         self.expInputWdg = ExposeInputWdg.ExposeInputWdg(
             self,
