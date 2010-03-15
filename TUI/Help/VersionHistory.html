@@ -19,37 +19,26 @@
 
 <p>TUI 1.7.0 uses pygame instead of snack to play sound files. If you want to hear sound cues (instead of just beeps) you must install the pygame package.
 
-<h3>1.7.1b2+ 2010-03-10</h3>
+<h3>1.7.1 2010-03-15</h3>
 
 <p>Visible changes:
 <ul>
-    <li>The Users window now also shows the system
-</ul>
-
-<h3>1.7.1b2 2010-03-08</h3>
-
-<p>Bug fixes:
-<ul>
-    <li>Fixed a bug in RO.Wdg.StatusBar that caused command replies to sometimes be displayed in the wrong color.
-</ul>
-
-<h3>1.7.1b1 2010-03-05</h3>
-
-<p>Visible changes:
-<ul>
-    <li>The Users window now shows the user client and version (make it wider if you can't see it; save changes with Save Window Positions).
+    <li>The Users window now shows additional information about each user. If you can't see it, make the window wider.
 </ul>
 
 <p>Bug fixes:
 <ul>
-    <li>NA2 Guider Image: some help strings said Echelle.
+    <li>Save As is broken in The Run_Commands script.
     <li>Fixed a bug in tracking command severity in status bars.
+    <li>NA2 Guider Image: some help strings said Echelle.
 </ul>
 
 <p>Internal changes:
 <ul>
+    <li>Includes RO package 2.3.4.
+    <li>Compatible with the experimental Agile guider (which requires RO package 2.3.2 or later).
+    <li>The log window code was simplified by taking advantage of new capabilities in RO.Wdg.LogWdg in RO version 2.3.4.
     <li>Modified to send the hub the version # without the date at connect time, to simplify the version display in the Users window.
-    <li>Updated to RO package 2.3.2. This makes it compatible with the experimental Agile guider.
 </ul>
 
 <h3>1.7.0 2010-01-11</h3>

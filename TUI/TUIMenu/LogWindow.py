@@ -37,14 +37,11 @@ History:
 2009-09-02 ROwen    Added support for sevCritical.
                     Modified to be resistant to additions to RO.Wdg.WdgPrefs SevPrefDict.
 2010-03-10 ROwen    Added WindowName
+2010-03-11 ROwen    Modified to use RO.Wdg.LogWdg 2010-11-11, which has severity support built in.
 """
 import re
 import time
 import Tkinter
-try:
-    set
-except NameError:
-    from sets import Set as set
 import RO.Alg
 import RO.StringUtil
 import RO.TkUtil
@@ -72,23 +69,6 @@ HighlightColorScale = 0.92
 HighlightTag = "highlighttag"
 HighlightTextTag = "highlighttexttag"
 ShowTag = "showtag"
-
-SevTagDict = {
-    RO.Constants.sevDebug: "sev_debug",
-    RO.Constants.sevNormal: "sev_normal",
-    RO.Constants.sevWarning: "sev_warning",
-    RO.Constants.sevError: "sev_error",
-    RO.Constants.sevCritical: "sev_critical",
-}
-SevTags = ("sev_debug", "sev_normal", "sev_warning", "sev_error", "sev_critical")
-SevMenuTagsDict = dict(
-    debug = SevTags,
-    normal = SevTags[1:],
-    warnings = SevTags[2:],
-    errors = SevTags[3:],
-    critical = SevTags[4:],
-    none = [],
-)
 
 ActorTagPrefix = "act_"
 CmdrTagPrefix = "cmdr_"
@@ -161,7 +141,7 @@ class TUILogWdg(Tkinter.Frame):
 
         self.severityMenu = RO.Wdg.OptionMenu(
             self.filterFrame,
-            items = ("Debug", "Normal", "Warnings", "Errors", "None"),
+            items = [val.title() for val in RO.Constants.NameSevDict.iterkeys()],
             defValue = "Normal",
             callFunc = self.applyFilter,
             helpText = "show replies with at least this severity",
@@ -417,17 +397,6 @@ class TUILogWdg(Tkinter.Frame):
         hubModel = TUI.HubModel.getModel()
         hubModel.actors.addCallback(self.updActors)
         
-        # set up severity tags and tie them to color preferences
-        self._severityPrefDict = RO.Wdg.WdgPrefs.getSevPrefDict()
-        for sev, sevTag in SevTagDict.iteritems():
-            pref = self._severityPrefDict[sev]
-            if sev == RO.Constants.sevNormal:
-                # normal color is already automatically updated
-                # but do make tag known to text widget
-                self.logWdg.text.tag_configure(sevTag)
-                continue
-            pref.addCallback(RO.Alg.GenericCallback(self._updSevTagColor, sevTag), callNow=True)
-        
         # dictionary of actor name, tag name pairs:
         # <actor-in-lowercase>: act_<actor-in-lowercase>
         self.actorDict = {"tui": "act_tui"}
@@ -455,7 +424,7 @@ class TUILogWdg(Tkinter.Frame):
     def doShowPrevHighlight(self, wdg=None):
         self.logWdg.findTag(HighlightTag, backwards=True, doWrap=False)
         
-    def addOutput(self, msgStr, tags=()):
+    def addOutput(self, msgStr, tags=(), severity=RO.Constants.sevNormal):
         """Log a message, prepending the current time.
         """
         # use this if fractional seconds wanted
@@ -464,7 +433,7 @@ class TUILogWdg(Tkinter.Frame):
         timeStr = time.strftime("%H:%M:%S", time.gmtime())
         outStr = " ".join((timeStr, msgStr))
         #print "addOutput(%r, %r)" % (outStr, tags)
-        self.logWdg.addOutput(outStr, tags)
+        self.logWdg.addOutput(outStr, tags=tags, severity=severity)
         if self.filterRegExpInfo or self.highlightRegExpInfo:
             if self.filterRegExpInfo:
                 self.findRegExp(
@@ -904,8 +873,8 @@ class TUILogWdg(Tkinter.Frame):
         """Return a list of severity tags that should be displayed
         based on the current setting of the severity menu.
         """
-        sev = self.severityMenu.getString().lower()
-        return SevMenuTagsDict[sev]
+        sevName = self.severityMenu.getString().lower()
+        return self.logWdg.getSeverityTags(RO.Constants.NameSevDict[sevName])
         
     def highlightActors(self, actors):
         """Highlight text for the specified actors.
@@ -933,7 +902,7 @@ class TUILogWdg(Tkinter.Frame):
     def logMsg (self,
         msgStr,
         severity=RO.Constants.sevNormal,
-        actor = "TUI",
+        actor = TUI.Version.ApplicationName,
         cmdr = None,
     ):
         """Writes a message to the log.
@@ -949,7 +918,6 @@ class TUILogWdg(Tkinter.Frame):
             severity = RO.Constants.sevDebug
 
         tags = []
-        tags.append(SevTagDict.get(severity) or SevTagDict[RO.Constants.sevError])
         if cmdr == None:
             cmdr = self.dispatcher.connection.getCmdr()
         if cmdr:
@@ -960,7 +928,7 @@ class TUILogWdg(Tkinter.Frame):
                 actor = actor[5:]
             tags.append(ActorTagPrefix + actor.lower())
         
-        self.addOutput(msgStr + "\n", tags)
+        self.addOutput(msgStr + "\n", tags=tags, severity=severity)
     
     def showSeverityAndActors(self, actors):
         """Show all messages of of the appropriate severity
@@ -1041,14 +1009,6 @@ class TUILogWdg(Tkinter.Frame):
         self.logWdg.text.tag_configure(HighlightTag, background=newColor)
         self.logWdg.text.tag_configure(HighlightTextTag, background=newTextColor)
 
-    def _updSevTagColor(self, sevTag, color, colorPref):
-        """Apply the current color appropriate for the current severity.
-        
-        Called automatically. Do NOT call manually.
-        """
-        #print "_updSevTagColor(sevTag=%r, color=%r, colorPref=%r)" % (sevTag, color, colorPref)
-        self.logWdg.text.tag_configure(sevTag, foreground=color)
-    
     def _cmdCallback(self, msgType, msgDict, cmdVar):
         """Command callback; called when a command finishes.
         """
@@ -1078,7 +1038,7 @@ if __name__ == '__main__':
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
     
-    severities = SevTagDict.keys()
+    severities = RO.Constants.SevNameDict.keys()
     
     actors = ("ecam", "disExpose","dis", "keys")
 
