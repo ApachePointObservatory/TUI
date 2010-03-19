@@ -53,6 +53,7 @@ Warning: the config stuff will probably be modified.
                     Modified expState so durations can be None or 0 for unknown (was just 0).
 2008-07-24 ROwen    Fixed CR 851: changed tcam default bin factor to 2 (from 1).
 2010-03-04 ROwen    Changed gcam info field slitViewer to isSlitViewer.
+2010-03-18 ROwen    Added "afocus" actor.
 """
 __all__ = ['getModel']
 
@@ -101,6 +102,9 @@ _GCamInfoDict = {
     "nfocus":_GCamInfo(
         imSize = (1024, 1024),
         defExpTime = 6,
+    ),
+    "afocus":_GCamInfo(
+        imSize = (1024, 1024),
     ),
     "sfocus":_GCamInfo(
         imSize = (2048, 2048),

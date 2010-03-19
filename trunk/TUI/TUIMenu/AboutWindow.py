@@ -12,7 +12,10 @@
 2007-04-17 ROwen    Updated the acknowledgements to add "scripts".
 2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
 2010-03-10 ROwen    Added WindowName
+2010-03-18 ROwen    Added special file paths to the information.
+                    Removed Wingware from the acknowledgements.
 """
+import os.path
 import sys
 import Image
 try:
@@ -22,7 +25,9 @@ except ImportError:
 import numpy
 import pyfits
 import RO.Wdg
+import RO.StringUtil
 import TUI.TUIModel
+import TUI.TUIPaths
 import TUI.Version
 
 WindowName = "%s.About %s" % (TUI.Version.ApplicationName, TUI.Version.ApplicationName)
@@ -35,7 +40,7 @@ def addWindow(tlSet):
         wdgFunc = AboutWdg,
     )
 
-def getVersionDict():
+def getInfoDict():
     tuiModel = TUI.TUIModel.getModel()
     res = {}
     res["tui"] = TUI.Version.VersionStr
@@ -49,17 +54,51 @@ def getVersionDict():
     # Image presently uses VERSION but may change to the standard so...
     res["pil"] = getattr(Image, "VERSION", getattr(Image, "__version__", "unknown"))
     res["pyfits"] = pyfits.__version__
+    res["specialFiles"] = getSpecialFileStr()
     return res
+
+def getSpecialFileStr():
+    """Return a string describing where the special files are
+    """
+    def strFromPath(filePath):
+        if os.path.exists(filePath):
+            return filePath
+        return "%s (not found)" % (filePath,)
+        
+    outStrList = []
+    for name, func in (
+        ("Preferences", TUI.TUIPaths.getPrefsFile),
+        ("Window Geom.", TUI.TUIPaths.getGeomFile),
+    ):
+        try:
+            filePath = func()
+            pathStr = strFromPath(filePath)
+        except Exception, e:
+            pathStr = "?: %s" % (RO.StringUtil.strFromException(e.message),)
+        outStrList.append("%s: %s" % (name, pathStr))
+
+    tuiAdditionsDirs = TUI.TUIPaths.getAddPaths(ifExists=False)
+    for ind, filePath in enumerate(tuiAdditionsDirs):
+        pathStr = strFromPath(filePath)
+        outStrList.append("%sAdditions %d: %s" % (TUI.Version.ApplicationName, ind + 1, pathStr))
+
+    outStrList.append("Error Log: %s" % (sys.stderr.name,))
+
+    return "\n".join(outStrList)
+    
 
 class AboutWdg(RO.Wdg.StrLabel):
     def __init__(self, master):
-        versDict = getVersionDict()
+        versDict = getInfoDict()
         RO.Wdg.StrLabel.__init__(
             self,
             master = master,
             text = u"""APO 3.5m Telescope User Interface
 Version %(tui)s
 by Russell Owen
+
+Special files:
+%(specialFiles)s
 
 Library versions:
 Python: %(python)s
@@ -75,7 +114,6 @@ With special thanks to:
 - Dan Long for the photograph used for the icon
 - APO observing specialists and users
   for suggestions, scripts and bug reports
-- Wingware for free use of WingIDE
 """ % (versDict),
             justify = "left",
             borderwidth = 10,
@@ -89,6 +127,8 @@ if __name__ == "__main__":
     tm = TUI.TUIModel.getModel(True)
     addWindow(tm.tlSet)
     tm.tlSet.makeVisible('TUI.About TUI')
+    
+    getSpecialFileStr()
 
     root.lower()
 
