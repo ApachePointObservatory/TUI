@@ -43,6 +43,7 @@ History:
 2010-03-05 ROwen    Modified to send version number without date to simplify the display in the Users window.
 2010-03-10 ROwen    getLoginExtras returns more useful info on Mac.
                     Changed TUI to Version.ApplicationName in various places.
+2010-03-18 ROwen    Moved _getGeomFile to TUI.TUIPaths.getGeomFile.
 """
 import os
 import platform
@@ -56,17 +57,11 @@ import RO.OS
 import RO.TkUtil
 import RO.Wdg
 import Tkinter
+import TUI.TUIPaths
 import TUI.TUIPrefs
 import TUI.Version
 
 _theModel = None
-
-def _getGeomFile():
-    geomDir = RO.OS.getPrefsDirs(inclNone=True)[0]
-    if geomDir == None:
-        raise RuntimeError("Cannot determine prefs dir")
-    geomName = "%s%sGeom" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
-    return os.path.join(geomDir, geomName)
 
 def getModel(testMode = False):
     """Obtains the model (and creates it if not already created).
@@ -108,7 +103,7 @@ class _Model (object):
         # TUI window (topLevel) set;
         # this starts out empty; others add windows to it
         self.tlSet = RO.Wdg.ToplevelSet(
-            fileName = _getGeomFile(),
+            fileName = TUI.TUIPaths.getGeomFile(),
             createFile = True,  # create file if it doesn't exist
         )
 
