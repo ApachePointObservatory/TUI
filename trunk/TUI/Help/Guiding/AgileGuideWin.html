@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>
 <head>
-	<title>Agile Guide WIndow</title>
+	<title>TUI:Guiding:Agile Guider</title>
 </head>
 <body>
 
-<h1>Agile Guider</h1>
+<h2><a href="../index.html">TUI</a>:<a href="index.html">Guiding</a>:Agile Guider</h2>
 
 <p>A primitive guider for Agile that works from science images. The guider is primitive because the guide loop is in TUI instead of in the hub where it belongs. That will be corrected someday. Meanwhile, use with caution and keep these warnings in mind:
 <ul>
@@ -44,59 +44,7 @@
 
 <h2>Future Plans</h2>
 <ul>
-    <li>Integrate this primitive guider into TUI, so that it does not need to be separately installed as a TUIAddition.
     <li>Move the guide loop into the hub so that multiple users can see what is going on and can control the guider.
 </ul>
-
-<h2>Version History</h2>
-
-<h3>1.0b7 2010-04-16</h3>
-
-<ul>
-    <li>Re-added Corr Frac, but it now scales the automatically computed correction factor introduced in 1.0b6. Thus 1.0 is the recommended value for exposures longer than 15 seconds, less for shorter exposures.
-</ul>
-
-<h3>1.0b6 2010-04-16</h3>
-
-<ul>
-    <li>Centroid Radius and Max Corr are now in arcsec.
-    <li>Removed the Corr Frac tuning parameter: the upper limit of measured error was already the centroid radius.
-    <li>Removed the Max Corr tuning parameter. Adopted the hub guider's algorithm for determining how much error to correct: the correction fraction is larger for a better centroid fit and the upper limit is the centroid radius.
-    <li>Added the version number to the window name and the folder name so that it is easy to have multiple versions installed at the same time.
-</ul>
-
-<h3>1.0b5 2010-03-23</h3>
-
-<ul>
-    <li>Modified to use uncomputed offsets.
-    <li>Modified to log errors in red and play the "command failed" sound cue.
-    <li>Changed default centroid radius and max corr from 5.0 to 8.0 binned pixels.
-</ul>
-
-<h3>1.0b4 2010-03-18</h3>
-
-<ul>
-    <li>Modified to use new "afocus" actor.
-    <li>The log now shows sky and measured position error and does not show the centroid measurement uncertainty.
-</ul>
-
-<h3>1.0b3</h3>
-
-<ul>
-    <li>Reorganized to put all files into a directory named AgileGuider and updated the installation instructions accordingly.
-</ul>
-
-<h3>1.0b2</h3>
-
-<ul>
-    <li>Added installation instructions to documentation
-    <li>Added Max Err control
-    <li>Most events are logged in the log window, including images that are skipped for some reason, measured error too large, no stars found, centroid not found and the version.
-</ul>
-
-<h3>1.0b1 2010-03-05</h3>
-
-<p>First beta
-
 </body>
 </html>
