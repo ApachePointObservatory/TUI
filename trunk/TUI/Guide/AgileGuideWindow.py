@@ -18,6 +18,7 @@ History:
                     It works in conjunction with the automatic correction factor; so the default is 1.0.
                     Display FWHM in arcsec.
 2010-04-22 ROwen    Released as part of TUI.
+2010-04-23 ROwen    Stopped using Exception.message to make Python 2.6 happier.
 """
 import math
 import os
@@ -26,7 +27,7 @@ import pdb
 import Tkinter
 import RO.Constants
 import RO.MathUtil
-import RO.StringUtil
+from RO.StringUtil import strFromException
 import RO.Wdg
 import TUI.TUIModel
 import TUI.TCC.TCCModel
@@ -331,7 +332,7 @@ class AgileGuideWdg(Tkinter.Frame):
             if azAltCmdState != ["tracking", "tracking"]:
                 raise RuntimeError("not tracking")
         except Exception, e:
-            self.logStarMeas(starMeas, posErr=posErr, errMsg=e.message, severity=RO.Constants.sevError)
+            self.logStarMeas(starMeas, posErr=posErr, errMsg=strFromException(e), severity=RO.Constants.sevError)
             return
         
         posErrDeg = posErr / instScalePixPerDeg
@@ -397,7 +398,7 @@ class AgileGuideWdg(Tkinter.Frame):
                 centroidRadius = self.MinCentroidRadiusPix
                 
         except RuntimeError, e:
-            self.statusBar.setMsg("Cannot guide: %s" % (e.message,), severity=RO.Constants.sevError)
+            self.statusBar.setMsg("Cannot guide: %s" % (strFromException(e),), severity=RO.Constants.sevError)
             self.doGuideBtn.setBool(False)
             return
 
@@ -445,7 +446,7 @@ class AgileGuideWdg(Tkinter.Frame):
             if not instName.lower().startswith(self.instName.lower()):
                 raise RuntimeError("current instrument is %s, not %s" % (instName, self.instName))
         except RuntimeError, e:
-            self.logMsg("%s\tskipped: %s" % (fileName, e.message))
+            self.logMsg("%s\tskipped: %s" % (fileName, strFromException(e)))
             return
 
         if self.doFindBtn.getBool():
