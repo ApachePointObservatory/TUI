@@ -14,6 +14,7 @@
 2010-03-10 ROwen    Added WindowName
 2010-03-18 ROwen    Added special file paths to the information.
                     Removed Wingware from the acknowledgements.
+2010-04-23 ROwen    Stopped using Exception.message to make Python 2.6 happier.
 """
 import os.path
 import sys
@@ -74,7 +75,7 @@ def getSpecialFileStr():
             filePath = func()
             pathStr = strFromPath(filePath)
         except Exception, e:
-            pathStr = "?: %s" % (RO.StringUtil.strFromException(e.message),)
+            pathStr = "?: %s" % (RO.StringUtil.strFromException(e),)
         outStrList.append("%s: %s" % (name, pathStr))
 
     tuiAdditionsDirs = TUI.TUIPaths.getAddPaths(ifExists=False)
