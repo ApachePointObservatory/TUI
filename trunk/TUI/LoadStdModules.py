@@ -7,6 +7,7 @@ import TUI.TUIMenu.Permissions.PermsWindow
 import TUI.TUIMenu.PreferencesWindow
 import TUI.TUIMenu.PythonWindow
 import TUI.TUIMenu.UsersWindow
+import TUI.Guide.AgileGuideWindow
 import TUI.Guide.DISSlitviewerWindow
 import TUI.Guide.EchelleSlitviewerWindow
 import TUI.Guide.NA2GuiderWindow
@@ -40,6 +41,7 @@ def loadAll():
     TUI.TUIMenu.PreferencesWindow.addWindow(tlSet)
     TUI.TUIMenu.PythonWindow.addWindow(tlSet)
     TUI.TUIMenu.UsersWindow.addWindow(tlSet)
+    TUI.Guide.AgileGuideWindow.addWindow(tlSet)
     TUI.Guide.DISSlitviewerWindow.addWindow(tlSet)
     TUI.Guide.EchelleSlitviewerWindow.addWindow(tlSet)
     TUI.Guide.NA2GuiderWindow.addWindow(tlSet)
