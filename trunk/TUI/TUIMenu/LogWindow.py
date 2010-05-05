@@ -38,6 +38,7 @@ History:
                     Modified to be resistant to additions to RO.Wdg.WdgPrefs SevPrefDict.
 2010-03-10 ROwen    Added WindowName
 2010-03-11 ROwen    Modified to use RO.Wdg.LogWdg 2010-11-11, which has severity support built in.
+2010-05-04 ROwen    Restored None to the filter severity menu (it was lost in the 2010-03-11 changes).
 """
 import re
 import time
@@ -141,7 +142,7 @@ class TUILogWdg(Tkinter.Frame):
 
         self.severityMenu = RO.Wdg.OptionMenu(
             self.filterFrame,
-            items = [val.title() for val in RO.Constants.NameSevDict.iterkeys()],
+            items = [val.title() for val in RO.Constants.NameSevDict.iterkeys()] + ["None"],
             defValue = "Normal",
             callFunc = self.applyFilter,
             helpText = "show replies with at least this severity",
@@ -634,8 +635,13 @@ class TUILogWdg(Tkinter.Frame):
         self.showSeverityAndActors(actors)
     
     def doFilterCommands(self, wdg=None):
+        """Show log entries for the specified command or commands sent by this TUI
+        """
         self.showSeverityOnly()
-        cmds = self.filterCommandsWdg.getString().split()
+        # get the user-typed list of commands and turn commas into spaces
+        # to handle commands separated with commas and/or whitespace
+        cmdWdgStr = self.filterCommandsWdg.getString().replace(",", " ")
+        cmds = cmdWdgStr.split()
         if not cmds:
             return
         
@@ -660,22 +666,21 @@ class TUILogWdg(Tkinter.Frame):
             TUI.PlaySound.cmdFailed()
             return
         
-        sev = self.severityMenu.getString().lower()
         if len(cmds) == 1:
-            self.statusBar.setMsg(
-                "Showing %s and commands %s" % (sev, cmds[0]),
-                isTemp = True,
-            )
+            cmdDescr = "command"
         else:
-            self.statusBar.setMsg(
-                "Showing %s and commands %s" % (sev, " ".join(cmds)),
-                isTemp = True,
-            )
+            cmdDescr = "commands"
+        self.statusBar.setMsg(
+            "Showing %s %s %s" % (self.getFilterSeverityDescr(), cmdDescr, " ".join(cmds)),
+            isTemp = True,
+        )
         self.filterRegExpInfo = regExpInfo
         self.findRegExp(self.filterRegExpInfo, elide=True)
         self.showSeverityAndTags([ShowTag])
     
     def doFilterText(self, wdg=None):
+        """Show log entries that match the specified regular expression
+        """
         self.showSeverityOnly()
         regExp = self.filterTextWdg.getString()
         if not regExp:
@@ -692,9 +697,8 @@ class TUILogWdg(Tkinter.Frame):
             TUI.PlaySound.cmdFailed()
             return
         
-        sev = self.severityMenu.getString().lower()
         self.statusBar.setMsg(
-            "Showing %s and text %r" % (sev, regExp),
+            "Showing %s text %r" % (self.getFilterSeverityDescr(), regExp),
             isTemp = True,
         )
         self.filterRegExpInfo = regExpInfo
@@ -869,12 +873,29 @@ class TUILogWdg(Tkinter.Frame):
         actors.sort()
         return actors
 
+    def getFilterSeverityDescr(self, appendAnd=True):
+        """Return a description of the currently selected filter severity
+        
+        Inputs:
+        - appendAnd: append "and" if severity is not None
+        """
+        sev = self.severityMenu.getString().lower()
+        if sev == "none":
+            return ""
+        elif appendAnd:
+            return "severity >= %s and" % (sev,)
+        else:
+            return "severity >= %s" % (sev,)
+
     def getSeverityTags(self):
         """Return a list of severity tags that should be displayed
         based on the current setting of the severity menu.
         """
         sevName = self.severityMenu.getString().lower()
-        return self.logWdg.getSeverityTags(RO.Constants.NameSevDict[sevName])
+        if sevName == "none":
+            return []
+        else:
+            return self.logWdg.getSeverityTags(RO.Constants.NameSevDict[sevName])
         
     def highlightActors(self, actors):
         """Highlight text for the specified actors.
@@ -940,22 +961,18 @@ class TUILogWdg(Tkinter.Frame):
             self.showSeverityOnly()
             return
 
-        sev = self.severityMenu.getString().lower()
-
         actorTags = []
         for actor in actors:
             actorTags.append(self.actorDict[actor])
         
         if len(actors) == 1:
-            self.statusBar.setMsg(
-                "Showing %s and actor %s" % (sev, actors[0]),
-                isTemp = True,
-            )
+            actorDescr = "actor"
         else:
-            self.statusBar.setMsg(
-                "Showing %s and actors %s" % (sev, " ".join(actors)),
-                isTemp = True,
-            )
+            actorDescr = "actors"
+        self.statusBar.setMsg(
+            "Showing %s %s %s" % (self.getFilterSeverityDescr(), actorDescr, " ".join(actors)),
+            isTemp = True,
+        )
         self.showSeverityAndTags(actorTags)
     
     def showSeverityOnly(self):
@@ -972,7 +989,7 @@ class TUILogWdg(Tkinter.Frame):
             )
         else:
             self.statusBar.setMsg(
-                "Showing %s" % (sev,),
+                "Showing %s" % (self.getFilterSeverityDescr(appendAnd=False),),
                 isTemp = True,
             )
         self.logWdg.showTagsOr(self.getSeverityTags())
