@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import with_statement
 """Guiding support
 
 To do:
@@ -191,6 +192,9 @@ History:
 2008-05-15 ROwen    Modified to use new doStretch argument for MaskInfo.
 2010-03-02 ROwen    Added some doc strings.
                     Modified to expect gcamInfo.isSlitViewer instead of slitViewer.
+2010-05-27 ROwen    Fixed ticket #1111: the guider might issue a new findStars command whenever a new
+                    guide image was received, depending on how Thresh and RadMult were set.
+                    Fixed by disabling callbacks from those controls while setting them programmatically.
 """
 import atexit
 import os
@@ -2042,19 +2046,21 @@ class GuideWdg(Tkinter.Frame):
             self.binFacWdg.set(imObj.binFac)
         self.binFacWdg.setDefault(imObj.binFac)
         
-        if forceCurr or self.threshWdg.getIsCurrent():
-            if imObj.currThresh != None:
-                self.threshWdg.set(imObj.currThresh)
-            else:
-                self.threshWdg.set(imObj.defThresh)
-        self.threshWdg.setDefault(imObj.defThresh)
+        with self.threshWdg._disableCallbacksContext():
+            if forceCurr or self.threshWdg.getIsCurrent():
+                if imObj.currThresh != None:
+                    self.threshWdg.set(imObj.currThresh)
+                else:
+                    self.threshWdg.set(imObj.defThresh)
+            self.threshWdg.setDefault(imObj.defThresh)
 
-        if forceCurr or self.radMultWdg.getIsCurrent():
-            if imObj.currRadMult != None:
-                self.radMultWdg.set(imObj.currRadMult)
-            else:
-                self.radMultWdg.set(imObj.defRadMult)
-        self.radMultWdg.setDefault(imObj.defRadMult)
+        with self.radMultWdg._disableCallbacksContext():
+            if forceCurr or self.radMultWdg.getIsCurrent():
+                if imObj.currRadMult != None:
+                    self.radMultWdg.set(imObj.currRadMult)
+                else:
+                    self.radMultWdg.set(imObj.defRadMult)
+            self.radMultWdg.setDefault(imObj.defRadMult)
     
         if imObj.subFrame:
             if forceCurr or self.subFrameWdg.getIsCurrent():
@@ -2468,9 +2474,10 @@ class GuideWdg(Tkinter.Frame):
         imObj.currRadMult = radMult
 
         if self.isDispObj(imObj):
-            if self.radMultWdg.getIsCurrent():
-                self.radMultWdg.set(imObj.currRadMult)
-            self.radMultWdg.setDefault(imObj.defRadMult)
+            with self.radMultWdg._disableCallbacksContext():
+                if self.radMultWdg.getIsCurrent():
+                    self.radMultWdg.set(imObj.currRadMult)
+                self.radMultWdg.setDefault(imObj.defRadMult)
 
     def updThresh(self, thresh, isCurrent, keyVar):
         """New threshold data found.
@@ -2487,9 +2494,10 @@ class GuideWdg(Tkinter.Frame):
         imObj.currThresh = thresh
 
         if self.isDispObj(imObj):
-            if self.threshWdg.getIsCurrent():
-                self.threshWdg.set(imObj.currThresh)
-            self.threshWdg.setDefault(imObj.defThresh)
+            with self.threshWdg._disableCallbacksContext():
+                if self.threshWdg.getIsCurrent():
+                    self.threshWdg.set(imObj.currThresh)
+                self.threshWdg.setDefault(imObj.defThresh)
         
     def _exitHandler(self):
         """Delete all image files

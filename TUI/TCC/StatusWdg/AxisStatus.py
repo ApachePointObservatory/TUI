@@ -76,15 +76,15 @@ ErrorBits = (
     
     ( 8, "Overspeed limit"),
     (14, "Motion error too large"),
-    (18, "Motor 2 current limit"),
-    (19, "Motor 1 current limit"),
+    (18, "Motor 2 current limit"), # ?
+    (19, "Motor 1 current limit"), # ?
 
     ( 2, "Minimum position software limit"),
     ( 3, "Maximum position software limit"),
 
     (16, "1 Hz clock signal lost"),
-    (22, "Motor 2 bad connection"),
-    (23, "Motor 1 bad connection"),
+    (22, "Motor 2 bad connection"), # ?
+    (23, "Motor 1 bad connection"), # ?
 
     (13, "Motor output disabled"),
 )
@@ -92,8 +92,8 @@ WarningBits = (
     ( 0, "Motor control buffer empty"),
     ( 1, "Time ran out on an interpolated move"),
     (24, "Last fiducial error too large"),
-    ( 4, "Velocity limited"),
-    ( 5, "Acceleration limited"),
+    ( 4, "Velocity limited"), # ?
+    ( 5, "Acceleration limited"), # ?
     (29, "Motor velocity too large"),
     (30, "Controller restarted"),
 )
