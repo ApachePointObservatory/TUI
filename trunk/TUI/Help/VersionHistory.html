@@ -22,12 +22,17 @@
     <li>TUI 1.7.0 uses pygame instead of snack to play sound files. If you want to hear sound cues (instead of just beeps) you must install the pygame package.
 </ul>
 
-<h3>Version 1.7.2-post 2010-05-05</h3>
+<h3>Version 1.7.3 2010-05-27</h3>
 
 <p>Visible changes:
 <ul>
     <li>Re-added None to the Log window's severity filter menu
     <li>Windows are displayed within the visible screen area, even if the saved positions is not (as can easily happen if you sometimes connect a laptop to an external monitor). The code assumes your visible screen is a rectangle, so it can be fooled by strange screen arrangements.
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1111">PR 1111</a>TUI makes the Command Done sound every 5 secs while tcam is guiding on a bright star. (More precisely: TUI may execute a findStars command whenever a new guide image is received, depending on how Thresh or RadMult are set.)
 </ul>
 
 <h3>1.7.2 2010-04-23</h3>
