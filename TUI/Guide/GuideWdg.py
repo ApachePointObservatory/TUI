@@ -195,6 +195,7 @@ History:
 2010-05-27 ROwen    Fixed ticket #1111: the guider might issue a new findStars command whenever a new
                     guide image was received, depending on how Thresh and RadMult were set.
                     Fixed by disabling callbacks from those controls while setting them programmatically.
+2010-06-07 ROwen    Added setRadMult and setThreshWdg methods to simplify the code a bit.
 """
 import atexit
 import os
@@ -1973,9 +1974,46 @@ class GuideWdg(Tkinter.Frame):
                 isCurrent = isCurrent and modeCurrent
         stateStr = "-".join(guideState)
         self.guideStateWdg.set(stateStr, isCurrent=isCurrent)
+
+    def setRadMultWdg(self, imObj, forceCurr=False):
+        """Set radMultWdg from data in imObj
+        
+        Disables callbacks, so no command is sent while updating the control
+        
+        Inputs:
+        - imObj: image data (reads fields currThresh and defThresh)
+        - forceCurr: if True then modifies the displayed value even if wdg value is not current;
+            otherwise only updates the displayed value if wdg value is already current
+        """
+        with self.radMultWdg._disableCallbacksContext():
+            if forceCurr or self.radMultWdg.getIsCurrent():
+                if imObj.currRadMult != None:
+                    self.radMultWdg.set(imObj.currRadMult)
+                else:
+                    self.radMultWdg.set(imObj.defRadMult)
+            self.radMultWdg.setDefault(imObj.defRadMult)
+
+    def setThreshWdg(self, imObj, forceCurr=False):
+        """Set threshWdg from data in imObj
+        
+        Disables callbacks, so no command is sent while updating the control
+        
+        Inputs:
+        - imObj: image data (reads fields currThresh and defThresh)
+        - forceCurr: if True then modifies the displayed value even if wdg value is not current;
+            otherwise only updates the displayed value if wdg value is already current
+        """
+        with self.threshWdg._disableCallbacksContext():
+            if forceCurr or self.threshWdg.getIsCurrent():
+                if imObj.currThresh != None:
+                    self.threshWdg.set(imObj.currThresh)
+                else:
+                    self.threshWdg.set(imObj.defThresh)
+            self.threshWdg.setDefault(imObj.defThresh)
         
     def showImage(self, imObj, forceCurr=None):
         """Display an image.
+
         Inputs:
         - imObj image to display
         - forceCurr force guide params to be set to current value?
@@ -2046,21 +2084,9 @@ class GuideWdg(Tkinter.Frame):
             self.binFacWdg.set(imObj.binFac)
         self.binFacWdg.setDefault(imObj.binFac)
         
-        with self.threshWdg._disableCallbacksContext():
-            if forceCurr or self.threshWdg.getIsCurrent():
-                if imObj.currThresh != None:
-                    self.threshWdg.set(imObj.currThresh)
-                else:
-                    self.threshWdg.set(imObj.defThresh)
-            self.threshWdg.setDefault(imObj.defThresh)
+        self.setThreshWdg(imObj, forceCurr=forceCurr)
 
-        with self.radMultWdg._disableCallbacksContext():
-            if forceCurr or self.radMultWdg.getIsCurrent():
-                if imObj.currRadMult != None:
-                    self.radMultWdg.set(imObj.currRadMult)
-                else:
-                    self.radMultWdg.set(imObj.defRadMult)
-            self.radMultWdg.setDefault(imObj.defRadMult)
+        self.setRadMultWdg(imObj, forceCurr=forceCurr)
     
         if imObj.subFrame:
             if forceCurr or self.subFrameWdg.getIsCurrent():
@@ -2474,10 +2500,7 @@ class GuideWdg(Tkinter.Frame):
         imObj.currRadMult = radMult
 
         if self.isDispObj(imObj):
-            with self.radMultWdg._disableCallbacksContext():
-                if self.radMultWdg.getIsCurrent():
-                    self.radMultWdg.set(imObj.currRadMult)
-                self.radMultWdg.setDefault(imObj.defRadMult)
+            self.setRadMultWdg(imObj)
 
     def updThresh(self, thresh, isCurrent, keyVar):
         """New threshold data found.
@@ -2494,10 +2517,7 @@ class GuideWdg(Tkinter.Frame):
         imObj.currThresh = thresh
 
         if self.isDispObj(imObj):
-            with self.threshWdg._disableCallbacksContext():
-                if self.threshWdg.getIsCurrent():
-                    self.threshWdg.set(imObj.currThresh)
-                self.threshWdg.setDefault(imObj.defThresh)
+            self.setThreshWdg(imObj)
         
     def _exitHandler(self):
         """Delete all image files
@@ -2549,14 +2569,14 @@ if __name__ == "__main__":
     testFrame.wait_visibility() # must be visible to download images
     GuideTest.setParams(expTime=5, thresh=3, radMult=1, mode="field")
 
-#   GuideTest.runDownload(
-#       basePath = "dcam/UT060404/",
-#       imPrefix = "proc-d",
-#       startNum = 101,
-#       numImages = 2,
-#       waitMs = 2500,
-#   )
-#   testFrame.doChooseIm()
-#   testFrame.showFITSFile("/Users/rowen/test.fits")
+    GuideTest.runDownload(
+      basePath = "dcam/UT060404/",
+      imPrefix = "proc-d",
+      startNum = 101,
+      numImages = 2,
+      waitMs = 2500,
+    )
+    testFrame.doChooseIm()
+    testFrame.showFITSFile("/Users/rowen/test.fits")
 
     root.mainloop()
