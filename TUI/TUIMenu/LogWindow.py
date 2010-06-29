@@ -1,11 +1,13 @@
 #!/usr/bin/env python
-"""Specialized version of RO.Wdg.LogWdg that adds nice filtering
-and text highlighting.
+"""Specialized version of RO.Wdg.LogWdg that adds nice filtering and text highlighting.
 
 To do:
-- Use tcl to check regular expressions (instead of re.compile)
-  because tcl applies them. At least in most cases
-  (python applies Actors regular expressions).
+- Use automatic pink background for entry widgets to indicate if the value has been applied.
+
+Known Issues:
+- This log may hold more data than logSource (because it truncates excess data separately from logSource),
+  but that extra data is fragile: you will instantly lose it if you change the filter.
+- Uses Python to check highlighting regular expressions, even though tcl implements them.
 
 History:
 History:
@@ -39,7 +41,9 @@ History:
 2010-03-10 ROwen    Added WindowName
 2010-03-11 ROwen    Modified to use RO.Wdg.LogWdg 2010-11-11, which has severity support built in.
 2010-05-04 ROwen    Restored None to the filter severity menu (it was lost in the 2010-03-11 changes).
+2010-06-29 ROwen    Adopted multiple log support from STUI.
 """
+import bisect
 import re
 import time
 import Tkinter
@@ -56,13 +60,21 @@ HelpURL = "TUIMenu/LogWin.html"
 WindowName = "%s.Log" % (TUI.Version.ApplicationName,)
 
 def addWindow(tlSet):
-    tlSet.createToplevel(
-        name = WindowName,
-        defGeom = "603x413+430+280",
-        resizable = True,
-        visible = False,
-        wdgFunc = TUILogWdg,
-    )
+    xBase = 496
+    yBase = 534
+    xDelta = 20
+    yDelta = 20
+    for i in range(TUI.TUIModel.MaxLogWindows):
+        windowName = "%s %s" % (WindowName, i + 1)
+        xPos = xBase + i * xDelta
+        yPos = yBase + i * yDelta
+        tlSet.createToplevel(
+            name = windowName,
+            defGeom = "736x411+%d+%d" % (xPos, yPos),
+            resizable = True,
+            visible = (i == 0),
+            wdgFunc = TUILogWdg,
+        )
 
 FilterMenuPrefix = "+ "
 HighlightLineColor = "#bdffe0"
@@ -111,11 +123,17 @@ class TUILogWdg(Tkinter.Frame):
         Tkinter.Frame.__init__(self, master, **kargs)
 
         tuiModel = TUI.TUIModel.getModel()
-        tuiModel.dispatcher.setLogFunc(self.logMsg)
         self.dispatcher = tuiModel.dispatcher
-        self.filterRegExpInfo = None
+        self.logSource = tuiModel.logSource
         self.highlightRegExpInfo = None
         self.highlightTag = None
+        self.isConnected = False
+        # bool = filterFunc(logEntry): return True if logEntry matches current filter, False otherwise
+        self.filterFunc = lambda x: True
+        # highlightAllFunc(): clear existing highlighting and apply desired highlighting to all existing text
+        self.highlightAllFunc = lambda: None
+        # highlightLastFunc(): apply highlighting to last line of text and play sound if appropriate
+        self.highlightLastFunc = lambda: None
         
         row = 0
         
@@ -173,7 +191,7 @@ class TUILogWdg(Tkinter.Frame):
             self.filterFrame,
             items = ("",),
             defValue = "",
-            callFunc = self.doFilterActor,
+            callFunc = self.applyFilter,
             helpText = "show commands and replies for this actor",
             helpURL = HelpURL,
         )
@@ -182,7 +200,7 @@ class TUILogWdg(Tkinter.Frame):
         self.filterActorsWdg = RO.Wdg.StrEntry(
             self.filterFrame,
             width = 20,
-            doneFunc = self.doFilterActors,
+            doneFunc = self.applyFilter,
             helpText = "space-separated actors to show; . = any char; * = any chars",
             helpURL = HelpURL,
         )       
@@ -191,7 +209,7 @@ class TUILogWdg(Tkinter.Frame):
         self.filterCommandsWdg = RO.Wdg.StrEntry(
             self.filterFrame,
             width = 15,
-            doneFunc = self.doFilterCommands,
+            doneFunc = self.applyFilter,
             helpText = "space-separated command numbers to show; . = any char; * = any chars",
             helpURL = HelpURL,
         )       
@@ -200,7 +218,7 @@ class TUILogWdg(Tkinter.Frame):
         self.filterTextWdg = RO.Wdg.StrEntry(
             self.filterFrame,
             width = 15,
-            doneFunc = self.doFilterText,
+            doneFunc = self.applyFilter,
             helpText = "text (regular expression) to show",
             helpURL = HelpURL,
         )       
@@ -396,7 +414,7 @@ class TUILogWdg(Tkinter.Frame):
         cmdFrame.grid(row=5, column=0, columnspan=5, sticky="ew")
         
         hubModel = TUI.HubModel.getModel()
-        hubModel.actors.addCallback(self.updActors)
+        hubModel.actors.addCallback(self._actorsCallback)
         
         # dictionary of actor name, tag name pairs:
         # <actor-in-lowercase>: act_<actor-in-lowercase>
@@ -418,64 +436,63 @@ class TUILogWdg(Tkinter.Frame):
         
         # clear "Removing highlight" message from status bar
         self.statusBar.clear()
+        
+        self.bind("<Unmap>", self.mapOrUnmap)
+        self.bind("<Map>", self.mapOrUnmap)
 
-    def doShowNextHighlight(self, wdg=None):
-        self.logWdg.findTag(HighlightTag, backwards=False, doWrap=False)
-        
-    def doShowPrevHighlight(self, wdg=None):
-        self.logWdg.findTag(HighlightTag, backwards=True, doWrap=False)
-        
-    def addOutput(self, msgStr, tags=(), severity=RO.Constants.sevNormal):
-        """Log a message, prepending the current time.
-        """
-        # use this if fractional seconds wanted
-#       timeStr = datetime.datetime.utcnow().time().isoformat()[0:10]
-        # use this if integer seconds OK
-        timeStr = time.strftime("%H:%M:%S", time.gmtime())
-        outStr = " ".join((timeStr, msgStr))
-        #print "addOutput(%r, %r)" % (outStr, tags)
-        self.logWdg.addOutput(outStr, tags=tags, severity=severity)
-        if self.filterRegExpInfo or self.highlightRegExpInfo:
-            if self.filterRegExpInfo:
-                self.findRegExp(
-                    self.filterRegExpInfo,
-                    removeTags = False,
-                    elide = True,
-                    startInd = "end - 2 lines",
-                )
-            if self.highlightRegExpInfo:
-                nFound = self.findRegExp(
-                    self.highlightRegExpInfo,
-                    removeTags = False,
-                    startInd = "end - 2 lines",
-                )
-                if nFound > 0 and self.highlightPlaySoundWdg.getBool():
-                    TUI.PlaySound.logHighlightedText()
+    def appendLogEntry(self, logEntry):
+        outStr = logEntry.getStr()
+        self.logWdg.addOutput(outStr, tags=logEntry.tags, severity=logEntry.severity)
+        self.highlightLastFunc()
+        self.update_idletasks()
 
     def applyFilter(self, wdg=None):
         """Apply current filter settings.
         """
-        self.filterRegExpInfo = None
-        filterEnabled = self.filterOnOffWdg.getBool()
-        filterCat = self.filterMenu.getString()
-        filterCat = filterCat[len(FilterMenuPrefix):] # strip prefix
-        #print "applyFilter: filterEnabled=%r; filterCat=%r" % (filterEnabled, filterCat)
-
-        if not filterEnabled:
-            self.logWdg.showAllText()
+        if not self.isConnected:
+            return
+        try:
+            filterFunc, filterDescr = self.createFilterFunc()
             self.statusBar.setMsg(
-                "Showing all messages",
+                filterDescr,
                 isTemp = True,
             )
-            return
+        except Exception, e:
+            filterFunc = self.createSeverityFilterFunc()
+            self.statusBar.setMsg(
+                str(e),
+                severity = RO.Constants.sevError,
+                isTemp = True,
+            )
+            TUI.PlaySound.cmdFailed()
+        self.filterFunc = filterFunc
 
-        if filterCat:
-            func = getattr(self, "doFilter%s" % (filterCat,))
-            func()
-        else:
-            # just filter on severity
-            self.showSeverityOnly()
-    
+        retainScrollPos = not self.logWdg.isScrolledToEnd()
+        if retainScrollPos:
+            # "linestart" helps a problem wereby if the text widget has not been selected
+            # then the result is in the middle of a line; the resulting index when this problem occurs
+            # may not be perfect but it appears to be good enough
+            midLineIndex = self.logWdg.text.index("@0,%d linestart" % (self.logWdg.winfo_height() / 2))
+            midLineDateStr = self.logWdg.text.get(midLineIndex, "%s + 8 chars" % midLineIndex)
+#             print "retainScrollPos: midLineIndex=%s, midLineDateStr=%s" % (midLineIndex, midLineDateStr)
+            
+        self.logWdg.clearOutput()
+        # this is inefficient; logWdg does a lot of processing that is unnecessary
+        # when inserting a lot of lines at once; add an insertMany method to avoid this
+        strTagsSevList = [(logEntry.getStr(), logEntry.tags, logEntry.severity)
+            for logEntry in self.logSource.entryList if self.filterFunc(logEntry)]
+        self.logWdg.addOutputList(strTagsSevList)
+
+        if retainScrollPos:
+            strList = [strTagsSev[0] for strTagsSev in strTagsSevList]
+            ind = bisect.bisect(strList, midLineDateStr)
+            # indicate result in "lines from the end" so the reference is valid
+            # even if the data is truncated (as it often will be)
+            linesFromEnd = len(strList) - ind
+            self.logWdg.text.see("end - %d lines" % (linesFromEnd,))
+
+        self.highlightAllFunc()
+
     def clearHighlight(self, showMsg=True):
         """Remove all highlighting"""
         if showMsg:
@@ -485,6 +502,121 @@ class TUILogWdg(Tkinter.Frame):
             )
         self.logWdg.text.tag_remove(HighlightTag, "0.0", "end")
         self.logWdg.text.tag_remove(HighlightTextTag, "0.0", "end")
+
+    def compileRegExp(self, regExp, flags):
+        """Attempt to compile the regular expression.
+        Show error in status bar and return None if it fails.
+        """
+        try:
+            return re.compile(regExp, flags)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception:
+            self.statusBar.setMsg(
+                "%r is not a valid regular expression" % (regExp,),
+                severity = RO.Constants.sevError,
+                isTemp = True,
+            )
+        return None
+
+    def createSeverityFilterFunc(self):
+        """Return a function that tests a logEntry based on severity
+        """
+        sevName = self.severityMenu.getString().lower()
+        if sevName == "none":
+            def filterFunc(logEntry):
+                return False
+            return filterFunc
+        else:
+            minSeverity = RO.Constants.NameSevDict[sevName]
+            def filterFunc(logEntry, minSeverity=minSeverity):
+                return logEntry.severity >= minSeverity
+            return filterFunc
+
+    def createFilterFunc(self):
+        """Return a function that filters based on the current filter settings
+        
+        Return:
+        - filter function
+        - description
+        """
+        filterEnabled = self.filterOnOffWdg.getBool()
+        filterCat = self.filterMenu.getString()
+        filterCat = filterCat[len(FilterMenuPrefix):] # strip prefix
+        #print "applyFilter: filterEnabled=%r; filterCat=%r" % (filterEnabled, filterCat)
+
+        if not filterEnabled:
+            def filterFunc(logEntry):
+                return True
+            return filterFunc, "Showing all messages"
+
+        sevFunc = self.createSeverityFilterFunc()
+        sevFuncDescr = self.getFilterSeverityDescr()
+
+        if not filterCat:
+            return sevFunc, sevFuncDescr
+
+        elif filterCat == "Actor":
+            actor = self.filterActorWdg.getString().lower()
+            if not actor:
+                return sevFunc, sevFuncDescr
+            def filterFunc(logEntry, actor=actor, sevFunc=sevFunc):
+                return sevFunc(logEntry) or logEntry.actor == actor
+            return filterFunc, "%s and actor=%s" % (sevFuncDescr, actor)
+
+        elif filterCat == "Actors":
+            regExpList = self.filterActorsWdg.getString().split()
+            if not regExpList:
+                return sevFunc, sevFuncDescr
+            actorList = self.getActors(regExpList)
+
+            def filterFunc(logEntry, actorList=actorList, sevFunc=sevFunc):
+                return sevFunc(logEntry) or logEntry.actor in actorList
+            return filterFunc, "%s and actor in %s" % (sevFuncDescr, actorList)
+
+        elif filterCat == "Commands":
+            cmdWdgStr = self.filterCommandsWdg.getString().replace(",", " ")
+            cmdList = cmdWdgStr.split()
+            if not cmdList:
+                return sevFunc, sevFuncDescr
+            
+            # create a regular expression;
+            # it must show both outgoing commands: cmdNum
+            # and replies: cmdr cmdNum
+            # where cmdr is my commander ID, so only replies to my commands are matched
+            orCmds = "|".join(["(%s)" % (cmd,) for cmd in cmdList])
+            
+            cmdr = self.dispatcher.connection.getCmdr()
+            
+            regExp = r"^(%s +)?(%s) " % (cmdr, orCmds)
+            try:
+                compiledRegExp = re.compile(regExp, re.I)
+            except Exception:
+                raise RuntimeError("Invalid command list %s" % (" ".join(cmdList)))
+            
+            if len(cmdList) == 1:
+                cmdDescr = "command"
+            else:
+                cmdDescr = "commands"
+            def filterFunc(logEntry, compiledRegExp=compiledRegExp, sevFunc=sevFunc):
+                return sevFunc(logEntry) or compiledRegExp.match(logEntry.msgStr)
+            return filterFunc, "%s and %s %s" % (sevFuncDescr, cmdDescr, " ".join(cmdList))
+                
+        elif filterCat == "Text":
+            regExp = self.filterTextWdg.getString()
+            if not regExp:
+                return sevFunc, sevFuncDescr
+                
+            try:
+                compiledRegEx = re.compile(regExp, re.I)
+            except Exception:
+                raise RuntimeError("Invalid regular expression %r" % (regExp,))
+            def filterFunc(logEntry, compiledRegEx=compiledRegEx, sevFunc=sevFunc):
+                return sevFunc(logEntry) or compiledRegEx.search(logEntry.msgStr)
+            return filterFunc, "%s and text contains %s" % (sevFuncDescr, regExp)
+
+        else:
+            raise RuntimeError("Bug: unknown filter category %s" % (filterCat,))
         
     def dispatchCmd(self, actorCmdStr):
         """Executes a command (if a dispatcher was specified).
@@ -520,24 +652,12 @@ class TUILogWdg(Tkinter.Frame):
         except (SystemExit, KeyboardInterrupt):
             raise
         except Exception, e:
-            self.logMsg("Text=%r" % (RO.StringUtil.strFromException(e),), severity=RO.Constants.sevError, actor=actor)
-            TUI.PlaySound.cmdFailed()
-
-    def compileRegExp(self, regExp, flags):
-        """Attempt to compile the regular expression.
-        Show error in status bar and return None if it fails.
-        """
-        try:
-            return re.compile(regExp, flags)
-        except (KeyboardInterrupt, SystemExit):
-            raise
-        except Exception:
             self.statusBar.setMsg(
-                "%r is not a valid regular expression" % (regExp,),
+                RO.StringUtil.strFromException(e),
                 severity = RO.Constants.sevError,
                 isTemp = True,
             )
-        return None
+            TUI.PlaySound.cmdFailed()
 
     def doCmd(self, cmdStr):
         """Handle commands typed into the command bar.
@@ -551,32 +671,6 @@ class TUILogWdg(Tkinter.Frame):
             return
         self.cmdWdg.set(defActor + " ")
         self.cmdWdg.icursor("end")
-    
-    def doSearchBackwards(self, evt=None):
-        """Search backwards for search string"""
-        searchStr = self.findEntry.get()
-        self.logWdg.search(searchStr, backwards=True, noCase=True, regExp=True)
-    
-    def doSearchForwards(self, evt=None):
-        """Search backwards for search string"""
-        searchStr = self.findEntry.get()
-        self.logWdg.search(searchStr, backwards=False, noCase=True, regExp=True)
-    
-    def doShowHideAdvanced(self, wdg=None):
-        if self.highlightOnOffWdg.getBool():
-            self.highlightFrame.grid()
-            self.doHighlight()
-        else:
-            self.highlightFrame.grid_remove()
-            self.doHighlight()
-            
-    def doFilterOnOff(self, wdg=None):
-        doFilter = self.filterOnOffWdg.getBool()
-        if doFilter:
-            self.filterFrame.grid()
-        else:
-            self.filterFrame.grid_remove()
-        self.doFilter()
 
     def doDefActor(self, wdg=None):
         """Handle default actor menu."""
@@ -598,7 +692,7 @@ class TUILogWdg(Tkinter.Frame):
         self.cmdWdg.focus_set()
     
     def doFilter(self, wdg=None):
-        """Show appropriate highlight widgets and apply appropriate function
+        """Show appropriate filter widgets and compute and apply the filter function
         """
         filterCat = self.filterMenu.getString()
         filterCat = filterCat[len(FilterMenuPrefix):] # strip prefix
@@ -612,103 +706,20 @@ class TUILogWdg(Tkinter.Frame):
                 wdg.grid_remove()
         
         self.applyFilter()
-    
-    def doFilterActor(self, wdg=None):
-        self.showSeverityOnly()
-        actor = self.filterActorWdg.getString().lower()
-        if not actor:
-            return
-        self.showSeverityAndActors([actor])
-    
-    def doFilterActors(self, wdg=None):
-        self.showSeverityOnly()
-        regExpList = self.filterActorsWdg.getString().split()
-        if not regExpList:
-            return
-        try:
-            actors = self.getActors(regExpList)
-        except RuntimeError, e:
-            self.statusBar.setMsg(RO.StringUtil.strFromException(e), severity = RO.Constants.sevError, isTemp = True)
-            TUI.PlaySound.cmdFailed()
-            return
             
-        self.showSeverityAndActors(actors)
-    
-    def doFilterCommands(self, wdg=None):
-        """Show log entries for the specified command or commands sent by this TUI
-        """
-        self.showSeverityOnly()
-        # get the user-typed list of commands and turn commas into spaces
-        # to handle commands separated with commas and/or whitespace
-        cmdWdgStr = self.filterCommandsWdg.getString().replace(",", " ")
-        cmds = cmdWdgStr.split()
-        if not cmds:
-            return
-        
-        # create regular expression
-        # it must include my username so only my commands are shown
-        # it must show both outgoing commands: UTCDate username cmdNum
-        # and replies: UTCDate cmdNum
-        orCmds = "|".join(["(%s)" % (cmd,) for cmd in cmds])
-        
-        cmdr = self.dispatcher.connection.getCmdr()
-        
-        regExp = r"^\d\d:\d\d:\d\d( +%s)? +(%s) " % (cmdr, orCmds)
-        try:
-            regExpInfo = RegExpInfo(regExp, None, ShowTag)
-        except RuntimeError:
-            self.showSeverityOnly()
-            self.statusBar.setMsg(
-                "Invalid command list %s" % (" ".join(cmds)),
-                severity = RO.Constants.sevError,
-                isTemp = True,
-            )
-            TUI.PlaySound.cmdFailed()
-            return
-        
-        if len(cmds) == 1:
-            cmdDescr = "command"
+    def doFilterOnOff(self, wdg=None):
+        doFilter = self.filterOnOffWdg.getBool()
+        if doFilter:
+            self.filterFrame.grid()
         else:
-            cmdDescr = "commands"
-        self.statusBar.setMsg(
-            "Showing %s %s %s" % (self.getFilterSeverityDescr(), cmdDescr, " ".join(cmds)),
-            isTemp = True,
-        )
-        self.filterRegExpInfo = regExpInfo
-        self.findRegExp(self.filterRegExpInfo, elide=True)
-        self.showSeverityAndTags([ShowTag])
+            self.filterFrame.grid_remove()
+        self.doFilter()
     
-    def doFilterText(self, wdg=None):
-        """Show log entries that match the specified regular expression
-        """
-        self.showSeverityOnly()
-        regExp = self.filterTextWdg.getString()
-        if not regExp:
-            return
-            
-        try:
-            regExpInfo = RegExpInfo(regExp, None, ShowTag)
-        except RuntimeError:
-            self.statusBar.setMsg(
-                "Invalid regular expression %r" % (regExp,),
-                severity = RO.Constants.sevError,
-                isTemp = True,
-            )
-            TUI.PlaySound.cmdFailed()
-            return
-        
-        self.statusBar.setMsg(
-            "Showing %s text %r" % (self.getFilterSeverityDescr(), regExp),
-            isTemp = True,
-        )
-        self.filterRegExpInfo = regExpInfo
-        self.findRegExp(self.filterRegExpInfo, elide=True)
-        self.showSeverityAndTags([ShowTag])
-
     def doHighlight(self, wdg=None):
         """Show appropriate highlight widgets and apply appropriate function
         """
-        self.highlightRegExpInfo = None
+        self.highlightAllFunc = lambda: None
+        self.highlightLastFunc = lambda: None
         highlightCat = self.highlightMenu.getString()
         highlightEnabled = self.highlightOnOffWdg.getBool()
         #print "doHighlight; cat=%r; enabled=%r" % (highlightCat, highlightEnabled)
@@ -728,14 +739,12 @@ class TUILogWdg(Tkinter.Frame):
             self.clearHighlight()
         
     def doHighlightActor(self, wdg=None):
-        self.clearHighlight()
         actor = self.highlightActorWdg.getString().lower()
         if not actor:
             return
         self.highlightActors([actor])
     
     def doHighlightActors(self, wdg=None):
-        self.clearHighlight()
         regExpList = self.highlightActorsWdg.getString().split()
         if not regExpList:
             return
@@ -785,8 +794,8 @@ class TUILogWdg(Tkinter.Frame):
                 "Highlighting commands %s" % (" ".join(cmds),),
                 isTemp = True,
             )
-        self.highlightRegExpInfo = regExpInfo
-        self.findRegExp(self.highlightRegExpInfo, removeTags=False)
+
+        self.highlightRegExp(regExpInfo)
     
     def doHighlightText(self, wdg=None):
         self.clearHighlight()
@@ -809,9 +818,36 @@ class TUILogWdg(Tkinter.Frame):
             "Highlighting text %r" % (regExp,),
             isTemp = True,
         )
-        self.highlightRegExpInfo = regExpInfo
-        self.findRegExp(self.highlightRegExpInfo, removeTags=False)
+        self.highlightRegExp(regExpInfo)
+
+    def doPlayHighlightSound(self):
+        """Return True if the highlight sound is enabled and the window is visible"""
+        return self.highlightPlaySoundWdg.getBool() and self.winfo_ismapped()
     
+    def doSearchBackwards(self, evt=None):
+        """Search backwards for search string"""
+        searchStr = self.findEntry.get()
+        self.logWdg.search(searchStr, backwards=True, noCase=True, regExp=True)
+    
+    def doSearchForwards(self, evt=None):
+        """Search backwards for search string"""
+        searchStr = self.findEntry.get()
+        self.logWdg.search(searchStr, backwards=False, noCase=True, regExp=True)
+    
+    def doShowHideAdvanced(self, wdg=None):
+        if self.highlightOnOffWdg.getBool():
+            self.highlightFrame.grid()
+            self.doHighlight()
+        else:
+            self.highlightFrame.grid_remove()
+            self.doHighlight()
+
+    def doShowNextHighlight(self, wdg=None):
+        self.logWdg.findTag(HighlightTag, backwards=False, doWrap=False)
+        
+    def doShowPrevHighlight(self, wdg=None):
+        self.logWdg.findTag(HighlightTag, backwards=True, doWrap=False)
+
     def findRegExp(self, regExpInfo, removeTags=True, elide=False, startInd="1.0"):
         """Find and tag all lines containing text that matches regExp.
         
@@ -879,13 +915,13 @@ class TUILogWdg(Tkinter.Frame):
         Inputs:
         - appendAnd: append "and" if severity is not None
         """
-        sev = self.severityMenu.getString().lower()
-        if sev == "none":
+        sevName = self.severityMenu.getString().lower()
+        if sevName == "none":
             return ""
         elif appendAnd:
-            return "severity >= %s and" % (sev,)
+            return "severity >= %s and" % (sevName,)
         else:
-            return "severity >= %s" % (sev,)
+            return "severity >= %s" % (sevName,)
 
     def getSeverityTags(self):
         """Return a list of severity tags that should be displayed
@@ -898,10 +934,8 @@ class TUILogWdg(Tkinter.Frame):
             return self.logWdg.getSeverityTags(RO.Constants.NameSevDict[sevName])
         
     def highlightActors(self, actors):
-        """Highlight text for the specified actors.
-        If actors is not empty then a nice message is output.
-        
-        Warning: does not clear existing highlight.
+        """Create highlight functions to highlight the supplied actors
+        and apply highlighting to all existing text.
         """
         if len(actors) == 1:
             self.statusBar.setMsg(
@@ -915,94 +949,80 @@ class TUILogWdg(Tkinter.Frame):
             )
         
         tags = [ActorTagPrefix + actor.lower() for actor in actors]
-        for tag in tags:
-            tagRanges = self.logWdg.text.tag_ranges(tag)
-            if len(tagRanges) > 1:
-                self.logWdg.text.tag_add(HighlightTag, *tagRanges)
 
-    def logMsg (self,
-        msgStr,
-        severity=RO.Constants.sevNormal,
-        actor = TUI.Version.ApplicationName,
-        cmdr = None,
-    ):
-        """Writes a message to the log.
+        def highlightAllFunc(tags=tags):
+            self.clearHighlight()
+            for tag in tags:
+                tagRanges = self.logWdg.text.tag_ranges(tag)
+                if len(tagRanges) > 1:
+                    self.logWdg.text.tag_add(HighlightTag, *tagRanges)
+
+        def highlightLastFunc(tags=tags):
+            for tag in tags:
+                tagRanges = self.logWdg.text.tag_prevrange(tag, "end")
+                if tagRanges:
+                    self.logWdg.text.tag_add(HighlightTag, *tagRanges)
+                    if self.doPlayHighlightSound():
+                        TUI.PlaySound.logHighlightedText()
+                    return # no need to test more tags and must not play the sound again
+
+        self.highlightAllFunc = highlightAllFunc
+        self.highlightLastFunc = highlightLastFunc
+        self.highlightAllFunc()
+
+    def highlightRegExp(self, regExpInfo):
+        """Create highlight functions based on a RegExpInfo object
+        and apply highlighting to all existing text.
+        """
+        def highlightAllFunc(regExpInfo=regExpInfo):
+            self.clearHighlight()
+            self.findRegExp(regExpInfo, removeTags=False)
+
+        def highlightLastFunc(regExpInfo=regExpInfo):
+            nFound = self.findRegExp(regExpInfo, removeTags = False, startInd = "end - 2 lines")
+            if nFound > 0 and self.doPlayHighlightSound():
+                TUI.PlaySound.logHighlightedText()
+
+        self.highlightAllFunc = highlightAllFunc
+        self.highlightLastFunc = highlightLastFunc
+        self.highlightAllFunc()
+
+    def logSourceCallback(self, logSource):
+        """Log a message from the log source
         
         Inputs:
-        - msgStr: message to display; a final \n is appended
-        - severity: message severity (an RO.Constants.sevX constant)
-        - actor: name of actor; defaults to TUI
-        - cmdr: commander; defaults to self
+        - logEntry: a TUI.Models.LogSource.LogEntry object
         """
-        # demote normal messages from debug actors to debug severity
-        if actor == "cmds" and severity == RO.Constants.sevNormal:
-            severity = RO.Constants.sevDebug
-
-        tags = []
-        if cmdr == None:
-            cmdr = self.dispatcher.connection.getCmdr()
-        if cmdr:
-            tags.append(CmdrTagPrefix + cmdr.lower())
-        if actor:
-            if actor.startswith("keys."):
-                # tag keys.<actor> with the tag for <actor>
-                actor = actor[5:]
-            tags.append(ActorTagPrefix + actor.lower())
-        
-        self.addOutput(msgStr + "\n", tags=tags, severity=severity)
-    
-    def showSeverityAndActors(self, actors):
-        """Show all messages of of the appropriate severity
-        plus all messages to or from the appropriate actors.
-        
-        Prints a message to the status bar.
-        """
-        if not actors:
-            self.showSeverityOnly()
+        logEntry = logSource.lastEntry
+        if not logEntry:
             return
+        if self.filterFunc(logEntry):
+            self.appendLogEntry(logEntry)
 
-        actorTags = []
-        for actor in actors:
-            actorTags.append(self.actorDict[actor])
+    def mapOrUnmap(self, evt=None):
+        """Called when the window is mapped or unmapped
         
-        if len(actors) == 1:
-            actorDescr = "actor"
-        else:
-            actorDescr = "actors"
-        self.statusBar.setMsg(
-            "Showing %s %s %s" % (self.getFilterSeverityDescr(), actorDescr, " ".join(actors)),
-            isTemp = True,
-        )
-        self.showSeverityAndTags(actorTags)
+        If withdrawing instead of iconifying then disconnect
+        """
+        wantConnection = self.winfo_toplevel().wm_state() != "withdrawn"
+#        print "mapOrUnmap: wantConnect=%s; isConnected=%s" % (wantConnection, self.isConnected)
+        if self.isConnected and not wantConnection:
+            self.logSource.removeCallback(self.logSourceCallback)
+            self.isConnected=False
+            self.logWdg.clearOutput()
+        elif wantConnection and not self.isConnected:
+            self.logSource.addCallback(self.logSourceCallback)
+            self.isConnected=True
+            self.applyFilter()
     
-    def showSeverityOnly(self):
-        """Show all messages of of the appropriate severity.
+    def updHighlightColor(self, newColor, colorPrefVar=None):
+        """Update highlight color and highlight line color"""
 
-        Prints a message to the status bar.
-        """
-        sev = self.severityMenu.getString().lower()
-        if sev == "none":
-            self.statusBar.setMsg(
-                "Showing no messages!",
-                severity = RO.Constants.sevWarning,
-                isTemp = True,
-            )
-        else:
-            self.statusBar.setMsg(
-                "Showing %s" % (self.getFilterSeverityDescr(appendAnd=False),),
-                isTemp = True,
-            )
-        self.logWdg.showTagsOr(self.getSeverityTags())
-    
-    def showSeverityAndTags(self, tags):
-        """Show all messages of of the appropriate severity
-        plus all messages tagged with the specified tags.
-        """
-        #print "showSeverityAndTags(%r)" % (tags,)
-        allTags = tuple(tags) + tuple(self.getSeverityTags())
-        self.logWdg.showTagsOr(allTags)
-    
-    def updActors(self, actors, isCurrent, keyVar=None):
+        newTextColor = RO.TkUtil.addColors((newColor, HighlightColorScale))
+        self.logWdg.text.tag_configure(HighlightTag, background=newColor)
+        self.logWdg.text.tag_configure(HighlightTextTag, background=newTextColor)
+
+    def _actorsCallback(self, actors, isCurrent, keyVar=None):
         """Actor keyword callback.
         """
         if not actors:
@@ -1013,18 +1033,10 @@ class TUILogWdg(Tkinter.Frame):
         sortedActors = sorted(list(newActors | currActors))
 
         self.actorDict = dict((actor, "act_" + actor) for actor in sortedActors)
-        
-        blankAndActors = [""] + actors
+        blankAndActors = [""] + sortedActors
         self.defActorWdg.setItems(blankAndActors, isCurrent = isCurrent)
         self.filterActorWdg.setItems(blankAndActors, isCurrent = isCurrent)
         self.highlightActorWdg.setItems(blankAndActors, isCurrent = isCurrent)
-    
-    def updHighlightColor(self, newColor, colorPrefVar=None):
-        """Update highlight color and highlight line color"""
-
-        newTextColor = RO.TkUtil.addColors((newColor, HighlightColorScale))
-        self.logWdg.text.tag_configure(HighlightTag, background=newColor)
-        self.logWdg.text.tag_configure(HighlightTextTag, background=newTextColor)
 
     def _cmdCallback(self, msgType, msgDict, cmdVar):
         """Command callback; called when a command finishes.
@@ -1037,8 +1049,8 @@ class TUILogWdg(Tkinter.Frame):
     def __del__ (self, *args):
         """Going away; remove myself as the dispatcher's logger.
         """
-        self.dispatcher.setLogMsg()
-    
+        self.logSource.removeCallback(self.logSourceCallback)
+
 
 if __name__ == '__main__':
     import sys
@@ -1066,6 +1078,6 @@ if __name__ == '__main__':
         actor = random.choice(actors)
         severity = random.choice((RO.Constants.sevDebug, RO.Constants.sevNormal, \
             RO.Constants.sevWarning, RO.Constants.sevError))
-        testFrame.logMsg("%s sample entry %s" % (actor, ii), actor=actor, severity=severity)
+        tuiModel.logMsg("%s sample entry %s" % (actor, ii), severity=severity)
     
     root.mainloop()
