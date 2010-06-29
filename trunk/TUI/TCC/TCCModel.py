@@ -45,6 +45,7 @@ or register ROWdg widgets to automatically display updating values.
 2008-02-01 ROwen    Fixed rotType; it was always set to None due to an error in _cnvRotType.
 2008-03-25 ROwen    Removed obsolete gcFocus; get gmech focus from the gmech actor.
 2010-03-04 ROwen    Added moveItems.
+2010-06-28 ROwen    Removed unused _RotTypeDict (thanks to pychecker).
 """
 import RO.CnvUtil
 import RO.CoordSys
@@ -52,16 +53,6 @@ import RO.KeyVariable
 import TUI.TUIModel
 
 _theModel = None
-
-# Translation between names used in TCC keyword RotType to the longer names used locally.
-# Please lowercase the key before lookup.
-_RotTypeDict = dict(
-    obj = 'Object',
-    horiz = 'Horizon',
-    phys = 'Physical',
-    mount = 'Mount',
-    none ='None',
-)
 
 def getModel():
     global _theModel

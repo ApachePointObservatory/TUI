@@ -44,8 +44,9 @@ History:
 2010-03-10 ROwen    getLoginExtras returns more useful info on Mac.
                     Changed TUI to Version.ApplicationName in various places.
 2010-03-18 ROwen    Moved _getGeomFile to TUI.TUIPaths.getGeomFile.
+2010-06-29 ROwen    Added logSource field and MaxLogWindows global from STUI.
+                    Removed one unused import.
 """
-import os
 import platform
 import sys
 import traceback
@@ -60,6 +61,9 @@ import Tkinter
 import TUI.TUIPaths
 import TUI.TUIPrefs
 import TUI.Version
+import LogSource
+
+MaxLogWindows = 5
 
 _theModel = None
 
@@ -93,9 +97,13 @@ class _Model (object):
             tkWdg = self.tkRoot,
             connection = connection,
         )
-        
+
+        # log source
+        self.logSource = LogSource.LogSource(self.dispatcher)
         if testMode:
-            self.dispatcher.setLogFunc(RO.KeyDispatcher.logToStdOut)
+            def logToStdOut(logEntry):
+                print str(logEntry)
+            self.logSource.addCallback(logToStdOut)
     
         # TUI preferences
         self.prefs = prefs = TUI.TUIPrefs.TUIPrefs()
