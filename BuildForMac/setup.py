@@ -48,6 +48,7 @@ History:
                     Other tweaks to better support not including the Tcl/Tk Framework.
 2009-10-22 ROwen    Removed installation of snack (now that TUI uses pygame to play sounds).
 2009-11-09 ROwen    Modified to get application name from TUI.Version.
+2010-07-02 ROwen    Removed email.Utils from required modules (it causes trouble for modern builds).
 """
 import os
 import platform
@@ -76,7 +77,7 @@ fullVersStr = TUI.Version.VersionStr
 shortVersStr = fullVersStr.split(None, 1)[0]
 
 inclModules = (
-    "email.Utils", # needed for Python 2.5
+#    "email.Utils", # needed for Python 2.5
     "FileDialog",
 )
 # packages to include recursively
