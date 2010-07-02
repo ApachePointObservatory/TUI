@@ -9,6 +9,7 @@ History:
 2007-01-16 ROwen    Added commented-out code to print a traceback if file read fails.
 2007-01-30 ROwen    Was not caching FITS header info (despite code to do this).
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
+2010-07-02 ROwen    Added support for Keep Guide Images preference.
 """
 import os
 import pyfits
@@ -16,6 +17,7 @@ import sys
 import traceback
 import RO.StringUtil
 import TUI.HubModel
+import TUI.TUIModel
 import SubFrame
 
 _DebugMem = False # print a message when a file is deleted from disk?
@@ -57,6 +59,7 @@ class BasicImage(object):
         self.errMsg = None
         self.fetchCallFunc = fetchCallFunc
         self.isLocal = isLocal
+        self.keepGuideImagesPref = TUI.TUIModel.getModel().prefs.getPrefVar("Keep Guide Images")
         if not self.isLocal:
             self.state = self.Ready
         else:
@@ -77,24 +80,31 @@ class BasicImage(object):
         return self.state in self.ErrorStates
     
     def expire(self):
-        """Delete the file from disk and set state to expired.
+        """Set state to expired and delete the file from disk if wanted
+        
+        Ignored if file is local or state != Downloaded
+        
+        The image file is deleted only if "Keep Guide Images" preference is False
+        and the file can be found.
         """
         if self.isLocal:
             if _DebugMem:
                 print "Would delete %r, but is local" % (self.imageName,)
             return
         if self.state == self.Downloaded:
-            # don't use _setState because no callback wanted
-            # and _setState ignored new states once done
+            # don't use _setState because no callback wanted and _setState rejects new states once done
             self.state = self.Expired
-            if os.path.exists(self.localPath):
-                if _DebugMem:
-                    print "Deleting %r" % (self.localPath,)
-                os.remove(self.localPath)
+            if not self.keepGuideImagesPref.getValue():
+                if os.path.exists(self.localPath):
+                    if _DebugMem:
+                        print "Deleting %r" % (self.localPath,)
+                    os.remove(self.localPath)
+                elif _DebugMem:
+                    print "Would delete %r, but not found on disk" % (self.imageName,)
             elif _DebugMem:
-                print "Would delete %r, but not found on disk" % (self.imageName,)
+                print "Would delete %r, but Keep Guide Images preference is True" % (self.imageName,)
         elif _DebugMem:
-            print "Would delete %r, but state = %r is not 'downloaded'" % (self.imageName, self.state,)
+            print "Would delete %r, but state = %r is not %r" % (self.imageName, self.state, self.Downloaded)
 
     def fetchFile(self):
         """Start downloading the file."""

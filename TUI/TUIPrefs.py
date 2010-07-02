@@ -43,6 +43,7 @@ History:
 2009-11-09 ROwen    Added Play Sounds preference.
                     Changed name of preferences file from TUIPrefs to <ApplicationName>Prefs.
 2010-03-18 ROwen    Moved _getPrefsFile to TUI.TUIPaths.getPrefsFile.
+2010-07-02 ROwen    Added "Keep Guide Images" preference.
 """
 #import pychecker.checker
 import os
@@ -142,6 +143,13 @@ class TUIPrefs(PrefVar.PrefSet):
                 callFunc = setUMask,
             	helpText = "umask for saved images and other files",
             	helpURL = _ExposuresHelpURL,
+            ),
+            PrefVar.BoolPrefVar(
+                name = "Keep Guide Images",
+                category = "Exposures",
+                defValue = False,
+                helpText = "Keep guide images? (eats disk space!)",
+                helpURL = _ExposuresHelpURL,
             ),
 
             PrefVar.FontPrefVar(
