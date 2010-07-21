@@ -42,6 +42,7 @@ History:
 2009-09-10 ROwen    Modified to use TCC.StatusWdg.StatusWindow.WindowName for the status window name.
 2010-06-29 ROwen    List log windows in a sub menu (copied from STUI).
                     Replace all instances of the string TUI with TUI.Version.ApplicationName.
+2010-07-20 ROwen    Bug fix: doRefresh was broken due to sending an obsolete keyword to refreshAllVar.
 """
 import Tkinter
 import RO.Alg
@@ -239,7 +240,7 @@ class MenuBar(object):
     def doRefresh(self):
         """Refresh all automatic variables.
         """
-        self.tuiModel.dispatcher.refreshAllVar(startOver=True)
+        self.tuiModel.dispatcher.refreshAllVar(resetAll=True)
 
     def doSaveWindowPos(self):
         self.tlSet.writeGeomVisFile()

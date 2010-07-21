@@ -20,34 +20,104 @@ History:
                     Modified to not test the clock unless UTCMinusTAI set
                     (but TUI now gets that using getKeys so it normally will
                     see UTCMinusTAI before it sees the current TAI).
+2010-07-21 ROwen    Added support for detecting sleep and failed connections.
 """
 import sys
+import time
 import RO.CnvUtil
 import RO.Constants
 import RO.PhysConst
 import RO.Astro.Tm
 import RO.KeyVariable
+import RO.TkUtil
+import TUI.PlaySound
 import TUI.TUIModel
 import TUI.TCC.TCCModel
 
 class BackgroundKwds(object):
-    """Processes various keywords that are handled in the background"""
+    """Processes various keywords that are handled in the background.
+    
+    Also verify that we're getting data from the hub (also detects computer sleep)
+    and try to refresh variables if there is a problem.
+    """
     def __init__(self,
-        maxTimeErr = 10.0,  # max clock error (sec) before a warning is printed
+        maxTimeErr = 10.0,
+        checkConnInterval = 5.0,
+        maxEntryAge = 60.0,
     ):
+        """Create BackgroundKwds
+        
+        Inputs:
+        - maxTimeErr: maximum clock error (sec) before a warning is printed
+        - checkConnInterval: interval (sec) at which to check connection
+        - maxEntryAge: maximum age of log entry (sec)
+        """
+        self.maxTimeErr = float(maxTimeErr)
+        self.checkConnInterval = float(checkConnInterval)
+        self.maxEntryAge = float(maxEntryAge)
+
         self.tuiModel = TUI.TUIModel.getModel()
         self.tccModel = TUI.TCC.TCCModel.getModel()
+        self.connection = self.tuiModel.getConnection()
+        self.dispatcher = self.tuiModel.dispatcher
         self.didSetUTCMinusTAI = False
-
-        self.maxTimeErr = maxTimeErr
+        self.checkConnTimer = RO.TkUtil.Timer()
 
         self.tccModel.utcMinusTAI.addCallback(self.setUTCMinusTAI, callNow=False)
-        
         self.tccModel.tai.addCallback(self.checkTAI, callNow=False)
+    
+        self.connection.addStateCallback(self.connCallback, callNow=True)
+
+    def connCallback(self, conn):
+        """Called when connection changes state
+
+        When connected check the connection regularly,
+        when not, don't
+        """
+        if conn.isConnected():
+            self.checkConnTimer.start(self.checkConnInterval, self.checkConnection)
+        else:
+            self.checkConnTimer.cancel()
+    
+    def checkConnection(self):
+        """Check for aliveness of connection by looking at the time of the last hub message
+        """
+        doQueue = True
+        try:
+            entryAge = time.time() - self.dispatcher.readUnixTime
+            if entryAge > self.maxEntryAge:
+                self.tuiModel.logMsg(
+                    "No data seen in %s seconds; testing the connection" % (self.checkConnInterval,),
+                    severity = RO.Constants.sevWarning)
+                cmdVar = RO.KeyVariable.CmdVar(
+                    actor = "hub",
+                    cmdStr = "version",
+                    timeLim = 5.0,
+                    dispatcher = self.dispatcher,
+                    callFunc=self.checkCmdCallback,
+                )
+                doQueue = False
+        finally:
+            if doQueue:
+                self.checkConnTimer.start(self.checkConnInterval, self.checkConnection)
+
+    def checkCmdCallback(self, msgType, msgDict, cmdVar):
+        if not cmdVar.isDone():
+            return
+        doQueue = True
+        try:
+            if cmdVar.didFail():
+                self.connection.disconnect(isOK = False, reason="Connection is dead")
+                doQueue = False
+                TUI.PlaySound.cmdFailed()
+            else:
+                self.dispatcher.refreshAllVar()
+        finally:
+            if doQueue:
+                self.checkConnTimer.start(self.checkConnInterval, self.checkConnection)
         
     def setUTCMinusTAI(self, valueList, isCurrent=1, keyVar=None):
-        """Updates azimuth, altitude, zenith distance and airmass
-        valueList values are: az, alt, rot
+        """Updates UTC-TAI in RO.Astro.Tm
         """
         if isCurrent and valueList[0] != None:
             RO.Astro.Tm.setUTCMinusTAI(valueList[0])

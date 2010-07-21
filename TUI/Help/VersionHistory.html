@@ -15,6 +15,22 @@
 	<li>Windows: 1.7.1 is available for Windows 7, Vista and XP. I have not been able to generate newer versions because something broke in the build process and I've not had time to debug it.
 </ul>
 
+<h3>Warning to Unix Users</h3>
+
+<p>As of TUI 1.7.3, Python 2.5 or later is required (but not 3.x).
+
+<h3>1.8.0-post 2010-07-20</h3>
+
+<p>Visible changes:
+<ul>
+    <li>If you lose your connection or put your computer to sleep for long enough, TUI will test the connection and, if good, will attempt to refresh the data.
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li>The Refresh Display command was broken.
+</ul>
+
 <h3>1.8.0 2010-07-12</h3>
 
 <p>Visible changes:
@@ -51,6 +67,7 @@
 <ul>
     <li>Re-added None to the Log window's severity filter menu
     <li>Windows are displayed within the visible screen area, even if the saved positions is not (as can easily happen if you sometimes connect a laptop to an external monitor). The code assumes your visible screen is a rectangle, so it can be fooled by strange screen arrangements.
+    <li>The unix version requires Python 2.5 or later (but not 3.x).
 </ul>
 
 <p>Bug fixes:
