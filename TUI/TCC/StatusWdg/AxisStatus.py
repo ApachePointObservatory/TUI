@@ -50,6 +50,7 @@ History:
                     Updated bit assignments to match new axis controllers.
                     Bug fix: soft position limit bits were swapped.
 2009-10-09 ROwen    Changed bit 14 description from "Servo error..." to "Motion error...".
+2010-08-26 ROwen    Added new warning bit: slip detected.
 """
 import time
 import Tkinter
@@ -95,6 +96,7 @@ WarningBits = (
     ( 4, "Velocity limited"), # ?
     ( 5, "Acceleration limited"), # ?
     (29, "Motor velocity too large"),
+    (15, "Slip detected"),
     (30, "Controller restarted"),
 )
 
