@@ -11,6 +11,9 @@ History:
 2009-06-24 ROwen    Added filter widget.
 2009-07-02 ROwen    Modified for updated TestData.
 2009-07-10 ROwen    Modified for updated TestData.
+2010-09-20 ROwen    Modified Abort and Stop to command agile directly instead of going through agileExpose;
+                    this works around a bug in agileExpose whereby it goes catatonic when it receives
+                    stop or abort.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
@@ -84,6 +87,26 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
             return
         cmdStr += " gain=%s readrate=%s" % (self.gainWdg.getString().lower(), self.readRateWdg.getString().lower())
         return cmdStr
+
+    def doStop(self, wdg):
+        """Handles the Stop and Abort buttons (and Pause and Resume if agile supported those).
+        
+        This method overrides the default behavior by sending the command directly to agile
+        (instead of agileExpose) because sending abort or stop to agileExpose causes it to go catatonic.
+        Fortunately agileExpose reacts very well to agile stopping the sequence.
+        
+        Inputs:
+        - wdg   the button that was pressed
+        """
+        cmdVerb = wdg["text"].lower()
+        
+        try:
+            nextState = TUI.Inst.ExposeWdg._StopCmdStateDict[cmdVerb]
+        except LookupError:
+            raise ValueError("ExposeWdg.doStop: unknown command %r" % (cmdVerb,))
+
+        cmdStr = "expose %s" % (cmdVerb,)
+        self.doCmd(cmdStr, nextState, actor="agile")
         
 
 if __name__ == "__main__":

@@ -74,6 +74,8 @@ Notes:
 2009-05-04 ROwen    Added maxNumExp to instInfo and set it to 99999 for Agile.
 2009-05-06 ROwen    Modified to use Get Every preference instead of Auto Get.
 2009-07-09 ROwen    Removed unused import of os (found by pychecker).
+2010-09-20 ROwen    Added canPauseSequence to _ExpInfo.
+                    Added Stop button to Agile.
 """
 __all__ = ['getModel']
 
@@ -100,6 +102,7 @@ class _ExpInfo:
     - camNames: name of each camera (if more than one)
     - expTypes: types of exposures supported
     - canPause: instrument can pause an exposure
+    - canPauseSequence: <inst>Exposure actor can pause an exposure sequence
     - canStop: instrument can stop an exposure
     - canAbort: instrument can abort an exposure
     - numBin: number of axes of bin the user can supply as part of expose command (0, 1 or 2)
@@ -121,6 +124,7 @@ class _ExpInfo:
         camNames = None,
         expTypes = ("object", "flat", "dark", "bias"),
         canPause = True,
+        canPauseSequence = True,
         canStop = True,
         canAbort = True,
         numBin = 0,
@@ -146,6 +150,7 @@ class _ExpInfo:
         self.camNames = camNames
         self.expTypes = expTypes
         self.canPause = bool(canPause)
+        self.canPauseSequence = bool(canPauseSequence)
         self.canStop = bool(canStop)
         self.canAbort = bool(canAbort)
         self.numBin = int(numBin)
@@ -180,7 +185,8 @@ def _getInstInfoDict():
             minExpTime = 0.3,
             maxNumExp = 99999,
             canPause = False,
-            canStop = False,
+            canPauseSequence = False,
+            canStop = True,
             numBin = 1,
             canWindow = True,
             defOverscan = (27, 0),

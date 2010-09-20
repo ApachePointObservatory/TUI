@@ -31,6 +31,7 @@ History:
 2009-01-27 ROwen    Added getExpCmdStr method to allow instrument-specific behavior.
 2009-02-34 ROwen    Modified doExpose to handle RuntimeError from getExpCmdStr gracefully.
 2010-03-05 ROwen    Changed to use gridder instead of packer.
+2010-09-20 ROwen    Added actor argument to doCmd method.
 """
 import Tkinter
 import RO.Alg
@@ -159,9 +160,8 @@ class ExposeWdg (RO.Wdg.InputContFrame):
             return wdg
 
         instInfo = self.expModel.instInfo
-        # Always display pause. If the instrument can't pause an exposure,
-        # at least the user can pause a sequence.
-        self.pauseWdg = makeStopWdg("pause", True, instInfo.canPause)
+        showPause = instInfo.canPause or instInfo.canPauseSequence
+        self.pauseWdg = makeStopWdg("pause", showPause, instInfo.canPause)
         # If instrument can neither stop or abort an exposure,
         # then display stop so the user can stop a sequence
         showStop = instInfo.canStop or not instInfo.canAbort
@@ -182,7 +182,7 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         
         self.expModel.seqState.addIndexedCallback(self._seqStatusCallback, 5)
     
-    def doCmd(self, cmdStr, nextState, cannotPauseText = ""):
+    def doCmd(self, cmdStr, nextState, cannotPauseText = "", actor=None):
         """Execute an <inst>Expose command. Handle button state.
         
         Inputs:
@@ -192,9 +192,11 @@ class ExposeWdg (RO.Wdg.InputContFrame):
             used as help text for the Pause button until the sequence ends
             (has no effect unless nextState is "running")
         """
+        if actor == None:
+            actor = self.expModel.actor
         self.cannotPauseText = cannotPauseText
         cmdVar = RO.KeyVariable.CmdVar(
-            actor = self.expModel.actor,
+            actor = actor,
             cmdStr = cmdStr,
             timeLim = None,
             callFunc = self._cmdFailed,
