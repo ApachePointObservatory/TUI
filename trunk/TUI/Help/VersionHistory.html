@@ -10,7 +10,7 @@
 <h3>Compatibility</h3>
 
 <ul>
-	<li>Mac: works with MacOS X 10.6, 10.5 and 10.4 and is a universal binary. MacOS X 10.3.9 is no longer supported, though it may work (one known problems is that you cannot save window positions; this is due to a bug in Tcl/Tk that will never be fixed).
+	<li>Mac: works with MacOS X 10.6 and 10.5 and is a universal binary. MacOS X 10.4 and MacOS X 10.3.9 are no longer officially supported, though they may work. One known problem on 10.3.9 is that you cannot save window positions; this is due to a bug in Tcl/Tk that will never be fixed.
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
 	<li>Windows: 1.7.1 is available for Windows 7, Vista and XP. I have not been able to generate newer versions because something broke in the build process and I've not had time to debug it.
 </ul>
@@ -19,11 +19,21 @@
 
 <p>As of TUI 1.7.3, Python 2.5 or later is required (but not 3.x).
 
-<h3>1.8.1-post 1010-08-26</h3>
+<h3>Warning to Mac Users</h3>
+
+<p>TUI 1.8.1 and later are not compatible with Mac OS X 10.4; I am trying to fix this but it is proving difficult. I strongly encourage you to upgrade to Mac OS X 10.5 or 10.6, but you can get by for now by running an older version of TUI.
+
+<h3>1.8.2b1 1010-09-20</h3>
 
 <p>Visible changes:
 <ul>
+    <li>Agile <a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1093">PR 1093</a>: added a Stop button. Also removed the nonfunctional Pause button.
     <li>Added support for new axis controller status bit: 15=slip detected
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=993">PR 993</a> agileExpose gets wedged and subsequent exposure commands are ignored. I worked around the bug instead of fixing it by sending the stop and abort commands directly to the agile actor rather than agileExpose. Fortunately this seems to work well.
 </ul>
 
 <h3>1.8.1 2010-08-05</h3>
