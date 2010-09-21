@@ -32,6 +32,7 @@ History:
 2009-02-34 ROwen    Modified doExpose to handle RuntimeError from getExpCmdStr gracefully.
 2010-03-05 ROwen    Changed to use gridder instead of packer.
 2010-09-20 ROwen    Added actor argument to doCmd method.
+2010-09-21 ROwen    Modified for 2010-09-21 changes to ExposeModel.
 """
 import Tkinter
 import RO.Alg
@@ -138,19 +139,32 @@ class ExposeWdg (RO.Wdg.InputContFrame):
                 ("pause", True):  "Pause or resume the exposure",
                 ("pause", False): "Pause or resume the exposure sequence",
                 ("stop",  True):  "Stop the exposure and save the data",
-                ("stop",  False): "Stop the exposure sequence",
+                ("stop",  False): "Finish the exposure and then stop",
                 ("abort", True):  "Stop the exposure and discard the data",
-                ("abort", False): "Stop the exposure sequence",
+                ("abort", False): "Finish the expsure and discard the data",
             }[(name, canDoExp)]
+            
+            if canDoExp:
+                wdgText = name.capitalize()
+            else:
+                wdgText = "%s Seq" % (name.capitalize())
+            
             wdg = RO.Wdg.Button(
                 master = butFrame,
-                text = name.capitalize(),
+                text = wdgText,
                 helpText = helpText,
                 helpURL = _HelpPrefix + "%sButton" % (name,),
             )
             if name == "pause":
-                wdg["width"] = 6
                 self.normalPauseText = helpText
+                self.pauseWdgPauseText = wdgText
+                if canDoExp:
+                    self.pauseWdgResumeText = "Resume"
+                    wdg["width"] = 6
+                else:
+                    self.pauseWdgResumeText = "Resume Seq"
+                    wdg["width"] = 10
+                
             wdg["command"] = RO.Alg.GenericCallback(
                 self.doStop,
                 wdg,
@@ -160,13 +174,9 @@ class ExposeWdg (RO.Wdg.InputContFrame):
             return wdg
 
         instInfo = self.expModel.instInfo
-        showPause = instInfo.canPause or instInfo.canPauseSequence
-        self.pauseWdg = makeStopWdg("pause", showPause, instInfo.canPause)
-        # If instrument can neither stop or abort an exposure,
-        # then display stop so the user can stop a sequence
-        showStop = instInfo.canStop or not instInfo.canAbort
-        self.stopWdg = makeStopWdg("stop", showStop, instInfo.canStop)
-        self.abortWdg = makeStopWdg("abort", instInfo.canAbort, instInfo.canAbort)
+        self.pauseWdg = makeStopWdg("pause", instInfo.canPauseExp or instInfo.canPauseSeq, instInfo.canPauseExp)
+        self.stopWdg = makeStopWdg("stop", instInfo.canStopExp or instInfo.canStopSeq, instInfo.canStopExp)
+        self.abortWdg = makeStopWdg("abort", instInfo.canAbortExp, instInfo.canAbortExp)
 
         self.configWdg = RO.Wdg.Button(
             master = butFrame,
@@ -236,7 +246,7 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         Inputs:
         - wdg   the button that was pressed
         """
-        cmdStr = wdg["text"].lower()
+        cmdStr = wdg["text"].split()[0].lower()
         
         try:
             nextState = _StopCmdStateDict[cmdStr]
@@ -279,17 +289,17 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         
         # handle pause widget
         if self.cannotPauseText and (status == "running"):
-            self.pauseWdg["text"] = "Pause"
+            self.pauseWdg["text"] = self.pauseWdgPauseText
             self.pauseWdg.helpText = self.cannotPauseText
             self.pauseWdg.setEnable(False)
         else:
             self.cannotPauseText = ""
             self.pauseWdg.helpText = self.normalPauseText
             if status == "paused":
-                self.pauseWdg["text"] = "Resume"
+                self.pauseWdg["text"] = self.pauseWdgResumeText
                 self.pauseWdg.setEnable(True)
             else:
-                self.pauseWdg["text"] = "Pause"
+                self.pauseWdg["text"] = self.pauseWdgPauseText
                 self.pauseWdg.setEnable(status == "running")       
 
 if __name__ == '__main__':

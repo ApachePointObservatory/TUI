@@ -52,7 +52,7 @@ Notes:
                     View Image improvements:
                     - Use a separate ds9 window for each camera.
                     - Re-open a ds9 window if necessary.
-2005-09-26 ROwen    Added canPause, canStop, canAbort attributes to ExpInfo.
+2005-09-26 ROwen    Added canPauseExp, canStopExp, canAbortExp attributes to ExpInfo.
                     If RO.DS9 fails, complain to the log window.
 2007-05-22 ROwen    Added SPIcam.
 2007-07-27 ROwen    Set min exposure time for SPIcam to 0.76 seconds.
@@ -74,8 +74,10 @@ Notes:
 2009-05-04 ROwen    Added maxNumExp to instInfo and set it to 99999 for Agile.
 2009-05-06 ROwen    Modified to use Get Every preference instead of Auto Get.
 2009-07-09 ROwen    Removed unused import of os (found by pychecker).
-2010-09-20 ROwen    Added canPauseSequence to _ExpInfo.
+2010-09-20 ROwen    Added canPauseSequece to _ExpInfo.
                     Added Stop button to Agile.
+2010-09-21 ROwen    Changed canPause to canPauseExposure similarly for canStop and canAbort.
+                    Added canStopSeq and renamed canPauseSequence to canPauseSeq.
 """
 __all__ = ['getModel']
 
@@ -101,10 +103,12 @@ class _ExpInfo:
     - min/maxExpTime: minimum and maximum exposure time (sec)
     - camNames: name of each camera (if more than one)
     - expTypes: types of exposures supported
-    - canPause: instrument can pause an exposure
-    - canPauseSequence: <inst>Exposure actor can pause an exposure sequence
-    - canStop: instrument can stop an exposure
-    - canAbort: instrument can abort an exposure
+    - canPauseExp: instrument can pause an exposure
+    - canPauseSeq: <inst>Exposure actor can pause an exposure sequence
+    - canStopExp: instrument can stop an exposure
+    - canStopSeq: <inst>Exposure actor can stop an exposure sequence
+    - canAbortExp: instrument can abort an exposure
+      (note: there is intentionally no canAbortSeq; if you wait to finish an exposure then read it out)
     - numBin: number of axes of bin the user can supply as part of expose command (0, 1 or 2)
     - defBin: default bin factor; a sequence of numBin elements;
             if numBin = 1 then you may specify an integer, which is converted to a list of 1 int
@@ -123,10 +127,11 @@ class _ExpInfo:
         maxNumExp = 9999,
         camNames = None,
         expTypes = ("object", "flat", "dark", "bias"),
-        canPause = True,
-        canPauseSequence = True,
-        canStop = True,
-        canAbort = True,
+        canPauseExp = True,
+        canPauseSeq = True,
+        canStopExp = True,
+        canStopSeq = True,
+        canAbortExp = True,
         numBin = 0,
         defBin = None,
         canWindow = False,
@@ -149,10 +154,11 @@ class _ExpInfo:
             camNames = ("",)
         self.camNames = camNames
         self.expTypes = expTypes
-        self.canPause = bool(canPause)
-        self.canPauseSequence = bool(canPauseSequence)
-        self.canStop = bool(canStop)
-        self.canAbort = bool(canAbort)
+        self.canPauseExp = bool(canPauseExp)
+        self.canPauseSeq = bool(canPauseSeq)
+        self.canStopExp = bool(canStopExp)
+        self.canStopSeq = bool(canStopSeq)
+        self.canAbortExp = bool(canAbortExp)
         self.numBin = int(numBin)
         if not (0 <= self.numBin <= 2):
             raise RuntimeError("numBin=%s not in range [0,2]" % (self.numBin,))
@@ -184,9 +190,9 @@ def _getInstInfoDict():
             imSize = (1024, 1024),
             minExpTime = 0.3,
             maxNumExp = 99999,
-            canPause = False,
-            canPauseSequence = False,
-            canStop = True,
+            canPauseExp = False,
+            canPauseSeq = False,
+            canStopExp = False,
             numBin = 1,
             canWindow = True,
             defOverscan = (27, 0),
@@ -207,8 +213,8 @@ def _getInstInfoDict():
             imSize = (1024, 1024),
             minExpTime = 0, 
             expTypes = ("object", "flat", "dark"),
-            canPause = False,
-            canAbort = False,
+            canPauseExp = False,
+            canAbortExp = False,
         ),
         _ExpInfo(
             instName = "SPIcam",
@@ -220,8 +226,8 @@ def _getInstInfoDict():
             imSize = (2048, 1024),
             minExpTime = 0.75,
             expTypes = ("object", "flat", "dark"),
-            canPause = False,
-            canStop = False,
+            canPauseExp = False,
+            canStopExp = False,
         ),
     )
     
