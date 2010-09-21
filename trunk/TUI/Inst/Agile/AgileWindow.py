@@ -38,6 +38,7 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
     HelpPrefix = 'Instruments/%sWin.html#' % (InstName,)
     def __init__(self, master):
         TUI.Inst.ExposeWdg.ExposeWdg.__init__(self, master, instName=InstName)
+        
         gr = self.expInputWdg.gridder
         
         self.gainWdg = RO.Wdg.OptionMenu(
@@ -98,7 +99,7 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
         Inputs:
         - wdg   the button that was pressed
         """
-        cmdVerb = wdg["text"].lower()
+        cmdVerb = wdg["text"].split()[0].lower()
         
         try:
             nextState = TUI.Inst.ExposeWdg._StopCmdStateDict[cmdVerb]
