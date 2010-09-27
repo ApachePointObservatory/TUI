@@ -50,10 +50,22 @@ This is the main routine that calls everything else.
 2007-12-20 ROwen    Import and configure matplotlib here and stop configuring it elsewhere. This works around
                     a problem in matplotlib 0.91.1: "use" can't be called after "import matplotlib.backends".
 2009-04-17 ROwen    Updated for new Status window name: None.Status->TUI.Status.
+2010-09-24 ROwen    Moved matplotlib.use call before any import of TUI code.
 """
 import os
 import sys
 import Tkinter
+
+# make sure matplotlib is configured correctly (if it is available)
+try:
+    import matplotlib
+    matplotlib.use("TkAgg")
+    # controls the background of the axis label regions (which default to gray)
+    matplotlib.rc("figure", facecolor="white")
+    matplotlib.rc("legend", fontsize="medium") # default is large, which is too big
+except ImportError:
+    pass
+
 import TUI.BackgroundTasks
 import TUI.LoadStdModules
 import TUI.MenuBar
@@ -61,13 +73,6 @@ import TUI.TUIPaths
 import TUI.TUIModel
 import TUI.WindowModuleUtil
 import TUI.Version
-
-# make sure matplotlib is configured correctly (if it is available)
-try:
-    import matplotlib
-    matplotlib.use("TkAgg")
-except ImportError:
-    pass
 
 # hack for pyinstaller 1.3
 sys.executable = os.path.abspath(sys.executable)

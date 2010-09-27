@@ -46,6 +46,7 @@ or register ROWdg widgets to automatically display updating values.
 2008-03-25 ROwen    Removed obsolete gcFocus; get gmech focus from the gmech actor.
 2010-03-04 ROwen    Added moveItems.
 2010-06-28 ROwen    Removed unused _RotTypeDict (thanks to pychecker).
+2010-09-24 ROwen    Added <mir> keywords.
 """
 import RO.CnvUtil
 import RO.CoordSys
@@ -410,6 +411,91 @@ The value is a string containing the following characters, each of which is eith
             keyword = "SecFocus",
             converters = RO.CnvUtil.asFloatOrNone,
             description = "User-defined focus offset",
+        )
+        
+        # mirrors
+
+        self.secActMount = keyVarFact(
+            keyword = "SecActMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Actual mount position",
+        )
+
+        self.secCmdMount = keyVarFact(
+            keyword = "SecCmdMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Commanded mount position",
+        )
+        
+        self.secDesOrient = keyVarFact(
+            keyword = "SecDesOrient",
+            nval = 5,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Desired orientation (piston, x_tilt, y_tilt, x_trans, y_trans)",
+        )
+
+        self.secOrient = keyVarFact(
+            keyword = "SecOrient",
+            nval = 5,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Actual orientation (piston, x_tilt, y_tilt, x_trans, y_trans)",
+        )
+
+        self.secOrientAge = keyVarFact(
+            keyword = "SecOrientAge",
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Age of most recent computation of desired orientation, in sec."
+        )
+        
+        self.secStatus = keyVarFact(
+            keyword = "SecStatus",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "Status reported by each actuator."
+        )
+
+
+        self.tertActMount = keyVarFact(
+            keyword = "TertActMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Actual mount position",
+        )
+
+        self.tertCmdMount = keyVarFact(
+            keyword = "TertCmdMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Commanded mount position",
+        )
+
+        self.tertDesOrient = keyVarFact(
+            keyword = "TertDesOrient",
+            nval = 5,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Desired orientation (piston, x_tilt, y_tilt, x_trans, y_trans)",
+        )
+
+        self.tertOrient = keyVarFact(
+            keyword = "TertOrient",
+            nval = 5,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Actual orientation (piston, x_tilt, y_tilt, x_trans, y_trans)",
+        )
+
+        self.tertOrientAge = keyVarFact(
+            keyword = "TertOrientAge",
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Age of most recent computation of desired orientation, in sec."
+        )
+        
+        self.tertStatus = keyVarFact(
+            keyword = "TertStatus",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "Status reported by each actuator."
         )
 
         # guiding state; do not try to refresh
