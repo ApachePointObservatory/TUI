@@ -12,14 +12,15 @@
 2003-12-16 ROwen    Fixed comments for addWindow.
 2004-05-18 ROwen    Stopped importing string and sys since they weren't used.
 2006-09-27 ROwen    Updated for new 5-axis secondary.
+2010-09-24 ROwen    Modified to get keyVars from TCC model (now that they are available).
+                    Added WindowName constant.
 """
 import Tkinter
-import RO.CnvUtil
-import RO.KeyVariable
-import RO.MathUtil
-import RO.StringUtil
 import RO.Wdg
 import TUI.TUIModel
+import TUI.TCC.TCCModel
+
+WindowName = "TCC.Mirror Status"
 
 NumSecAxes = 5
 NumTertAxes = 3
@@ -28,7 +29,7 @@ def addWindow(tlSet):
     """Create the window for TUI.
     """
     tlSet.createToplevel(
-        name = "TCC.Mirror Status",
+        name = WindowName,
         defGeom = "+434+22",
         visible = False,
         resizable = False,
@@ -45,6 +46,7 @@ class MirrorStatusWdg (Tkinter.Frame):
         Tkinter.Frame.__init__(self, master, **kargs)
         
         tuiModel = TUI.TUIModel.getModel()
+        tccModel = TUI.TCC.TCCModel.getModel()
         dispatcher = tuiModel.dispatcher
         gr = RO.Wdg.Gridder(self)
 
@@ -73,13 +75,13 @@ class MirrorStatusWdg (Tkinter.Frame):
         
         # label text, keyword prefix for each row
         orientNumLabelPrefix = (
-            (NumSecAxes, "Sec act", "Sec"),
-            (NumSecAxes, "Sec des", "SecDes"),
-            (NumTertAxes, "Tert act", "Tert"),
-            (NumTertAxes, "Tert des", "TertDes"),
+            (NumSecAxes, "Sec act", "sec"),
+            (NumSecAxes, "Sec des", "secDes"),
+            (NumTertAxes, "Tert act", "tert"),
+            (NumTertAxes, "Tert des", "tertDes"),
         )
 
-        # for each mirror, create a set of widgets and a key variable
+        # for each mirror, create a set of widgets find the associated keyvar
         for numAxes, niceName, keyPrefix in orientNumLabelPrefix:
             orientWdgSet = [RO.Wdg.FloatLabel(self,
                     precision = prec,
@@ -91,15 +93,7 @@ class MirrorStatusWdg (Tkinter.Frame):
                 dataWdg = orientWdgSet
             )
 
-            orientVar = RO.KeyVariable.KeyVar(
-                actor = "tcc",
-                nval = (1, 6),
-                keyword = "%sOrient" % keyPrefix,
-                converters = RO.CnvUtil.asFloatOrNone,
-                description = "%s orientation" % keyPrefix,
-                refreshCmd = refreshCmd,
-                dispatcher = dispatcher,
-            )
+            orientVar = getattr(tccModel, "%sOrient" % (keyPrefix,))
             orientVar.addROWdgSet(orientWdgSet)
 
         # divider
@@ -127,10 +121,10 @@ class MirrorStatusWdg (Tkinter.Frame):
 
         # label text, keyword prefix for each row
         mountNumLabelPrefix = (
-            (NumSecAxes,  "Sec act", "SecAct"),
-            (NumSecAxes,  "Sec cmd", "SecCmd"),
-            (NumTertAxes, "Tert act", "TertAct"),
-            (NumTertAxes, "Tert cmd", "TertCmd"),
+            (NumSecAxes,  "Sec act", "secAct"),
+            (NumSecAxes,  "Sec cmd", "secCmd"),
+            (NumTertAxes, "Tert act", "tertAct"),
+            (NumTertAxes, "Tert cmd", "tertCmd"),
         )
         
         # for each mirror, create a set of widgets and a key variable
@@ -145,15 +139,7 @@ class MirrorStatusWdg (Tkinter.Frame):
                 dataWdg = mountWdgSet,
             )
 
-            mountVar = RO.KeyVariable.KeyVar(
-                actor = "tcc",
-                nval = (1, 6),
-                keyword = "%sMount" % keyPrefix,
-                converters = RO.CnvUtil.asFloatOrNone,
-                description = "%s mount position" % keyPrefix,
-                refreshCmd = refreshCmd,  
-                dispatcher = dispatcher,
-            )
+            mountVar = getattr(tccModel, "%sMount" % (keyPrefix,))
             mountVar.addROWdgSet(mountWdgSet)
 
 

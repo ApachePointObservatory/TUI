@@ -101,8 +101,8 @@ class _Model (object):
         # log source
         self.logSource = LogSource.LogSource(self.dispatcher)
         if testMode:
-            def logToStdOut(logEntry):
-                print str(logEntry)
+            def logToStdOut(logSource):
+                print logSource.lastEntry.getStr(),
             self.logSource.addCallback(logToStdOut)
     
         # TUI preferences

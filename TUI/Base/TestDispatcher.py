@@ -13,6 +13,31 @@ History:
 import TUI.TUIModel
 import RO.SeqUtil
 
+class GaussRandomValue(object):
+    def __init__(self, minValue, maxValue, homeValue, sigma):
+        self.minValue = float(minValue)
+        self.maxValue = float(maxValue)
+        self.homeValue = float(homeValue)
+        self.sigma = float(sigma)
+        self.value = self.homeValue
+        self.update()
+    
+    def update(self):
+        """Randomly change the value
+        """
+        rawDelta = random.gauss(0, self.sigma)
+        proposedValue = self.value + rawDelta
+
+        if proposedValue > self.homeValue:
+            probOfFlip = (proposedValue - self.homeValue) / (self.maxValue - self.homeValue)
+        else:
+            probOfFlip = (self.homeValue - proposedValue) / (self.homeValue - self.minValue)
+
+        if random.random() > probOfFlip:
+            self.value -= rawDelta
+        else:
+            self.value = proposedValue
+
 class TestDispatcher(object):
     """Dispatch a set of data at regular intervals
     """
