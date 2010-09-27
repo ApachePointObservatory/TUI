@@ -62,6 +62,7 @@ try:
     matplotlib.use("TkAgg")
     # controls the background of the axis label regions (which default to gray)
     matplotlib.rc("figure", facecolor="white")
+    matplotlib.rc("axes", titlesize="medium") # default is large, which is too big
     matplotlib.rc("legend", fontsize="medium") # default is large, which is too big
 except ImportError:
     pass
