@@ -69,7 +69,7 @@ class SeeingMonitorWdg(Tkinter.Frame):
         
         self.stripChartWdg.subplotArr[0].yaxis.set_label_text("FWHM (\")")
         self.stripChartWdg.subplotArr[1].yaxis.set_label_text("Bright (ADU)")
-        self.stripChartWdg.subplotArr[2].yaxis.set_label_text("Focus um")
+        self.stripChartWdg.subplotArr[2].yaxis.set_label_text("Focus (um)")
 
         self.guideModelDict = {} # guide camera name: guide model
         for guideModel in TUI.Guide.GuideModel.modelIter():
