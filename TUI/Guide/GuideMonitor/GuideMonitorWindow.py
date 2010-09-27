@@ -32,7 +32,7 @@ class GuideMonitorWdg(Tkinter.Frame):
     AltOffName = "Alt Corr"
     ZeroName = ""
     
-    def __init__(self, master, timeRange=1800, width=9, height=2):
+    def __init__(self, master, timeRange=1800, width=9, height=2.5):
         """Create a GuideMonitorWdg
         
         Inputs:
