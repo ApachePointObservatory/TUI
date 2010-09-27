@@ -47,6 +47,7 @@ class GuideMonitorWdg(Tkinter.Frame):
         
         self.stripChartWdg = RO.Wdg.StripChartWdg.StripChartWdg(
             master = self,
+            timeRange = timeRange,
             numSubplots = 1,
             width = width,
             height = height,

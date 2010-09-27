@@ -48,6 +48,7 @@ class SeeingMonitorWdg(Tkinter.Frame):
         
         self.stripChartWdg = RO.Wdg.StripChartWdg.StripChartWdg(
             master = self,
+            timeRange = timeRange,
             numSubplots = 3,
             width = width,
             height = height,
