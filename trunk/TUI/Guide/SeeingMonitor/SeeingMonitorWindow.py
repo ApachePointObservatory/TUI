@@ -6,6 +6,7 @@ History:
 2010-09-28 ROwen    Modified to use new showY method, e.g. to always show the 1" line.
 """
 import Tkinter
+import matplotlib
 import RO.Wdg
 import RO.Wdg.StripChartWdg
 import TUI.Guide.GuideModel
@@ -67,6 +68,9 @@ class SeeingMonitorWdg(Tkinter.Frame):
         self.stripChartWdg.addLine(self.UserFocusName, subplotInd=2, color="blue")
         self.stripChartWdg.showY(0, subplotInd=2)
         self.stripChartWdg.subplotArr[2].legend(loc=3)
+
+        # the default ticks are not nice, so be explicit
+        self.stripChartWdg.xaxis.set_major_locator(matplotlib.dates.MinuteLocator(byminute=range(0, 60, 15)))
         
         self.stripChartWdg.subplotArr[0].yaxis.set_label_text("FWHM (\")")
         self.stripChartWdg.subplotArr[1].yaxis.set_label_text("Bright (ADU)")
