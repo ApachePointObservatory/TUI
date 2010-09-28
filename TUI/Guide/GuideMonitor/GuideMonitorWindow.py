@@ -7,6 +7,7 @@ History:
 """
 import math
 import Tkinter
+import matplotlib
 import RO.PhysConst
 import RO.Wdg
 import RO.Wdg.StripChartWdg
@@ -61,6 +62,9 @@ class GuideMonitorWdg(Tkinter.Frame):
         self.stripChartWdg.addLine(self.AltOffName, subplotInd=0, color="blue")
         self.stripChartWdg.showY(-3.0, 3.0, subplotInd=0)
         self.stripChartWdg.subplotArr[0].legend(loc=3)
+
+        # the default ticks are not nice, so be explicit
+        self.stripChartWdg.xaxis.set_major_locator(matplotlib.dates.MinuteLocator(byminute=range(0, 61, 5)))
         
         self.stripChartWdg.subplotArr[0].yaxis.set_label_text("Guide Off (\")")
 
