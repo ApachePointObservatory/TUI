@@ -3,6 +3,7 @@
 
 History:
 2010-09-27 ROwen    Initial version.
+2010-09-28 ROwen    Modified to use new showY method to always show -3 to 3".
 """
 import math
 import Tkinter
@@ -30,7 +31,6 @@ class GuideMonitorWdg(Tkinter.Frame):
     """
     AzOffName = "Az Corr on Sky"
     AltOffName = "Alt Corr"
-    ZeroName = ""
     
     def __init__(self, master, timeRange=1800, width=9, height=2.5):
         """Create a GuideMonitorWdg
@@ -59,10 +59,10 @@ class GuideMonitorWdg(Tkinter.Frame):
         
         self.stripChartWdg.addLine(self.AzOffName, subplotInd=0, color="green")
         self.stripChartWdg.addLine(self.AltOffName, subplotInd=0, color="blue")
-        self.stripChartWdg.addConstantLine(self.ZeroName, 0.0, subplotInd=0, color="black")
-        self.stripChartWdg.subplotArr[0].legend(loc=3, frameon=False)
+        self.stripChartWdg.showY(-3.0, 3.0, subplotInd=0)
+        self.stripChartWdg.subplotArr[0].legend(loc=3)
         
-        self.stripChartWdg.subplotArr[0].yaxis.set_label_text("Az/Alt Corr (\")")
+        self.stripChartWdg.subplotArr[0].yaxis.set_label_text("Guide Off (\")")
 
         self.guideModelDict = {} # guide camera name: guide model
         for guideModel in TUI.Guide.GuideModel.modelIter():

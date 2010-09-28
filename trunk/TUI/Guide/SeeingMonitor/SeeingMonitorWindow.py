@@ -3,6 +3,7 @@
 
 History:
 2010-09-27 ROwen    Initial version.
+2010-09-28 ROwen    Modified to use new showY method, e.g. to always show the 1" line.
 """
 import Tkinter
 import RO.Wdg
@@ -28,7 +29,6 @@ class SeeingMonitorWdg(Tkinter.Frame):
     """
     FWHMName = "FWHM"
     OneArcsecName = "One Arcsec"
-    ZeroName = ""
     BrightnessName = "Brightness"
     SecPistonName = "Sec Piston"
     UserFocusName = "User Focus"
@@ -60,11 +60,12 @@ class SeeingMonitorWdg(Tkinter.Frame):
         
         self.stripChartWdg.addLine(self.FWHMName, subplotInd=0, color="green")
         self.stripChartWdg.addConstantLine(self.OneArcsecName, 1.0, subplotInd=0, color="purple")
-        self.stripChartWdg.addConstantLine(self.ZeroName, 0.0, subplotInd=0, color="black")
+        self.stripChartWdg.showY(0, 1.2, subplotInd=0) 
         self.stripChartWdg.addLine(self.BrightnessName, subplotInd=1, color="green")
-        self.stripChartWdg.addConstantLine(self.ZeroName, 0.0, subplotInd=1, color="black")
+        self.stripChartWdg.showY(0, 100, subplotInd=1) 
         self.stripChartWdg.addLine(self.SecPistonName, subplotInd=2, color="green")
         self.stripChartWdg.addLine(self.UserFocusName, subplotInd=2, color="blue")
+        self.stripChartWdg.showY(0, subplotInd=2)
         self.stripChartWdg.subplotArr[2].legend(loc=3)
         
         self.stripChartWdg.subplotArr[0].yaxis.set_label_text("FWHM (\")")
