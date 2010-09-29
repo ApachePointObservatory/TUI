@@ -3,45 +3,22 @@
 
 History:
 2010-09-24
+2010-09-29 ROwen    modified to use RO.Alg.RandomWalk
 """
 import random
+import RO.Alg.RandomWalk
 import TUI.Base.TestDispatcher
 
 testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("tcc")
 tuiModel = testDispatcher.tuiModel
 
-class RandomValue(object):
-    def __init__(self, minValue, maxValue, homeValue, sigma):
-        self.minValue = float(minValue)
-        self.maxValue = float(maxValue)
-        self.homeValue = float(homeValue)
-        self.sigma = float(sigma)
-        self.value = self.homeValue
-        self.update()
-    
-    def update(self):
-        """Randomly change the value
-        """
-        rawDelta = random.gauss(0, self.sigma)
-        proposedValue = self.value + rawDelta
-
-        if proposedValue > self.homeValue:
-            probOfFlip = (proposedValue - self.homeValue) / (self.maxValue - self.homeValue)
-        else:
-            probOfFlip = (self.homeValue - proposedValue) / (self.homeValue - self.minValue)
-
-        if random.random() > probOfFlip:
-            self.value -= rawDelta
-        else:
-            self.value = proposedValue
-
 class StarInfo(object):
     def __init__(self):
         self.randomValueDict = dict(
-            fwhm = RandomValue(0.5, 3.0, 1.2, 0.1),
-            amplitude = RandomValue(5000, 32000, 10000, 100),
-            xCenter = RandomValue(-500, 500, 0, 10),
-            yCenter = RandomValue(-500, 500, 0, 10),
+            fwhm = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(1.2, 0.1, 0.5, 3.0),
+            amplitude = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(10000, 100, 5000, 32000),
+            xCenter = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(0, 10, -500, 500),
+            yCenter = RO.Alg.RandomWalk.ConstrainedRandomWalk(0, 10, -500, 500),
         )
     
     def update(self):
@@ -88,10 +65,10 @@ For "g" stars, the two following fields are added:
 class FocusInfo(object):
     def __init__(self):
         self.randomValueDict = dict(
-            fwhm = RandomValue(0.5, 3.0, 1.2, 0.1),
-            amplitude = RandomValue(5000, 32000, 10000, 100),
-            xCenter = RandomValue(-500, 500, 0, 10),
-            yCenter = RandomValue(-500, 500, 0, 10),
+            fwhm = RO.Alg.RandomWalk.ConstrainedRandomWalk(0.5, 3.0, 1.2, 0.1),
+            amplitude = RO.Alg.RandomWalk.ConstrainedRandomWalk(5000, 32000, 10000, 100),
+            xCenter = RO.Alg.RandomWalk.ConstrainedRandomWalk(-500, 500, 0, 10),
+            yCenter = RO.Alg.RandomWalk.ConstrainedRandomWalk(-500, 500, 0, 10),
         )
     
     def update(self):
@@ -136,8 +113,8 @@ For "g" stars, the two following fields are added:
 
 def runTest():
     _nextStar(StarInfo(), 5)
-    _nextUserFocus(RandomValue(-500, 500, 0, 10), 6)
-    _nextSecPiston(RandomValue(-2000, 2000, 100, 50), 3)
+    _nextUserFocus(RO.Alg.RandomWalk.ConstrainedRandomWalk(-500, 500, 0, 10), 6)
+    _nextSecPiston(RO.Alg.RandomWalk.ConstrainedRandomWalk(-2000, 2000, 100, 50), 3)
 
 def _nextStar(starInfo, delaySec):
     starInfo.update()
