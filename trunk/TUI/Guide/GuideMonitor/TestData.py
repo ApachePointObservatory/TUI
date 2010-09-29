@@ -3,42 +3,18 @@
 
 History:
 2010-09-24
+2010-09-29 ROwen    modified to use RO.Alg.RandomWalk
 """
 import math
 import random
 import RO.PhysConst
+import RO.Alg.RandomWalk
 import TUI.Base.TestDispatcher
 
 testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("tcc")
 tuiModel = testDispatcher.tuiModel
 
 Alt = 45.0
-
-class RandomValue(object):
-    def __init__(self, minValue, maxValue, homeValue, sigma):
-        self.minValue = float(minValue)
-        self.maxValue = float(maxValue)
-        self.homeValue = float(homeValue)
-        self.sigma = float(sigma)
-        self.value = self.homeValue
-        self.update()
-    
-    def update(self):
-        """Randomly change the value
-        """
-        rawDelta = random.gauss(0, self.sigma)
-        proposedValue = self.value + rawDelta
-
-        if proposedValue > self.homeValue:
-            probOfFlip = (proposedValue - self.homeValue) / (self.maxValue - self.homeValue)
-        else:
-            probOfFlip = (self.homeValue - proposedValue) / (self.homeValue - self.minValue)
-
-        if random.random() > probOfFlip:
-            self.value -= rawDelta
-        else:
-            self.value = proposedValue
-
 
 class GuideOffInfo(object):
     def __init__(self):
@@ -48,9 +24,10 @@ class GuideOffInfo(object):
         sigma = 2.0 / RO.PhysConst.ArcSecPerDeg
         
         self.randomValueDict = dict(
-            azOff = RandomValue(-lim * azScale, lim * azScale, mean * azScale, sigma * azScale),
-            altOff = RandomValue(-lim, lim, mean, sigma),
-            rotOff = RandomValue(-lim, lim, mean, sigma),
+            azOff = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(
+                mean * azScale, sigma * azScale, -lim * azScale, lim * azScale),
+            altOff = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(mean, sigma, -lim, lim),
+            rotOff = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(mean, sigma, -lim, lim),
         )
     
     def update(self):
