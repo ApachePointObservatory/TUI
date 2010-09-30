@@ -4,6 +4,7 @@
 History:
 2010-09-27 ROwen    Initial version.
 2010-09-28 ROwen    Modified to use new showY method, e.g. to always show the 1" line.
+2010-09-30 ROwen    Fixed FWHM units: they are pixels, not arcsec. Thanks to Joe F.
 """
 import Tkinter
 import matplotlib
@@ -72,7 +73,7 @@ class SeeingMonitorWdg(Tkinter.Frame):
         # the default ticks are not nice, so be explicit
         self.stripChartWdg.xaxis.set_major_locator(matplotlib.dates.MinuteLocator(byminute=range(0, 60, 15)))
         
-        self.stripChartWdg.subplotArr[0].yaxis.set_label_text("FWHM (\")")
+        self.stripChartWdg.subplotArr[0].yaxis.set_label_text("FWHM (pix)")
         self.stripChartWdg.subplotArr[1].yaxis.set_label_text("Bright (ADU)")
         self.stripChartWdg.subplotArr[2].yaxis.set_label_text("Focus (um)")
 

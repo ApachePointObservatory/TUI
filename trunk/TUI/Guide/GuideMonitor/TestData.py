@@ -34,7 +34,7 @@ class GuideOffInfo(object):
         """Randomly change values
         """
         for randomValue in self.randomValueDict.itervalues():
-            randomValue.update()
+            randomValue.next()
     
     def getValueDict(self):
         """Get a dictionary of value name: value

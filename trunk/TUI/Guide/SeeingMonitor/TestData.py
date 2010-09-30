@@ -18,14 +18,14 @@ class StarInfo(object):
             fwhm = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(1.2, 0.1, 0.5, 3.0),
             amplitude = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(10000, 100, 5000, 32000),
             xCenter = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(0, 10, -500, 500),
-            yCenter = RO.Alg.RandomWalk.ConstrainedRandomWalk(0, 10, -500, 500),
+            yCenter = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(0, 10, -500, 500),
         )
     
     def update(self):
         """Randomly change values
         """
         for randomValue in self.randomValueDict.itervalues():
-            randomValue.update()
+            randomValue.next()
     
     def getValueDict(self):
         """Get a dictionary of value name: value
@@ -65,17 +65,17 @@ For "g" stars, the two following fields are added:
 class FocusInfo(object):
     def __init__(self):
         self.randomValueDict = dict(
-            fwhm = RO.Alg.RandomWalk.ConstrainedRandomWalk(0.5, 3.0, 1.2, 0.1),
-            amplitude = RO.Alg.RandomWalk.ConstrainedRandomWalk(5000, 32000, 10000, 100),
-            xCenter = RO.Alg.RandomWalk.ConstrainedRandomWalk(-500, 500, 0, 10),
-            yCenter = RO.Alg.RandomWalk.ConstrainedRandomWalk(-500, 500, 0, 10),
+            fwhm = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(0.5, 3.0, 1.2, 0.1),
+            amplitude = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(5000, 32000, 10000, 100),
+            xCenter = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(-500, 500, 0, 10),
+            yCenter = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(-500, 500, 0, 10),
         )
     
     def update(self):
         """Randomly change values
         """
         for randomValue in self.randomValueDict.itervalues():
-            randomValue.update()
+            randomValue.next()
     
     def getValueDict(self):
         """Get a dictionary of value name: value
@@ -113,8 +113,8 @@ For "g" stars, the two following fields are added:
 
 def runTest():
     _nextStar(StarInfo(), 5)
-    _nextUserFocus(RO.Alg.RandomWalk.ConstrainedRandomWalk(-500, 500, 0, 10), 6)
-    _nextSecPiston(RO.Alg.RandomWalk.ConstrainedRandomWalk(-2000, 2000, 100, 50), 3)
+    _nextUserFocus(RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(-500, 500, 0, 10), 6)
+    _nextSecPiston(RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(-2000, 2000, 100, 50), 3)
 
 def _nextStar(starInfo, delaySec):
     starInfo.update()
@@ -124,13 +124,11 @@ def _nextStar(starInfo, delaySec):
     
 
 def _nextUserFocus(userFocus, delaySec):
-    userFocus.update()
-    keyVarStr = "SecFocus=%0.1f" % (userFocus.value,)
+    keyVarStr = "SecFocus=%0.1f" % (userFocus.next(),)
     testDispatcher.dispatch(keyVarStr, actor="tcc")
     tuiModel.tkRoot.after(int(delaySec * 1000), _nextUserFocus, userFocus, delaySec)
 
 def _nextSecPiston(secPiston, delaySec):
-    secPiston.update()
-    keyVarStr = "SecOrient=%0.1f, 0, 0, 0, 0" % (secPiston.value,)
+    keyVarStr = "SecOrient=%0.1f, 0, 0, 0, 0" % (secPiston.next(),)
     testDispatcher.dispatch(keyVarStr, actor="tcc")
     tuiModel.tkRoot.after(int(delaySec * 1000), _nextSecPiston, secPiston, delaySec)
