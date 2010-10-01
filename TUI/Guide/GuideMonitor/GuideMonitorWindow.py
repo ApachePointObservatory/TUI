@@ -4,6 +4,7 @@
 History:
 2010-09-27 ROwen    Initial version.
 2010-09-28 ROwen    Modified to use new showY method to always show -3 to 3".
+2010-10-01 ROwen    Simplified line names and turned off frame on legend.
 """
 import math
 import Tkinter
@@ -30,8 +31,8 @@ def addWindow(tlSet):
 class GuideMonitorWdg(Tkinter.Frame):
     """Monitor guide corrections
     """
-    AzOffName = "Az Corr on Sky"
-    AltOffName = "Alt Corr"
+    AzOffName = "Az (on sky)"
+    AltOffName = "Alt"
     
     def __init__(self, master, timeRange=1800, width=9, height=2.5):
         """Create a GuideMonitorWdg
@@ -61,7 +62,7 @@ class GuideMonitorWdg(Tkinter.Frame):
         self.stripChartWdg.addLine(self.AzOffName, subplotInd=0, color="green")
         self.stripChartWdg.addLine(self.AltOffName, subplotInd=0, color="blue")
         self.stripChartWdg.showY(-3.0, 3.0, subplotInd=0)
-        self.stripChartWdg.subplotArr[0].legend(loc=3)
+        self.stripChartWdg.subplotArr[0].legend(loc=3, frameon=False)
 
         # the default ticks are not nice, so be explicit
         self.stripChartWdg.xaxis.set_major_locator(matplotlib.dates.MinuteLocator(byminute=range(0, 61, 5)))

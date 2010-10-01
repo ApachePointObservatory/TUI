@@ -5,11 +5,13 @@ History:
 2010-09-27 ROwen    Initial version.
 2010-09-28 ROwen    Modified to use new showY method, e.g. to always show the 1" line.
 2010-09-30 ROwen    Fixed FWHM units: they are pixels, not arcsec. Thanks to Joe F.
+2010-10-01 ROwen    Modified to use TUI.Base.StripChartWdg.
+                    Turned off frame on legend.
 """
 import Tkinter
 import matplotlib
 import RO.Wdg
-import RO.Wdg.StripChartWdg
+import TUI.Base.StripChartWdg
 import TUI.Guide.GuideModel
 import TUI.TCC.TCCModel
 
@@ -32,8 +34,6 @@ class SeeingMonitorWdg(Tkinter.Frame):
     FWHMName = "FWHM"
     OneArcsecName = "One Arcsec"
     BrightnessName = "Brightness"
-    SecPistonName = "Sec Piston"
-    UserFocusName = "User Focus"
     
     def __init__(self, master, timeRange=7200, width=9, height=4):
         """Create a SeeingMonitorWdg
@@ -48,35 +48,27 @@ class SeeingMonitorWdg(Tkinter.Frame):
         
         tccModel = TUI.TCC.TCCModel.getModel()
         
-        self.stripChartWdg = RO.Wdg.StripChartWdg.StripChartWdg(
+        self.stripChartWdg = TUI.Base.StripChartWdg.StripChartWdg(
             master = self,
             timeRange = timeRange,
             numSubplots = 3,
             width = width,
             height = height,
-            cnvTimeFunc = RO.Wdg.StripChartWdg.TimeConverter(useUTC=True),
+            cnvTimeFunc = TUI.Base.StripChartWdg.TimeConverter(useUTC=True),
         )
         self.stripChartWdg.grid(row=0, column=0, sticky="nwes")
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
-        
-        self.stripChartWdg.addLine(self.FWHMName, subplotInd=0, color="green")
-        self.stripChartWdg.addConstantLine(self.OneArcsecName, 1.0, subplotInd=0, color="purple")
-        self.stripChartWdg.showY(0, 1.2, subplotInd=0) 
-        self.stripChartWdg.addLine(self.BrightnessName, subplotInd=1, color="green")
-        self.stripChartWdg.showY(0, 100, subplotInd=1) 
-        self.stripChartWdg.addLine(self.SecPistonName, subplotInd=2, color="green")
-        self.stripChartWdg.addLine(self.UserFocusName, subplotInd=2, color="blue")
-        self.stripChartWdg.showY(0, subplotInd=2)
-        self.stripChartWdg.subplotArr[2].legend(loc=3)
 
         # the default ticks are not nice, so be explicit
         self.stripChartWdg.xaxis.set_major_locator(matplotlib.dates.MinuteLocator(byminute=range(0, 60, 15)))
         
+        # FWHM
         self.stripChartWdg.subplotArr[0].yaxis.set_label_text("FWHM (pix)")
-        self.stripChartWdg.subplotArr[1].yaxis.set_label_text("Bright (ADU)")
-        self.stripChartWdg.subplotArr[2].yaxis.set_label_text("Focus (um)")
-
+        self.stripChartWdg.addLine(self.FWHMName, subplotInd=0, color="green")
+        self.stripChartWdg.addConstantLine(self.OneArcsecName, 1.0, subplotInd=0, color="purple")
+        self.stripChartWdg.showY(0, 1.2, subplotInd=0)
+        
         self.guideModelDict = {} # guide camera name: guide model
         for guideModel in TUI.Guide.GuideModel.modelIter():
             gcamName = guideModel.gcamName
@@ -84,9 +76,18 @@ class SeeingMonitorWdg(Tkinter.Frame):
                 continue
             self.guideModelDict[guideModel.gcamName] = guideModel
             guideModel.star.addCallback(self._updStar, callNow=False)
+        
+        # Brightness
+        self.stripChartWdg.subplotArr[1].yaxis.set_label_text("Bright (ADU)")
+        self.stripChartWdg.addLine(self.BrightnessName, subplotInd=1, color="green")
+        self.stripChartWdg.showY(0, 100, subplotInd=1)
 
-        tccModel.secOrient.addIndexedCallback(self._updSecPiston, 0, callNow=False)
-        tccModel.secFocus.addIndexedCallback(self._updUserFocus, 0, callNow=False)
+        # Focus
+        self.stripChartWdg.subplotArr[2].yaxis.set_label_text("Focus (um)")
+        self.stripChartWdg.plotKeyVar("Sec Piston", subplotInd=2, keyVar=tccModel.secOrient, color="green")
+        self.stripChartWdg.plotKeyVar("User Focus", subplotInd=2, keyVar=tccModel.secFocus, color="green")
+        self.stripChartWdg.showY(0, subplotInd=2)
+        self.stripChartWdg.subplotArr[2].legend(loc=3, frameon=False)
     
     def _addPoint(self, name, value):
         if value == None:
@@ -122,16 +123,6 @@ class SeeingMonitorWdg(Tkinter.Frame):
             return
         self._addPoint(self.FWHMName, valList[8])
         self._addPoint(self.BrightnessName, valList[12])
-
-    def _updSecPiston(self, val, isCurrent=True, keyVar=None):
-        if not isCurrent:
-            return
-        self._addPoint(self.SecPistonName, val)
-    
-    def _updUserFocus(self, val, isCurrent=True, keyVar=None):
-        if not isCurrent:
-            return
-        self._addPoint(self.UserFocusName, val)
 
 
 if __name__ == "__main__":
