@@ -78,6 +78,7 @@ Notes:
                     Added Stop button to Agile.
 2010-09-21 ROwen    Changed canPause to canPauseExposure similarly for canStop and canAbort.
                     Added canStopSeq and renamed canPauseSequence to canPauseSeq.
+2010-10-06 ROwen    NICFPS: set canStopExp false (as it should have been).
 """
 __all__ = ['getModel']
 
@@ -214,6 +215,7 @@ def _getInstInfoDict():
             minExpTime = 0, 
             expTypes = ("object", "flat", "dark"),
             canPauseExp = False,
+            canStopExp = False,
             canAbortExp = False,
         ),
         _ExpInfo(
