@@ -19,6 +19,24 @@
 
 <p>As of TUI 1.7.3, Python 2.5 or later is required (but not 3.x).
 
+<h3>1.8.4b2 2010-10-18</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Combined Guide Monitor and Seeing Monitor and changed the displayed time span to one hour. Added a brief description to the main Guiding help page.
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li>Guider Windows: minor enhancements to drag-to-centroid event handling:
+    <ul>
+        <li>The selection rectangle is immediately removed if one presses the ctrl key (instead of only after a drag).
+        <li>The selection rectangle must be displayed for the centroid command to be sent. Formerly the centroid command could sometimes be sent even if the rectangle was not shown (potentially confusing, but harmless).
+    </ul>
+    <li>Changed the Guide Monitor to only show the brightness of guide stars; formerly it would also display manually centroided stars which would likely be confusing.
+    <li>Corrected a few external links in this version history document.
+</ul>
+
 <h3>1.8.4b1 2010-10-18</h3>
 
 <p>Visible changes:
@@ -1043,7 +1061,7 @@
 <ul>
 	<li>The TUI prefs and geometry files are now located
 	in the standard location on Mac and Windows (using proper
-	system calls to find these directories even on non-English systems). There has been no change on unix. The file names and locations are documented <a href="../TUIMenu/PreferencesWin.html#PrefFile">here</a>. Mac users must rename and move their files for them to be seen in the new location.
+	system calls to find these directories even on non-English systems). There has been no change on unix. The file names and locations are documented <a href="TUIMenu/PreferencesWin.html#PrefFile">here</a>. Mac users must rename and move their files for them to be seen in the new location.
 	<li>The locations for TUI additions have been changed to better support double-clickable applications (e.g. Mac OS X). This affects all users with TUI additions (e.g. APO).
 	<li>TUI shows what it's doing in the log window as it searches for additions and loads them (during startup).
 	<li>Added an icon to the Mac OS X executable.
@@ -1065,7 +1083,7 @@
 
 <p>Visible changes:
 <ul>
-	<li>The first version with a double-clickable executable for Mac OS X (10.3 only). See the <a href="../Installation.html">installation instructions</a> for the download address and Mac-specific notes.
+	<li>The first version with a double-clickable executable for Mac OS X (10.3 only). See the <a href="Installation.html">installation instructions</a> for the download address and Mac-specific notes.
 </ul>
 
 <p>Bug fixes:
@@ -1173,7 +1191,7 @@
 
 <p>Visible changes:
 <ul>
-	<li>Added a Catalog menu to the Slew window. Catalogs have a very similar format to Remark catalogs, but are more flexible. See <a href="../Telescope/UserCatalogs.html">User Catalogs</a> for details.
+	<li>Added a Catalog menu to the Slew window. Catalogs have a very similar format to Remark catalogs, but are more flexible. See <a href="Telescope/UserCatalogs.html">User Catalogs</a> for details.
 	<li>The default coordinate system in the Slew window has been changed to FK5. This was done by request and to match Remark catalogs.
 	<li>Overhauled the Sky window (formerly called Telescope):
 	<ul>
