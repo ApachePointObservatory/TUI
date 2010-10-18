@@ -193,6 +193,8 @@ History:
 2010-06-07 ROwen    Added setRadMult and setThreshWdg methods to simplify the code a bit.
 2010-10-18 ROwen    Made drag-to-select and ctrl-drag-to-center modes more robust.
                     Display the Center button for slitviewers.
+2010-10-18 ROwen    Further refined drag-to-select: if ctrl key is pressed the selection rectangle
+                    is deleted and if there is no selection rectangle then mouse-release will not centroid.
 """
 import atexit
 import os
@@ -1102,6 +1104,9 @@ class GuideWdg(Tkinter.Frame):
         """Show image cursor for "center on this point".
         """
         self.gim.cnv["cursor"] = "crosshair"
+        if self.dragRect:
+            self.gim.cnv.delete(self.dragRect)
+            self.dragRect = None
     
     def cursorNormal(self, evt=None):
         """Show normal image cursor and reset control-click if present
@@ -1458,6 +1463,8 @@ class GuideWdg(Tkinter.Frame):
             if not self.imDisplayed():
                 return
             if not self.dragStart:
+                return
+            if not self.dragRect:
                 return
     
             endPos = self.gim.cnvPosFromEvt(evt)
