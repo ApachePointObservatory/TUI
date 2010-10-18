@@ -9,6 +9,8 @@ History:
                     Turned off frame on legend.
 2010-10-18 ROwen    Changed timespan to 1 hour (at Russet's request).
                     Combined guide and seeing monitor (since they now have the same timespan).
+                    Changed guide star brightness chart to only include star data of type "g"
+                    (guider-reported star data); formerly it also showed "c" (manually centroided stars).
 """
 import math
 import Tkinter
@@ -157,7 +159,7 @@ class GuideMonitorWdg(Tkinter.Frame):
         """
         if not isCurrent:
             return
-        if valList[0] not in ("c", "g"):
+        if valList[0] != "g":
             return
         self._addPoint(self.FWHMName, valList[8])
         self._addPoint(self.BrightnessName, valList[12])
