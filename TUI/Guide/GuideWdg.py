@@ -9,15 +9,10 @@ To do:
   downloaded yet -- what value to show during that process?
   
 - Add a notation to non-guide images that are shown while guiding.
-- Add some kind of display of what guide correction was made;
-  preferably a graph that shows a history of guide corrections
-  perhaps as a series of linked(?) lines, with older ones dimmer until fade out?
 - Add snap points for dragging along slit -- a big job
 - Work with Craig to handle "expired" images better.
   These are images that can no longer be used for guiding
   because the telescope has moved.
-- Add preference to limit # of images saved to disk.
-  Include an option to keep images on quit or ask, or always just delete?
 
 
 History:
@@ -196,6 +191,8 @@ History:
                     guide image was received, depending on how Thresh and RadMult were set.
                     Fixed by disabling callbacks from those controls while setting them programmatically.
 2010-06-07 ROwen    Added setRadMult and setThreshWdg methods to simplify the code a bit.
+2010-10-18 ROwen    Made drag-to-select and ctrl-drag-to-center modes more robust.
+                    Display the Center button for slitviewers.
 """
 import atexit
 import os
@@ -230,7 +227,6 @@ _CentroidTag = "centroid"
 _FindTag = "findStar"
 _GuideTag = "guide"
 _SelTag = "showSelection"
-_DragRectTag = "centroidDrag"
 _CtrlClickArrowTag = "ctrlClickArrow"
 _BoreTag = "boresight"
 _CtrlClickTag = "ctrlClick"
@@ -1165,33 +1161,41 @@ class GuideWdg(Tkinter.Frame):
             return
             
         self.showFITSFile(imPath)
+
+    def whyNotCenter(self, evt=None):
+        """Is it possible to center up on a position in the current image?
+        
+        Return None if one can center, or a reason why not if not
+        """
+        if not self.guideModel.gcamInfo.isSlitViewer:
+            return "not a slitviewer"
+
+        if not self.imDisplayed():
+            return "no image displayed"
+
+#         if not self.showCurrWdg.getBool():
+#             return "image Hold mode"
+    
+        if not self.gim.isNormalMode():
+            return "not default mode (+ icon)"
+        
+        if self.boreXY == None:
+            return "boresight unknown"
+
+        if evt and not self.gim.evtOnCanvas(evt):
+           return "event not on canvas"
     
     def doCtrlClickBegin(self, evt):
         """Start control-click: center up on the command-clicked image location.
         Display arrow showing the offset that will be applied.
         """
-        self.ctrlClickOK = False # assume the worst for now
-        self.eraseCtrlClickArrow()
-        if not self.gim.isNormalMode():
-            return
+        self.endCtrlClickMode()
+        self.endDragMode()
 
-        try:
-            if not self.imDisplayed():
-                raise RuntimeError("Ctrl-click requires an image")
-        
-            if not self.guideModel.gcamInfo.isSlitViewer:
-                raise RuntimeError("Ctrl-click requires a slit viewer")
-        
-            if self.gim.mode != "normal": # recode to use a class constant
-                raise RuntimeError("Ctrl-click requires default mode (+ icon)")
-            
-            if self.boreXY == None:
-                raise RuntimeError("Boresight position unknown")
-
-            if not self.gim.evtOnCanvas(evt):
-                raise RuntimeError("Tcl/Tk bug: event not on canvas")
-        except RuntimeError, e:
-            self.statusBar.setMsg(RO.StringUtil.strFromException(e), severity = RO.Constants.sevError)
+        reasonStr = self.whyNotCenter()
+        if reasonStr:
+            errMsg = "Ctrl-click error: %s" % (reasonStr,)
+            self.statusBar.setMsg(errMsg, severity = RO.Constants.sevError)
             self.statusBar.playCmdFailed()
             return
         
@@ -1201,36 +1205,35 @@ class GuideWdg(Tkinter.Frame):
     def doCtrlClickContinue(self, evt):
         """Drag control-click arrow around.
         """
-        if not self.gim.isNormalMode():
+        if self.dragRect:
+            # in drag-to-centroid mode; delete the selection rectangle and ignore this event
+            self.gim.cnv.delete(self.dragRect)
+            self.dragRect = None
             return
+            
         self.drawCtrlClickArrow(evt)
     
     def doCtrlClickEnd(self, evt):
         """Center up on the command-clicked image location.
         """
-        if not self.ctrlClickArrow:
-            self.ctrlClickOK = False
-            return
-        self.eraseCtrlClickArrow()
-
-        if not self.ctrlClickOK:
-            return
-        self.ctrlClickOK = False
-
-        if not self.gim.isNormalMode():
-            return
-
-        if not self.gim.evtOnCanvas(evt):
-            # mouse is off canvas; don't do anything
-            return
-
-        evtCnvPos = self.gim.cnvPosFromEvt(evt)
-        imPos = self.gim.imPosFromCnvPos(evtCnvPos)
-        
-        expArgs = self.getExpArgStr() # inclThresh=False)
-        cmdStr = "guide centerOn=%.2f,%.2f %s" % (imPos[0], imPos[1], expArgs)
-
-        self.doCmd(cmdStr)
+        try:
+            if not self.ctrlClickOK or not self.ctrlClickArrow or not self.gim.isNormalMode():
+                return
+    
+            if not self.gim.evtOnCanvas(evt):
+                # mouse is off canvas; don't do anything
+                return
+    
+            evtCnvPos = self.gim.cnvPosFromEvt(evt)
+            imPos = self.gim.imPosFromCnvPos(evtCnvPos)
+            
+            expArgs = self.getExpArgStr() # inclThresh=False)
+            cmdStr = "guide centerOn=%.2f,%.2f %s" % (imPos[0], imPos[1], expArgs)
+    
+            self.doCmd(cmdStr)
+        finally:
+            self.endCtrlClickMode()
+            self.endDragMode()
     
     def doCurrent(self, wdg=None):
         """Restore default value of all guide parameter widgets"""
@@ -1244,24 +1247,48 @@ class GuideWdg(Tkinter.Frame):
             self.showSelection()
     
     def drawCtrlClickArrow(self, evt):
-        """Draw or redraw the ctrl-click arrow"""
-        if not self.gim.evtOnCanvas(evt) or (self.boreXY == None) or not self.ctrlClickOK:
-            self.eraseCtrlClickArrow()
-            return
+        """Draw or redraw the ctrl-click arrow
+        
+        The arrow will not be drawn if the event is off the canvas
+        (which is why self.ctrlClickArrow==None is NOT a valid replacement for self.ctrlClickOK)
+        
+        If an error occurs then leaves ctrl-click mode.
+        """
+        try:
+            if not self.ctrlClickOK or not self.gim.evtOnCanvas(evt) or not self.gim.isNormalMode():
+                self.eraseCtrlClickArrow()
+                return
 
-        evtCnvPos = self.gim.cnvPosFromEvt(evt)
-        boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
-        if self.ctrlClickArrow:
-            self.gim.cnv.coords(self.ctrlClickArrow,
-                evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
-            )
-        else:
-            self.ctrlClickArrow = self.gim.cnv.create_line(
-                evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
-                fill = self.boreColorPref.getValue(),
-                tags = _CtrlClickTag,
-                arrow = "last",
-            )
+            evtCnvPos = self.gim.cnvPosFromEvt(evt)
+            boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
+            if self.ctrlClickArrow:
+                self.gim.cnv.coords(self.ctrlClickArrow,
+                    evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
+                )
+            else:
+                self.ctrlClickArrow = self.gim.cnv.create_line(
+                    evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
+                    fill = self.boreColorPref.getValue(),
+                    tags = _CtrlClickTag,
+                    arrow = "last",
+                )
+        except Exception:
+            self.endCtrlClickMode()
+            raise
+
+    def endCtrlClickMode(self):
+        """End control-click-drag-to-center mode
+        """
+        self.ctrlClickOK = False
+        self.eraseCtrlClickArrow()
+
+    def endDragMode(self):
+        """End drag-to-centroid-region mode
+        """
+        self.dragStart = None
+        if self.dragRect:
+            self.gim.cnv.delete(self.dragRect)
+        self.dragRect = None
     
     def eraseCtrlClickArrow(self):
         """Erase the control-click arrow, if present"""
@@ -1378,6 +1405,8 @@ class GuideWdg(Tkinter.Frame):
     def doDragStart(self, evt):
         """Mouse down for current drag (whatever that might be).
         """
+        self.endCtrlClickMode()
+        self.endDragMode()
         if not self.gim.isNormalMode():
             return
         if not self.imDisplayed():
@@ -1392,56 +1421,66 @@ class GuideWdg(Tkinter.Frame):
             self.dragRect = self.gim.cnv.create_rectangle(
                 self.dragStart[0], self.dragStart[1], self.dragStart[0], self.dragStart[1],
                 outline = color,
-                tags = _DragRectTag,
             )
         except Exception:
-            self.dragStart = None
-            self.dragRect = None
+            self.endDragMode()
             raise
     
     def doDragContinue(self, evt):
-        if not self.gim.isNormalMode():
-            return
-        if not self.dragStart:
-            return
+        # print "doDragContinue; dragStart=%s; dragRect=%s" % (self.dragStart, self.dragRect)
+        try:
+            if not self.gim.isNormalMode():
+                return
+            if not self.dragStart:
+                return
 
-        newPos = self.gim.cnvPosFromEvt(evt)
-        self.gim.cnv.coords(self.dragRect, self.dragStart[0], self.dragStart[1], newPos[0], newPos[1])
+            newPos = self.gim.cnvPosFromEvt(evt)
+            if self.dragRect:
+                self.gim.cnv.coords(self.dragRect, self.dragStart[0], self.dragStart[1], newPos[0], newPos[1])
+            else:
+                colorPref = self.typeTagColorPrefDict["c"][1]
+                color = colorPref.getValue()
+                self.dragRect = self.gim.cnv.create_rectangle(
+                    self.dragStart[0], self.dragStart[1], newPos[0], newPos[1],
+                    outline = color,
+                )
+        except Exception:
+            self.endDragMode()
+            raise
     
     def doDragEnd(self, evt):
-        if not self.gim.isNormalMode():
-            return
-        if not self.imDisplayed():
-            return
-        if not self.dragStart:
-            return
-
-        endPos = self.gim.cnvPosFromEvt(evt)
-        startPos = self.dragStart or endPos
-
-        self.gim.cnv.delete(_DragRectTag)
-        self.dragStart = None
-        self.dragRect = None
-        
-
-        meanPos = numpy.divide(numpy.add(startPos, endPos), 2.0)
-        deltaPos = numpy.subtract(endPos, startPos)
-
-        rad = max(deltaPos) / (self.gim.zoomFac * 2.0)
-        imPos = self.gim.imPosFromCnvPos(meanPos)
-        thresh = self.threshWdg.getNum()
-        
-        if abs(deltaPos[0]) > 1 and abs(deltaPos[1] > 1):
-            # centroid
-
-            # execute centroid command
-            cmdStr = "centroid file=%r on=%.2f,%.2f cradius=%.1f thresh=%.2f" % \
-                (self.dispImObj.imageName, imPos[0], imPos[1], rad, thresh)
-            self.doCmd(cmdStr)
+        try:
+            if not self.gim.isNormalMode():
+                return
+            if not self.imDisplayed():
+                return
+            if not self.dragStart:
+                return
+    
+            endPos = self.gim.cnvPosFromEvt(evt)
+            startPos = self.dragStart or endPos
+    
+            meanPos = numpy.divide(numpy.add(startPos, endPos), 2.0)
+            deltaPos = numpy.subtract(endPos, startPos)
+    
+            rad = max(deltaPos) / (self.gim.zoomFac * 2.0)
+            imPos = self.gim.imPosFromCnvPos(meanPos)
+            thresh = self.threshWdg.getNum()
             
-        else:
-            # select
-            self.doSelect(evt)
+            if abs(deltaPos[0]) > 1 and abs(deltaPos[1] > 1):
+                # centroid
+    
+                # execute centroid command
+                cmdStr = "centroid file=%r on=%.2f,%.2f cradius=%.1f thresh=%.2f" % \
+                    (self.dispImObj.imageName, imPos[0], imPos[1], rad, thresh)
+                self.doCmd(cmdStr)
+                
+            else:
+                # select
+                self.doSelect(evt)
+        finally:
+            self.endDragMode()
+            self.endCtrlClickMode()
 
     def doDS9(self, wdg=None):
         """Display the current image in ds9.
@@ -2020,17 +2059,12 @@ class GuideWdg(Tkinter.Frame):
             if None then automatically set based on the Current button
         """
         self.boreXY = None
-        if self.ctrlClickArrow != None:
-            print "Warning: ctrlClickArrow left around while displaying new image"
-            self.gim.cnv.delete(self.ctrlClickArrow)
-            self.ctrlClickArrow = None
-        self.ctrlClickOK = False
-        self.dragStart = None
-        self.dragRect = None
+        self.endCtrlClickMode()
+        self.endDragMode()
         #print "showImage(imObj=%s)" % (imObj,)
         # expire current image if not in history (this should never happen)
         if (self.dispImObj != None) and (self.dispImObj.imageName not in self.imObjDict):
-            sys.stderr.write("GuideWdg warning: expiring display image that was not in history")
+            sys.stderr.write("GuideWdg warning: expiring display image that was not in history\n")
             self.dispImObj.expire()
         
         fitsIm = imObj.getFITSObj() # note: this sets various useful attributes of imObj such as binFac
