@@ -12,7 +12,6 @@ import TUI.Guide.DISSlitviewerWindow
 import TUI.Guide.EchelleSlitviewerWindow
 import TUI.Guide.GuideMonitor.GuideMonitorWindow
 import TUI.Guide.NA2GuiderWindow
-import TUI.Guide.SeeingMonitor.SeeingMonitorWindow
 import TUI.Guide.TSpecSlitViewerWindow
 import TUI.Inst.Agile.AgileWindow
 import TUI.Inst.DIS.DISWindow
@@ -48,7 +47,6 @@ def loadAll():
     TUI.Guide.EchelleSlitviewerWindow.addWindow(tlSet)
     TUI.Guide.GuideMonitor.GuideMonitorWindow.addWindow(tlSet)
     TUI.Guide.NA2GuiderWindow.addWindow(tlSet)
-    TUI.Guide.SeeingMonitor.SeeingMonitorWindow.addWindow(tlSet)
     TUI.Guide.TSpecSlitViewerWindow.addWindow(tlSet)
     TUI.Inst.Agile.AgileWindow.addWindow(tlSet)
     TUI.Inst.DIS.DISWindow.addWindow(tlSet)
