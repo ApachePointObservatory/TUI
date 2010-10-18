@@ -4,13 +4,53 @@
 History:
 2010-09-24
 2010-09-29 ROwen    modified to use RO.Alg.RandomWalk
+2010-10-18 ROwen    Added guide offset information.
 """
+import math
 import random
 import RO.Alg.RandomWalk
 import TUI.Base.TestDispatcher
 
 testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("tcc")
 tuiModel = testDispatcher.tuiModel
+
+Alt = 45.0
+
+class GuideOffInfo(object):
+    def __init__(self):
+        azScale = 1.0 / math.cos(Alt * RO.PhysConst.RadPerDeg)
+        lim = 10.0 / RO.PhysConst.ArcSecPerDeg
+        mean = 0.0 / RO.PhysConst.ArcSecPerDeg
+        sigma = 2.0 / RO.PhysConst.ArcSecPerDeg
+        
+        self.randomValueDict = dict(
+            azOff = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(
+                mean * azScale, sigma * azScale, -lim * azScale, lim * azScale),
+            altOff = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(mean, sigma, -lim, lim),
+            rotOff = RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(mean, sigma, -lim, lim),
+        )
+    
+    def update(self):
+        """Randomly change values
+        """
+        for randomValue in self.randomValueDict.itervalues():
+            randomValue.next()
+    
+    def getValueDict(self):
+        """Get a dictionary of value name: value
+        """
+        return dict((name, randomValue.value) for name, randomValue in self.randomValueDict.iteritems())
+
+    def getKeyVarStr(self):
+        """Get the data as a keyword variable
+        
+        Fields are:
+        az off, az vel, az time, alt off, alt vel, alt time, rot off, rot vel, rot time
+        where offsets are in degrees
+        the offsets are assumed constant so time is not interesting so I don't bother to set it realistically
+        """
+        return "GuideOff=%(azOff)0.5f, 0.0, 100.0, %(altOff)0.5f, 0.0, 100.0, %(rotOff)0.5f, 0.0, 100.0" % \
+            self.getValueDict()
 
 class StarInfo(object):
     def __init__(self):
@@ -62,16 +102,23 @@ For "g" stars, the two following fields are added:
             self.getValueDict()
 
 def runTest():
+    testDispatcher.dispatch("AxePos=0.0, %0.3f, 0" % (Alt,), actor="tcc")
+    _nextGuideOffset(GuideOffInfo(), 2)
     _nextStar(StarInfo(), 5)
     _nextSecFocus(RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(0, 10, -500, 500), 6)
     _nextSecPiston(RO.Alg.RandomWalk.ConstrainedGaussianRandomWalk(100, 25, -2000, 2000), 3)
+
+def _nextGuideOffset(guideOffInfo, delaySec):
+    guideOffInfo.update()
+    keyVarStr = guideOffInfo.getKeyVarStr()
+    testDispatcher.dispatch(keyVarStr, actor="tcc")
+    tuiModel.tkRoot.after(int(delaySec * 1000), _nextGuideOffset, guideOffInfo, delaySec)
 
 def _nextStar(starInfo, delaySec):
     starInfo.update()
     keyVarStr = starInfo.getKeyVarStr()
     testDispatcher.dispatch(keyVarStr, actor="gcam")
     tuiModel.tkRoot.after(int(delaySec * 1000), _nextStar, starInfo, delaySec)
-    
 
 def _nextSecFocus(secFocus, delaySec):
     keyVarStr = "SecFocus=%0.1f" % (secFocus.next(),)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Seeing monitor
+"""Guide monitor
 
 History:
 2010-09-27 ROwen    Initial version.
@@ -7,7 +7,10 @@ History:
 2010-09-30 ROwen    Fixed FWHM units: they are pixels, not arcsec. Thanks to Joe F.
 2010-10-01 ROwen    Modified to use TUI.Base.StripChartWdg.
                     Turned off frame on legend.
+2010-10-18 ROwen    Changed timespan to 1 hour (at Russet's request).
+                    Combined guide and seeing monitor (since they now have the same timespan).
 """
+import math
 import Tkinter
 import matplotlib
 import RO.Wdg
@@ -15,7 +18,7 @@ import TUI.Base.StripChartWdg
 import TUI.Guide.GuideModel
 import TUI.TCC.TCCModel
 
-WindowName = "Guide.Seeing Monitor"
+WindowName = "Guide.Guide Monitor"
 
 def addWindow(tlSet):
     """Create the window for TUI.
@@ -25,18 +28,20 @@ def addWindow(tlSet):
         defGeom = "+434+22",
         visible = False,
         resizable = True,
-        wdgFunc = SeeingMonitorWdg,
+        wdgFunc = GuideMonitorWdg,
     )
 
-class SeeingMonitorWdg(Tkinter.Frame):
-    """Monitor guide star information and focus
+class GuideMonitorWdg(Tkinter.Frame):
+    """Monitor guide star FWHM, focus and guide corrections.
     """
     FWHMName = "FWHM"
     OneArcsecName = "One Arcsec"
     BrightnessName = "Brightness"
+    AzOffName = "Az (on sky)"
+    AltOffName = "Alt"
     
-    def __init__(self, master, timeRange=7200, width=9, height=4):
-        """Create a SeeingMonitorWdg
+    def __init__(self, master, timeRange=3600, width=10, height=6):
+        """Create a GuideMonitorWdg
         
         Inputs:
         - master: parent Tk widget
@@ -46,12 +51,12 @@ class SeeingMonitorWdg(Tkinter.Frame):
         """
         Tkinter.Frame.__init__(self, master)
         
-        tccModel = TUI.TCC.TCCModel.getModel()
+        self.tccModel = TUI.TCC.TCCModel.getModel()
         
         self.stripChartWdg = TUI.Base.StripChartWdg.StripChartWdg(
             master = self,
             timeRange = timeRange,
-            numSubplots = 3,
+            numSubplots = 4,
             width = width,
             height = height,
             cnvTimeFunc = TUI.Base.StripChartWdg.TimeConverter(useUTC=True),
@@ -62,12 +67,15 @@ class SeeingMonitorWdg(Tkinter.Frame):
 
         # the default ticks are not nice, so be explicit
         self.stripChartWdg.xaxis.set_major_locator(matplotlib.dates.MinuteLocator(byminute=range(0, 60, 15)))
+
+        spInd = 0
         
         # FWHM
-        self.stripChartWdg.subplotArr[0].yaxis.set_label_text("FWHM (pix)")
-        self.stripChartWdg.addLine(self.FWHMName, subplotInd=0, color="green")
-        self.stripChartWdg.addConstantLine(self.OneArcsecName, 1.0, subplotInd=0, color="purple")
-        self.stripChartWdg.showY(0, 1.2, subplotInd=0)
+        self.stripChartWdg.subplotArr[spInd].yaxis.set_label_text("FWHM (pix)")
+        self.stripChartWdg.addLine(self.FWHMName, subplotInd=spInd, color="green")
+        self.stripChartWdg.addConstantLine(self.OneArcsecName, 1.0, subplotInd=spInd, color="purple")
+        self.stripChartWdg.showY(0, 1.2, subplotInd=spInd)
+        spInd += 1
         
         self.guideModelDict = {} # guide camera name: guide model
         for guideModel in TUI.Guide.GuideModel.modelIter():
@@ -78,21 +86,51 @@ class SeeingMonitorWdg(Tkinter.Frame):
             guideModel.star.addCallback(self._updStar, callNow=False)
         
         # Brightness
-        self.stripChartWdg.subplotArr[1].yaxis.set_label_text("Bright (ADU)")
-        self.stripChartWdg.addLine(self.BrightnessName, subplotInd=1, color="green")
-        self.stripChartWdg.showY(0, 100, subplotInd=1)
+        self.stripChartWdg.subplotArr[spInd].yaxis.set_label_text("Bright (ADU)")
+        self.stripChartWdg.addLine(self.BrightnessName, subplotInd=spInd, color="green")
+        self.stripChartWdg.showY(0, 100, subplotInd=spInd)
+        spInd += 1
 
         # Focus
-        self.stripChartWdg.subplotArr[2].yaxis.set_label_text("Focus (um)")
-        self.stripChartWdg.plotKeyVar("Sec Piston", subplotInd=2, keyVar=tccModel.secOrient, color="green")
-        self.stripChartWdg.plotKeyVar("User Focus", subplotInd=2, keyVar=tccModel.secFocus, color="green")
-        self.stripChartWdg.showY(0, subplotInd=2)
-        self.stripChartWdg.subplotArr[2].legend(loc=3, frameon=False)
+        self.stripChartWdg.subplotArr[spInd].yaxis.set_label_text("Focus (um)")
+        self.stripChartWdg.plotKeyVar("Sec Piston", subplotInd=spInd, keyVar=self.tccModel.secOrient, color="green")
+        self.stripChartWdg.plotKeyVar("User Focus", subplotInd=spInd, keyVar=self.tccModel.secFocus, color="blue")
+        self.stripChartWdg.showY(0, subplotInd=spInd)
+        self.stripChartWdg.subplotArr[spInd].legend(loc=3, frameon=False)
+        spInd += 1
+
+        # Guide correction
+        self.stripChartWdg.subplotArr[spInd].yaxis.set_label_text("Guide Off (\")")
+        self.stripChartWdg.addLine(self.AzOffName, subplotInd=spInd, color="green")
+        self.stripChartWdg.addLine(self.AltOffName, subplotInd=spInd, color="blue")
+        self.stripChartWdg.showY(-3.0, 3.0, subplotInd=spInd)
+        self.stripChartWdg.subplotArr[spInd].legend(loc=3, frameon=False)
+        spInd += 1
+
+        self.tccModel.guideOff.addCallback(self._updGuideOff, callNow=False)
     
     def _addPoint(self, name, value):
         if value == None:
             return
         self.stripChartWdg.addPoint(name, value)
+
+    def _updGuideOff(self, *args, **kargs):
+        """Updated actual guide offset in az, alt (")
+        """
+        if not self.tccModel.guideOff.isCurrent():
+            return
+        if not self.tccModel.guideOff.isGenuine():
+            return
+
+        guideOffPVTList = self.tccModel.guideOff.get()[0]
+        guideOffArcSecList = [pvt.getPos() * RO.PhysConst.ArcSecPerDeg for pvt in guideOffPVTList]
+        currAlt = self.tccModel.axePos.getInd(1)[0]
+        if currAlt == None:
+            return
+        azOffsetOnSky = guideOffArcSecList[0] * math.cos(currAlt * RO.PhysConst.RadPerDeg)
+        
+        self._addPoint(self.AzOffName, azOffsetOnSky)
+        self._addPoint(self.AltOffName, guideOffArcSecList[1])
          
     def _updStar(self, valList, isCurrent=True, keyVar=None):
         """Updated star data
