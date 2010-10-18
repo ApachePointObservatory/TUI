@@ -1173,8 +1173,8 @@ class GuideWdg(Tkinter.Frame):
         if not self.imDisplayed():
             return "no image displayed"
 
-#         if not self.showCurrWdg.getBool():
-#             return "image Hold mode"
+        if not self.showCurrWdg.getBool():
+            return "image Hold mode"
     
         if not self.gim.isNormalMode():
             return "not default mode (+ icon)"
@@ -1749,7 +1749,8 @@ class GuideWdg(Tkinter.Frame):
         self.currentBtn.setEnable(areParamsModified)
         
         self.exposeBtn.setEnable(showCurrIm and not isExecOrGuiding)
-        self.centerBtn.setEnable(showCurrIm and isCurrIm and isSel and not isExecOrGuiding)
+        reasonStr = self.whyNotCenter()
+        self.centerBtn.setEnable(showCurrIm and isCurrIm and isSel and not isExecOrGuiding and not reasonStr)
                 
         self.guideOnBtn.setEnable(showCurrIm and guideCmdOK and not isExecOrGuiding)
         
