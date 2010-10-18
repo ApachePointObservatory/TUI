@@ -919,7 +919,7 @@ class GuideWdg(Tkinter.Frame):
         
         self.centerBtn = RO.Wdg.Button(
             cmdButtonFrame,
-            text = "Center",
+            text = "Center Sel",
             callFunc = self.doCenterOnSel,
             helpText = "Put selected star on the boresight",
             helpURL = helpURL,
@@ -981,6 +981,9 @@ class GuideWdg(Tkinter.Frame):
         col += 1
         self.guideOnBtn.grid(row=0, column=col)
         col += 1
+        if self.guideModel.gcamInfo.isSlitViewer:
+            self.centerBtn.grid(row=0, column=col)
+            col += 1
         self.applyBtn.grid(row=0, column=col)
         col += 1
         self.guideOffBtn.grid(row=0, column=col)
