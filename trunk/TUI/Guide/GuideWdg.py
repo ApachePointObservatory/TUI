@@ -195,6 +195,9 @@ History:
                     Display the Center button for slitviewers.
 2010-10-18 ROwen    Further refined drag-to-select: if ctrl key is pressed the selection rectangle
                     is deleted and if there is no selection rectangle then mouse-release will not centroid.
+2010-10-19 ROwen    Further refinements to event handling. Now the crosshair cursor is only shown
+                    if the ctrl-click arrow is also shown. Thus the cursor now is a reliable indicator
+                    that a center command will be sent if the mouse button is released.
 """
 import atexit
 import os
@@ -1028,28 +1031,15 @@ class GuideWdg(Tkinter.Frame):
 
         # bindings to set the image cursor
         tl = self.winfo_toplevel()
-        tl.bind("<Control-KeyPress>", self.cursorCtr, add=True)
+        tl.bind("<Control-KeyPress>", self.eraseDragRect, add=True)
         tl.bind("<Control-KeyRelease>", self.ignoreEvt, add=True)
-        tl.bind("<KeyRelease>", self.cursorNormal, add=True)
+        tl.bind("<KeyRelease>", self.eraseCtrlClickArrow, add=True)
         
         # exit handler
         atexit.register(self._exitHandler)
         
         self.enableCmdButtons()
         self.enableHistButtons()
-
-    def _trackMem(self, obj, objName):
-        """Print a message when an object is deleted.
-        """
-        if not _DebugMem:
-            return
-        objID = id(obj)
-        def refGone(ref=None, objID=objID, objName=objName):
-            print "GuideWdg deleting %s" % (objName,)
-            del(self._memDebugDict[objID])
-
-        self._memDebugDict[objID] = weakref.ref(obj, refGone)
-        del(obj)
 
     def addImToHist(self, imObj, ind=None):
         imageName = imObj.imageName
@@ -1099,20 +1089,6 @@ class GuideWdg(Tkinter.Frame):
         else:
             sys.stderr.write("GuideWdg warning: cmdCallback called for wrong cmd:\n- doing cmd: %s\n- called by cmd: %s\n" % (self.doingCmd[0], cmdVar))
         self.enableCmdButtons()
-
-    def cursorCtr(self, evt=None):
-        """Show image cursor for "center on this point".
-        """
-        self.gim.cnv["cursor"] = "crosshair"
-        if self.dragRect:
-            self.gim.cnv.delete(self.dragRect)
-            self.dragRect = None
-    
-    def cursorNormal(self, evt=None):
-        """Show normal image cursor and reset control-click if present
-        """
-        self.gim.cnv["cursor"] = self.defCnvCursor
-        self.eraseCtrlClickArrow()
 
     def doCenterOnSel(self, evt):
         """Center up on the selected star.
@@ -1169,29 +1145,6 @@ class GuideWdg(Tkinter.Frame):
             return
             
         self.showFITSFile(imPath)
-
-    def whyNotCenter(self, evt=None):
-        """Is it possible to center up on a position in the current image?
-        
-        Return None if one can center, or a reason why not if not
-        """
-        if not self.guideModel.gcamInfo.isSlitViewer:
-            return "not a slitviewer"
-
-        if not self.imDisplayed():
-            return "no image displayed"
-
-        if not self.showCurrWdg.getBool():
-            return "image Hold mode"
-    
-        if not self.gim.isNormalMode():
-            return "not default mode (+ icon)"
-        
-        if self.boreXY == None:
-            return "boresight unknown"
-
-        if evt and not self.gim.evtOnCanvas(evt):
-           return "event not on canvas"
     
     def doCtrlClickBegin(self, evt):
         """Start control-click: center up on the command-clicked image location.
@@ -1215,8 +1168,7 @@ class GuideWdg(Tkinter.Frame):
         """
         if self.dragRect:
             # in drag-to-centroid mode; delete the selection rectangle and ignore this event
-            self.gim.cnv.delete(self.dragRect)
-            self.dragRect = None
+            self.eraseDragRect()
             return
             
         self.drawCtrlClickArrow(evt)
@@ -1253,103 +1205,6 @@ class GuideWdg(Tkinter.Frame):
             # star selection has changed
             self.dispImObj.selDataColor = self.dispImObj.defSelDataColor
             self.showSelection()
-    
-    def drawCtrlClickArrow(self, evt):
-        """Draw or redraw the ctrl-click arrow
-        
-        The arrow will not be drawn if the event is off the canvas
-        (which is why self.ctrlClickArrow==None is NOT a valid replacement for self.ctrlClickOK)
-        
-        If an error occurs then leaves ctrl-click mode.
-        """
-        try:
-            if not self.ctrlClickOK or not self.gim.evtOnCanvas(evt) or not self.gim.isNormalMode():
-                self.eraseCtrlClickArrow()
-                return
-
-            evtCnvPos = self.gim.cnvPosFromEvt(evt)
-            boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
-            if self.ctrlClickArrow:
-                self.gim.cnv.coords(self.ctrlClickArrow,
-                    evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
-                )
-            else:
-                self.ctrlClickArrow = self.gim.cnv.create_line(
-                    evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
-                    fill = self.boreColorPref.getValue(),
-                    tags = _CtrlClickTag,
-                    arrow = "last",
-                )
-        except Exception:
-            self.endCtrlClickMode()
-            raise
-
-    def endCtrlClickMode(self):
-        """End control-click-drag-to-center mode
-        """
-        self.ctrlClickOK = False
-        self.eraseCtrlClickArrow()
-
-    def endDragMode(self):
-        """End drag-to-centroid-region mode
-        """
-        self.dragStart = None
-        if self.dragRect:
-            self.gim.cnv.delete(self.dragRect)
-        self.dragRect = None
-    
-    def eraseCtrlClickArrow(self):
-        """Erase the control-click arrow, if present"""
-        if self.ctrlClickArrow != None:
-            self.gim.cnv.delete(self.ctrlClickArrow)
-            self.ctrlClickArrow = None
-    
-    def showFITSFile(self, imPath):
-        """Display a FITS file.
-        """     
-        # try to find image in history
-        # using samefile is safer than trying to match paths as strings
-        # (RO.OS.expandPath *might* be thorough enough to allow that,
-        # but no promises and one would have to expand every path being checked)
-        for imObj in self.imObjDict.itervalues():
-            try:
-                isSame = os.path.samefile(imPath, imObj.getLocalPath())
-            except OSError:
-                continue
-            if isSame:
-                self.showImage(imObj)
-                return
-        # not in history; create new local imObj and load that
-
-        # try to split off user's base dir if possible
-        localBaseDir = ""
-        imageName = imPath
-        startDir = self.tuiModel.prefs.getValue("Save To")
-        if startDir != None:
-            startDir = RO.OS.expandPath(startDir)
-            if startDir and not startDir.endswith(os.sep):
-                startDir = startDir + os.sep
-            imPath = RO.OS.expandPath(imPath)
-            if imPath.startswith(startDir):
-                localBaseDir = startDir
-                imageName = imPath[len(startDir):]
-        
-        #print "localBaseDir=%r, imageName=%r" % (localBaseDir, imageName)
-        imObj = GuideImage.GuideImage(
-            localBaseDir = localBaseDir,
-            imageName = imageName,
-            isLocal = True,
-        )
-        self._trackMem(imObj, str(imObj))
-        imObj.fetchFile()
-        ind = None
-        if self.dispImObj != None:
-            try:
-                ind = self.imObjDict.index(self.dispImObj.imageName)
-            except KeyError:
-                pass
-        self.addImToHist(imObj, ind)
-        self.showImage(imObj)
         
     def doCmd(self,
         cmdStr,
@@ -1736,6 +1591,37 @@ class GuideWdg(Tkinter.Frame):
         
         self.subFrameToViewBtn.setEnable(False)
     
+    def drawCtrlClickArrow(self, evt):
+        """Draw or redraw the ctrl-click arrow
+        
+        The arrow will not be drawn if the event is off the canvas
+        (which is why self.ctrlClickArrow==None is NOT a valid replacement for self.ctrlClickOK)
+        
+        If an error occurs then leaves ctrl-click mode.
+        """
+        try:
+            if not self.ctrlClickOK or not self.gim.evtOnCanvas(evt) or not self.gim.isNormalMode():
+                self.eraseCtrlClickArrow()
+                return
+
+            evtCnvPos = self.gim.cnvPosFromEvt(evt)
+            boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
+            if self.ctrlClickArrow:
+                self.gim.cnv.coords(self.ctrlClickArrow,
+                    evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
+                )
+            else:
+                self.ctrlClickArrow = self.gim.cnv.create_line(
+                    evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
+                    fill = self.boreColorPref.getValue(),
+                    tags = _CtrlClickTag,
+                    arrow = "last",
+                )
+            self.gim.cnv["cursor"] = "crosshair"
+        except Exception:
+            self.endCtrlClickMode()
+            raise
+    
     def enableCmdButtons(self, wdg=None):
         """Set enable of command buttons.
         """
@@ -1817,6 +1703,37 @@ class GuideWdg(Tkinter.Frame):
             sameView = self.subFrameWdg.sameSubFrame(subFrame)
 
         self.subFrameToViewBtn.setEnable(not sameView)
+
+    def endCtrlClickMode(self):
+        """End control-click-drag-to-center mode
+        """
+        self.ctrlClickOK = False
+        self.eraseCtrlClickArrow()
+
+    def endDragMode(self):
+        """End drag-to-centroid-region mode
+        """
+        self.dragStart = None
+        self.eraseDragRect()
+    
+    def eraseCtrlClickArrow(self, evt=None):
+        """Erase the control-click arrow, if present
+        """
+        self.gim.cnv["cursor"] = self.defCnvCursor
+        if self.ctrlClickArrow:
+            try:
+                self.gim.cnv.delete(self.ctrlClickArrow)
+            finally:
+                self.ctrlClickArrow = None
+
+    def eraseDragRect(self, evt=None):
+        """Erase the drag rectangle, if present
+        """
+        if self.dragRect:
+            try:
+                self.gim.cnv.delete(self.dragRect)
+            finally:
+                self.dragRect = None
                 
     def fetchCallback(self, imObj):
         """Called when an image is finished downloading.
@@ -1979,7 +1896,7 @@ class GuideWdg(Tkinter.Frame):
         numpy.add(binSubBeg, begImPos, binSubBeg)
         numpy.subtract(endImPos, begImPos, binSubSize)
         return SubFrame.SubFrame.fromBinInfo(self.guideModel.gcamInfo.imSize, self.dispImObj.binFac, binSubBeg, binSubSize)
-    
+
     def ignoreEvt(self, evt=None):
         pass
 
@@ -2060,6 +1977,53 @@ class GuideWdg(Tkinter.Frame):
                 else:
                     self.threshWdg.set(imObj.defThresh)
             self.threshWdg.setDefault(imObj.defThresh)
+    
+    def showFITSFile(self, imPath):
+        """Display a FITS file.
+        """     
+        # try to find image in history
+        # using samefile is safer than trying to match paths as strings
+        # (RO.OS.expandPath *might* be thorough enough to allow that,
+        # but no promises and one would have to expand every path being checked)
+        for imObj in self.imObjDict.itervalues():
+            try:
+                isSame = os.path.samefile(imPath, imObj.getLocalPath())
+            except OSError:
+                continue
+            if isSame:
+                self.showImage(imObj)
+                return
+        # not in history; create new local imObj and load that
+
+        # try to split off user's base dir if possible
+        localBaseDir = ""
+        imageName = imPath
+        startDir = self.tuiModel.prefs.getValue("Save To")
+        if startDir != None:
+            startDir = RO.OS.expandPath(startDir)
+            if startDir and not startDir.endswith(os.sep):
+                startDir = startDir + os.sep
+            imPath = RO.OS.expandPath(imPath)
+            if imPath.startswith(startDir):
+                localBaseDir = startDir
+                imageName = imPath[len(startDir):]
+        
+        #print "localBaseDir=%r, imageName=%r" % (localBaseDir, imageName)
+        imObj = GuideImage.GuideImage(
+            localBaseDir = localBaseDir,
+            imageName = imageName,
+            isLocal = True,
+        )
+        self._trackMem(imObj, str(imObj))
+        imObj.fetchFile()
+        ind = None
+        if self.dispImObj != None:
+            try:
+                ind = self.imObjDict.index(self.dispImObj.imageName)
+            except KeyError:
+                pass
+        self.addImToHist(imObj, ind)
+        self.showImage(imObj)
         
     def showImage(self, imObj, forceCurr=None):
         """Display an image.
@@ -2563,12 +2527,49 @@ class GuideWdg(Tkinter.Frame):
 
         if self.isDispObj(imObj):
             self.setThreshWdg(imObj)
+
+    def whyNotCenter(self, evt=None):
+        """Is it possible to center up on a position in the current image?
+        
+        Return None if one can center, or a reason why not if not
+        """
+        if not self.guideModel.gcamInfo.isSlitViewer:
+            return "not a slitviewer"
+
+        if not self.imDisplayed():
+            return "no image displayed"
+
+        if not self.showCurrWdg.getBool():
+            return "image Hold mode"
+    
+        if not self.gim.isNormalMode():
+            return "not default mode (+ icon)"
+        
+        if self.boreXY == None:
+            return "boresight unknown"
+
+        if evt and not self.gim.evtOnCanvas(evt):
+           return "event not on canvas"
         
     def _exitHandler(self):
         """Delete all image files
         """
         for imObj in self.imObjDict.itervalues():
             imObj.expire()
+
+    def _trackMem(self, obj, objName):
+        """Print a message when an object is deleted.
+        """
+        if not _DebugMem:
+            return
+        objID = id(obj)
+        def refGone(ref=None, objID=objID, objName=objName):
+            print "GuideWdg deleting %s" % (objName,)
+            del(self._memDebugDict[objID])
+
+        self._memDebugDict[objID] = weakref.ref(obj, refGone)
+        del(obj)
+
 
 class ArgList(object):
     def __init__(self, modOnly):
