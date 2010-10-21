@@ -54,6 +54,8 @@ Warning: the config stuff will probably be modified.
 2008-07-24 ROwen    Fixed CR 851: changed tcam default bin factor to 2 (from 1).
 2010-03-04 ROwen    Changed gcam info field slitViewer to isSlitViewer.
 2010-03-18 ROwen    Added "afocus" actor.
+2010-10-20 ROwen    Modified to not auto-refresh expState keyvar for focus actors; expState isn't
+                    output by focus actors, but it's more consistent to leave it in with a null value.
 """
 __all__ = ['getModel']
 
@@ -138,6 +140,7 @@ class Model (object):
         self.gcamName = gcamName
         self.actor = gcamName.lower()
         self._isGuiding = None
+        self._isFocusActor = self.actor.endswith("focus")
 
         self.gcamInfo = _GCamInfoDict[self.actor]
         
@@ -163,7 +166,7 @@ class Model (object):
             Note: if the data is cached then remaining time and total time
             are changed to 0 to indicate that the values are unknown
             """,
-            allowRefresh = True,
+            allowRefresh = not self._isFocusActor,
         )
         self.expState.addCallback(self._updExpState)
     

@@ -19,6 +19,24 @@
 
 <p>As of TUI 1.7.3, Python 2.5 or later is required (but not 3.x).
 
+<h3>1.8.4b4 2010-10-20</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Focus scripts: enhanced error handling and status reporting. It now logs its cleanup actions. It will wait for cleanup actions to finish if possible; if it cannot wait then it warns you to wait before running the script again.
+</ul>
+
+<p>Internal changes:
+<ul>
+    <li>The Mac version is now built with Python 2.7.
+    <li>The guider models for the &lt;n&gt;focus actors no longer try to auto-refresh the expState keyword because these actors don't output it. (I left it in the model for uniformity). This eliminates some warnings from the keys actor at startup.
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1189">PR 1189</a> Focus script does not move boresight back if focus not found
+</ul>
+
 <h3>1.8.4b3 2010-10-19</h3>
 
 <p>Bug fixes:
