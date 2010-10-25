@@ -1,4 +1,0 @@
-pathPrepend(PYTHONPATH, ${PRODUCT_DIR})
-setupRequired(opscore)
-setupRequired(actorkeys)
-setupRequired(interlocks)
