@@ -20,6 +20,7 @@ History:
 2004-06-22 ROwen    Modified for RO.Keyvariable.KeyCommand->CmdVar
 2005-01-05 ROwen    Changed level to severity for RO.Wdg.StatusBar.
 2005-08-02 ROwen    Modified for TUI.Sounds->TUI.PlaySound.
+2010-11-03 ROwen    Stopped using anchors within the HTML help file.
 """
 import Tkinter
 import RO.Constants
@@ -28,13 +29,14 @@ import InputWdg
 import TUI.TUIModel
 import TUI.PlaySound
 
-_HelpPrefix = "Telescope/OffsetWin.html#"
+WindowName = "TCC.Offset"
+_HelpURL = "Telescope/OffsetWin.html"
 
 def addWindow(tlSet):
     """Create the window for TUI.
     """
     tlSet.createToplevel(
-        name = "TCC.Offset",
+        name = WindowName,
         defGeom = "+0+507",
         resizable = False,
         wdgFunc = OffsetWdg,
@@ -63,7 +65,7 @@ class OffsetWdg(Tkinter.Frame):
             dispatcher = tuiModel.dispatcher,
             prefs = tuiModel.prefs,
             playCmdSounds = True,
-            helpURL = _HelpPrefix + "StatusBar",
+            helpURL = _HelpURL,
         )
         self.statusBar.pack(side="top", anchor="nw", expand="yes", fill="x")
         
@@ -74,7 +76,7 @@ class OffsetWdg(Tkinter.Frame):
             text="Offset",
             command=self.doOffset,
             helpText = "Offset the telescope",
-            helpURL=_HelpPrefix + "OffsetButton",
+            helpURL=_HelpURL,
         )
         self.offsetButton.pack(side="left")
 
@@ -83,7 +85,7 @@ class OffsetWdg(Tkinter.Frame):
             text="Clear",
             command=self.inputWdg.clear,
             helpText = "Clear the displayed values",
-            helpURL=_HelpPrefix + "ClearButton",
+            helpURL=_HelpURL,
         )
         self.clearButton.pack(side="left")
 
@@ -96,7 +98,7 @@ class OffsetWdg(Tkinter.Frame):
             callFunc = restoreOffset,
             removeAllDup = True,
             helpText = "A list of past offsets",
-            helpURL = _HelpPrefix + "HistoryWdg",
+            helpURL = _HelpURL,
         )
         self.historyMenu.pack(side="left")
 
