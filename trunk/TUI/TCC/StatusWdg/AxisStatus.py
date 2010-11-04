@@ -52,6 +52,7 @@ History:
 2009-10-09 ROwen    Changed bit 14 description from "Servo error..." to "Motion error...".
 2010-08-26 ROwen    Added new warning bit: slip detected.
 2010-10-08 ROwen    Reworded bit 19 (overcurrent) and removed some unused bits.
+2010-11-04 ROwen    Added target mount position. Tweaked help URLs.
 """
 import time
 import Tkinter
@@ -62,13 +63,11 @@ import RO.StringUtil
 import RO.Wdg
 import TUI.PlaySound
 import TUI.TCC.TCCModel
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 _CtrllrWaitSec = 1.0 # time for status of all 3 controllers to come in (sec)
 _SoundIntervalMS = 100 # time (ms) between the start of each sound (if more than one)
+
+_HelpURL = "Telescope/StatusWin.html#Axes"
 
 ErrorBits = (
     ( 6, "Minimum position limit switch"),
@@ -131,8 +130,6 @@ def _getSoundData():
 
 _StateIndSoundDict = _getSoundData()    
 
-_HelpPrefix = "Telescope/StatusWin.html#"
-
 def _computeBitInfo():
     """Compute bitInfo array for RO.BitDescr module"""
     bitInfo = []
@@ -167,22 +164,37 @@ class AxisStatusWdg(Tkinter.Frame):
         
         # actual axis position widget set
         self.axePosWdgSet = [
-            RO.Wdg.FloatLabel(self,
+            RO.Wdg.FloatLabel(
+                master = self,
                 precision = PosPrec,
                 width = PosWidth,
                 helpText = "Current axis position, as reported by the controller",
-                helpURL = _HelpPrefix+"AxisPosition",
+                helpURL = _HelpURL,
             )
             for axis in self.axisInd
         ]
         self.tccModel.axePos.addROWdgSet(self.axePosWdgSet)
+
+        # target axis position widget set
+        self.tccPosWdgSet = [
+            RO.Wdg.FloatLabel(
+                master = self,
+                precision = PosPrec,
+                width = PosWidth,
+                helpText = "Target axis position",
+                helpURL = _HelpURL,
+            )
+            for axis in self.axisInd
+        ]
+        self.tccModel.tccPos.addValueListCallback([wdg.set for wdg in self.tccPosWdgSet])
         
         # TCC status widget set (e.g. tracking or halted)
         self.axisCmdStateWdgSet = [
-            RO.Wdg.StrLabel(self,
-                width=AxisCmdStateWidth,
+            RO.Wdg.StrLabel(
+                master = self,
+                width = AxisCmdStateWidth,
                 helpText = "What the TCC is telling the axis to do",
-                helpURL=_HelpPrefix+"AxisTCCStatus",
+                helpURL = _HelpURL,
                 anchor = "nw",
             )
             for axis in self.axisInd
@@ -193,10 +205,11 @@ class AxisStatusWdg(Tkinter.Frame):
         
         # axis error code widet set (why the TCC is not moving the axis)
         self.axisErrCodeWdgSet = [
-            RO.Wdg.StrLabel(self,
-                width=AxisErrCodeWidth,
+            RO.Wdg.StrLabel(
+                master = self,
+                width = AxisErrCodeWidth,
                 helpText = "Why the TCC halted the axis",
-                helpURL = _HelpPrefix + "AxisTCCErrorCode",
+                helpURL = _HelpURL,
                 anchor = "nw",
             )
             for axis in self.axisInd
@@ -205,10 +218,11 @@ class AxisStatusWdg(Tkinter.Frame):
     
         # controller status widget set (the status word)
         self.ctrlStatusWdgSet = [
-            RO.Wdg.StrLabel(self,
-                width=CtrlStatusWidth,
+            RO.Wdg.StrLabel(
+                master = self,
+                width = CtrlStatusWidth,
                 helpText = "Status reported by the axis controller",
-                helpURL = _HelpPrefix + "AxisCtrlStatus",
+                helpURL = _HelpURL,
                 anchor = "nw",
             )
             for axis in self.axisInd
@@ -221,14 +235,18 @@ class AxisStatusWdg(Tkinter.Frame):
         # grid the axis widgets
         gr = RO.Wdg.Gridder(self, sticky="w")
         for axis in self.axisInd:
-            unitsLabel = Tkinter.Label(self, text=RO.StringUtil.DegStr)
+            unitsLabel1 = Tkinter.Label(self, text=RO.StringUtil.DegStr)
+            unitsLabel2 = Tkinter.Label(self, text=RO.StringUtil.DegStr)
             if axis == 2:
-                self.rotUnitsLabel = unitsLabel
+                self.rotUnitsLabel1 = unitsLabel1
+                self.rotUnitsLabel2 = unitsLabel2
             wdgSet = gr.gridWdg (
                 label = self.tccModel.axisNames[axis],
                 dataWdg = (
                     self.axePosWdgSet[axis],
-                    unitsLabel,
+                    unitsLabel1,
+                    self.tccPosWdgSet[axis],
+                    unitsLabel2,
                     self.axisCmdStateWdgSet[axis],
                     self.axisErrCodeWdgSet[axis],
                     self.ctrlStatusWdgSet[axis],
@@ -314,12 +332,14 @@ class AxisStatusWdg(Tkinter.Frame):
         if not isCurrent:
             return
         if rotExists:
-            self.rotUnitsLabel.grid()
+            self.rotUnitsLabel1.grid()
+            self.rotUnitsLabel2.grid()
             self.axisErrCodeWdgSet[2].grid()
             self.ctrlStatusWdgSet[2].grid()
             self.ctrlStatusWdgSet[2].set("", severity=RO.Constants.sevNormal)
         else:
-            self.rotUnitsLabel.grid_remove()
+            self.rotUnitsLabel1.grid_remove()
+            self.rotUnitsLabel2.grid_remove()
             self.axisErrCodeWdgSet[2].grid_remove()
             self.ctrlStatusWdgSet[2].grid_remove()
     

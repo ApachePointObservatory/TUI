@@ -23,6 +23,7 @@ History:
 2008-03-25 ROwen    Actually modified GC Focus to get its value from the new gmech actor
                     (somehow that change did not actually occur on 2008-02-01).
 2009-09-09 ROwen    Modified to use TestData.
+2010-11-04 ROwen    Tweaked help URLs.
 """
 import time
 import Tkinter
@@ -40,7 +41,7 @@ import TUI.Guide.GMechModel
 
 # add instrument angles
 
-_HelpPrefix = "Telescope/StatusWin.html#"
+_HelpURL = "Telescope/StatusWin.html#Misc"
 
 class MiscWdg (Tkinter.Frame):
     def __init__ (self, master=None, **kargs):
@@ -64,7 +65,7 @@ class MiscWdg (Tkinter.Frame):
             cvtDegToHrs = 1,
             width = 8,
             helpText = "Hour angle of the object",
-            helpURL = _HelpPrefix + "HA",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "HA",
@@ -78,7 +79,7 @@ class MiscWdg (Tkinter.Frame):
             width = 8,
             justify="right",
             helpText = "Local mean sidereal time at APO",
-            helpURL = _HelpPrefix + "LMST",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "LMST",
@@ -89,7 +90,7 @@ class MiscWdg (Tkinter.Frame):
         self.utcWdg = RO.Wdg.StrLabel(self,
             width=8,
             helpText = "Coordinated universal time",
-            helpURL = _HelpPrefix + "UTC",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "UTC",
@@ -104,7 +105,7 @@ class MiscWdg (Tkinter.Frame):
             width = 13,
             anchor = "w",
             helpText = "State of guiding",
-            helpURL = _HelpPrefix + "Guiding",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "Guiding",
@@ -127,7 +128,7 @@ class MiscWdg (Tkinter.Frame):
         self.airmassWdg = RO.Wdg.FloatLabel(self,
             precision=3,
             width=5,
-            helpURL = _HelpPrefix + "Airmass",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "Airmass",
@@ -139,7 +140,7 @@ class MiscWdg (Tkinter.Frame):
         self.zdWdg = RO.Wdg.FloatLabel(self,
             precision=AzAltRotPrec,
             helpText = "Zenith distance",
-            helpURL = _HelpPrefix + "ZD",
+            helpURL = _HelpURL,
             width=5,
         )
         gr.gridWdg (
@@ -155,7 +156,7 @@ class MiscWdg (Tkinter.Frame):
             width = 10,
             anchor = "w",
             helpText = "Current instrument",
-            helpURL = _HelpPrefix + "Inst",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "Inst",
@@ -170,7 +171,7 @@ class MiscWdg (Tkinter.Frame):
             precision=0,
             width=5,
             helpText = "Secondary mirror focus",
-            helpURL = _HelpPrefix + "Focus",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "Focus",
@@ -183,7 +184,7 @@ class MiscWdg (Tkinter.Frame):
             precision=0,
             width=5,
             helpText = "NA2 guide camera focus",
-            helpURL = _HelpPrefix + "GCFocus",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "GC Focus",
