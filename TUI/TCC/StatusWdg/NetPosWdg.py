@@ -15,6 +15,7 @@ History:
 2003-12-03 ROwen    Made object name longer (to match slew input widget).
 2004-02-04 ROwen    Modified _HelpURL to match minor help reorg.
 2009-09-09 ROwen    Modified to use TestData.
+2010-11-04 ROwen    Tweaked help URLs.
 """
 import Tkinter
 import RO.CoordSys
@@ -22,7 +23,7 @@ import RO.StringUtil
 import RO.Wdg
 import TUI.TCC.TCCModel
 
-_HelpPrefix = "Telescope/StatusWin.html#"
+_HelpURL = "Telescope/StatusWin.html#NetPos"
 
 _CoordSysHelpDict = {
     RO.CoordSys.ICRS: u"ICRS mean RA/Dec: the current standard (\N{ALMOST EQUAL TO}FK5 J2000)",
@@ -66,7 +67,7 @@ class NetPosWdg (Tkinter.Frame):
             width=25,
             anchor="w",
             helpText = "Object name",
-            helpURL = _HelpPrefix + "Name",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "Name",
@@ -82,7 +83,7 @@ class NetPosWdg (Tkinter.Frame):
                 precision=2,
                 width=13,
                 helpText = "Net object position, including object offset",
-                helpURL = _HelpPrefix + "ObjPos",
+                helpURL = _HelpURL,
             ),
             units = "",
         )
@@ -93,7 +94,7 @@ class NetPosWdg (Tkinter.Frame):
                 precision=2,
                 width=13,
                 helpText = "Net object position, including object offset",
-                helpURL = _HelpPrefix + "ObjPos",
+                helpURL = _HelpURL,
             ),
             units = RO.StringUtil.DMSStr,
         )
@@ -105,7 +106,7 @@ class NetPosWdg (Tkinter.Frame):
             width=13,
             anchor="w",
             helpText = "Object coordinate system",
-            helpURL = _HelpPrefix + "CSys",
+            helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "CSys",
@@ -120,7 +121,7 @@ class NetPosWdg (Tkinter.Frame):
             precision=2,
             width=8,
             helpText = "Rotator angle (see full help for more info)",
-            helpURL = _HelpPrefix + "Rot",
+            helpURL = _HelpURL,
         )
         self.rotPosWdg.pack(side="left")
         rotUnitsLabel = Tkinter.Label(rotFrame, text=RO.StringUtil.DegStr)
@@ -128,7 +129,7 @@ class NetPosWdg (Tkinter.Frame):
         self.rotTypeWdg = RO.Wdg.StrLabel(rotFrame,
             width=8,
             anchor="w",
-            helpURL = _HelpPrefix + "Rot",
+            helpURL = _HelpURL,
         )
         self.rotTypeWdg.pack(side="left")
         

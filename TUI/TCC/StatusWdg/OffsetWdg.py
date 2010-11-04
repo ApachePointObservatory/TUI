@@ -16,14 +16,15 @@ History:
                     to catch two classes of exception, so the second would not be caught.
                     Removed unused constant _ArcLabelWidth.
 2009-09-09 ROwen    Modified to use TestData.
+2010-11-04 ROwen    Changed Obj Off to Object Arc Off. Tweaked help URLs.
 """
 import Tkinter
+import RO.CoordSys
 import RO.StringUtil
 import RO.Wdg
 import TUI.TCC.TCCModel
-import RO.CoordSys
 
-_HelpPrefix = "Telescope/StatusWin.html#"
+_HelpURL = "Telescope/StatusWin.html#Offsets"
 _DataWidth = 11
 
 class OffsetWdg (Tkinter.Frame):
@@ -38,18 +39,19 @@ class OffsetWdg (Tkinter.Frame):
         self.isArc = False
         gr = RO.Wdg.Gridder(self, sticky="w")
 
-        gr.gridWdg("Obj")
-        gr.gridWdg("Off")
+        gr.gridWdg("Object")
+        gr.gridWdg("Arc Off")
         gr.startNewCol()
 
         # object offset (tcc arc offset)
         self.objLabelSet = []
         self.objOffWdgSet = [   # arc offset position
-            RO.Wdg.DMSLabel(self,
+            RO.Wdg.DMSLabel(
+                master = self,
                 precision = 1,
                 width = _DataWidth,
-                helpText = "Object offset",
-                helpURL = _HelpPrefix + "ObjOff",
+                helpText = "Object arc offset",
+                helpURL = _HelpURL,
             )
             for ii in range(2)
         ]
@@ -65,11 +67,12 @@ class OffsetWdg (Tkinter.Frame):
         # sky offset
         gr.startNewCol()
         self.objXYOffWdgSet = [
-            RO.Wdg.DMSLabel(self,
+            RO.Wdg.DMSLabel(
+                master = self,
                 precision = 1,
                 width = _DataWidth,
                 helpText = "Object offset shown in instrument x,y",
-                helpURL = _HelpPrefix + "Obj",
+                helpURL = _HelpURL,
             )
             for ii in range(2)
         ]
@@ -83,11 +86,12 @@ class OffsetWdg (Tkinter.Frame):
         # boresight
         gr.startNewCol()
         self.boreWdgSet = [
-            RO.Wdg.DMSLabel(self,
+            RO.Wdg.DMSLabel(
+                master = self,
                 precision = 1,
                 width = _DataWidth,
                 helpText = "Position of boresight on instrument",
-                helpURL = _HelpPrefix + "Boresight",
+                helpURL = _HelpURL,
             )
             for ii in range(2)
         ]
