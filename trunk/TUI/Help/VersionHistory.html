@@ -15,10 +15,6 @@
 	<li>Windows: 1.7.1 is available for Windows 7, Vista and XP. I have not been able to generate newer versions because something broke in the build process and I've not had time to debug it.
 </ul>
 
-<h3>Warning to Unix Users</h3>
-
-<p>As of TUI 1.7.3, Python 2.5 or later is required (but not 3.x).
-
 <h3>Warning to All Users</h3>
 
 <p>If TUI quits while starting up then issue the following command (on Mac OS X use Terminal):<pre>
@@ -26,15 +22,20 @@ cd ~/.matplotlib
 rm fontList.cache
 rm -rf tex.cache
 </pre>
-<p>Mac users may have to do this any time you move or rename TUI. Unix users will probably only have to do it if you move matplotlib. What's going on is that matplotlib fails to run if its font cache file is out of date. This is a known bug that will be fixed in the next version of matplotlib.
+<p>Mac users may have to do this any time you move or rename TUI. Unix users will probably only have to do it if you move matplotlib. What's going on is that matplotlib fails to run if its font cache file is out of date. This is a known bug that will be fixed in the next version of matplotlib (1.0.1).
 
-<h3>1.8.4+ 2010-11-03</h3>
+<h3>Warning to Unix Users</h3>
+
+<p>As of TUI 1.7.3, Python 2.5 or later is required (but 3.x will not work).
+
+<h3>1.8.4+ 2010-11-05</h3>
 
 <p>Visible changes:
 <ul>
-    <li>Added target axis positions to the Status window.
+    <li>Added target axis position and UTC date to the Status window.
     <li>Added Calibration offsets to the Nudger window.
-    <li>Renamed Object offsets to Object Arc offsets in the Offset and Nudger windows and reorganized the associated help files to better consolidate information about types of offsets.
+    <li>Renamed Object offsets to Object Arc offsets in the Offset, Nudger and Status windows and reorganized the associated help files to better consolidate information about types of offsets.
+    <li>Enclosure window: added eyelids summary status (which tells you if the eyelid for the current port is open) and Open All and Close All buttons.
 </ul>
 
 <h3>1.8.4 2010-10-21</h3>

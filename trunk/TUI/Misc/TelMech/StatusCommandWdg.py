@@ -25,6 +25,7 @@ History:
                     Added a Cancel button to cancel all executing commands.
 2008-07-02 ROwen	Commented out a diagnostic print statement.
 2008-07-17 ROwen    Added tertiary rotation Restore button.
+2010-11-05 ROwen    Eyelids now have status summary and Open All and Close All buttons.
 """
 import numpy
 import Tkinter
@@ -97,6 +98,48 @@ class DevStateWdg(RO.Wdg.Label):
             severity = RO.Constants.sevNormal
         return ("All " + catInfo.stateNames[0], severity)
 
+class EyelidsStateWdg(DevStateWdg):
+    def __init__(self, master, helpURL=None):
+        self.model = TelMechModel.getModel()
+        DevStateWdg.__init__(self,
+            master = master,
+            catInfo = self.model.catDict["Eyelids"],
+            helpText = "State of the eyelids",
+            helpURL = helpURL,
+        )
+        self.catInfo = self.model.catDict["Eyelids"]
+        self.tertRot = self.model.tertRot
+        self.model.tertRot.addCallback(self.updateState, callNow=False)
+
+    def updateState(self, *args, **kargs):
+        DevStateWdg.updateState(self, self.catInfo)
+
+    def getStateStrSev(self, devState, catInfo):
+        """Return state string associated with specified device state"""
+        devState = self.catInfo.devState
+        
+        if numpy.isnan(devState).any():
+            return ("?", RO.Constants.sevWarning)
+
+        if devState.all():
+            return ("All " + self.catInfo.stateNames[1], RO.Constants.sevNormal)
+        elif not devState.any():
+            return ("All " + self.catInfo.stateNames[0], RO.Constants.sevWarning)
+        
+        # indicate whether the eyelid at the current port is open
+        currPortName, isCurrent = self.tertRot.getInd(0)
+        if currPortName != None:
+            currPortName = currPortName.upper()
+        if currPortName == None:
+            return ("Some " + self.catInfo.stateNames[1], RO.Constants.sevNormal)
+        devInd = self.catInfo.devIndDict.get(currPortName.upper())
+        if devInd == None:
+            return ("Some " + self.catInfo.stateNames[1], RO.Constants.sevWarning)
+        if devState[devInd]:
+            return ("%s Open" % (currPortName,), RO.Constants.sevNormal)
+        # matching port is NOT open
+        return ("%s Closed" % (currPortName,), RO.Constants.sevWarning)
+        
 
 class StatusCommandWdg (Tkinter.Frame):
     def __init__(self,
@@ -186,7 +229,28 @@ class StatusCommandWdg (Tkinter.Frame):
         self.model.tertRot.addIndexedCallback(self.updateTertRot)
         
         self.startNewColumn()
-        self.addCategory("Eyelids")
+        self.eyelidsState = EyelidsStateWdg(
+            master = self,
+            helpURL = _HelpURL,
+        )
+        self.eyelidsOpenWdg = RO.Wdg.Button(
+            master = self,
+            text = "Open All",
+            callFunc = self.doEyelidsOpen,
+            helpText = "Open all eyelids",
+            helpURL = _HelpURL,
+        )
+        self.eyelidsCloseWdg = RO.Wdg.Button(
+            master = self,
+            text = "Close All",
+            callFunc = self.doEyelidsClose,
+            helpText = "Close all eyelids",
+            helpURL = _HelpURL,
+        )
+        self.addCategory(
+            catName = "Eyelids",
+            extraWdgs = (self.eyelidsState, self.eyelidsOpenWdg, self.eyelidsCloseWdg),
+        )
         
         self.startNewColumn()
         self.lightsState = DevStateWdg(
@@ -219,14 +283,14 @@ class StatusCommandWdg (Tkinter.Frame):
         self.louversOpenWdg = RO.Wdg.Button(
             master = self,
             text = "Open All",
-            callFunc=self.doLouversOpen,
+            callFunc = self.doLouversOpen,
             helpText = "Open all louvers",
             helpURL = _HelpURL,
         )
         self.louversCloseWdg = RO.Wdg.Button(
             master = self,
             text = "Close All",
-            callFunc=self.doLouversClose,
+            callFunc = self.doLouversClose,
             helpText = "Close all louvers",
             helpURL = _HelpURL,
         )
@@ -253,7 +317,7 @@ class StatusCommandWdg (Tkinter.Frame):
         self.heatersOnWdg = RO.Wdg.Button(
             master = self,
             text = "All On",
-            callFunc=self.doHeatersOn,
+            callFunc = self.doHeatersOn,
             helpText = "Turn on all roof heaters",
             helpURL = _HelpURL,
         )
@@ -431,6 +495,20 @@ class StatusCommandWdg (Tkinter.Frame):
         self.startCmd(
             wdg = self.coversWdg,
             cmdStr = cmdStr,
+        )
+    
+    def doEyelidsClose(self, wdg=None):
+        """Close all eyelids"""
+        self.startCmd(
+            cmdStr = "eyelids all close",
+            wdg = self.eyelidsCloseWdg,
+        )
+    
+    def doEyelidsOpen(self, wdg=None):
+        """Open all eyelids"""
+        self.startCmd(
+            cmdStr = "eyelids all open",
+            wdg = self.eyelidsOpenWdg,
         )
     
     def doHeatersOff(self, wdg=None):
