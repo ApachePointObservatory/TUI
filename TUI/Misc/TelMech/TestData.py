@@ -8,7 +8,7 @@ MainData = (
     "device=heaters; h8=off; h24=off; h12=off; h20=off; h16=off; h4=off",
     "device=covers; covers=close",
     "device=tertrot; tertrot=na2",
-    "device=eyelids; tr4=?; na2=?; na1=?; tr1=?; tr3=?; tr2=?; bc1=?; bc2=?",
+    "device=eyelids; tr4=close; na2=open; na1=close; tr1=close; tr3=close; tr2=close; bc1=close; bc2=close",
     "device=louvers; rup=close; rmid=close; rlow=close; floor=close; lup=close; lmid=close; llow=close; stairw=close; lpit=close; rpit=close",
     "device=lights; catwalk=on;  fhalides=on; rhalides=on; platform=on; incand=on; int_incand=on; int_fluor=on;stairs=on",
     "device=shutters; right=close; left=close",

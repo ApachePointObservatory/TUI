@@ -24,6 +24,7 @@ History:
                     (somehow that change did not actually occur on 2008-02-01).
 2009-09-09 ROwen    Modified to use TestData.
 2010-11-04 ROwen    Tweaked help URLs.
+2010-11-05 ROwen    Show UTC date as well as time.
 """
 import time
 import Tkinter
@@ -59,7 +60,8 @@ class MiscWdg (Tkinter.Frame):
         # magic numbers
         AzAltRotPrec = 1    # number of digits past decimal point
         
-        self.haWdg = RO.Wdg.DMSLabel(self,
+        self.haWdg = RO.Wdg.DMSLabel(
+            master = self,
             precision = 0,
             nFields = 3,
             cvtDegToHrs = 1,
@@ -73,7 +75,8 @@ class MiscWdg (Tkinter.Frame):
             units = "hms",
         )
         
-        self.lmstWdg = RO.Wdg.DMSLabel(self,
+        self.lmstWdg = RO.Wdg.DMSLabel(
+            master = self,
             precision = 0,
             nFields = 3,
             width = 8,
@@ -87,21 +90,23 @@ class MiscWdg (Tkinter.Frame):
             units = "hms",
         )
         
-        self.utcWdg = RO.Wdg.StrLabel(self,
-            width=8,
+        self.utcWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 19,
             helpText = "Coordinated universal time",
             helpURL = _HelpURL,
         )
         gr.gridWdg (
             label = "UTC",
             dataWdg = self.utcWdg,
-            units = "hms",
+            colSpan = 2,
         )
         
         # start the second column of widgets
         gr.startNewCol(spacing=1)
         
-        self.guideWdg = RO.Wdg.StrLabel(self,
+        self.guideWdg = RO.Wdg.StrLabel(
+            master = self,
             width = 13,
             anchor = "w",
             helpText = "State of guiding",
@@ -125,7 +130,8 @@ class MiscWdg (Tkinter.Frame):
         self._updGuideStateSummary()
 
         # airmass and zenith distance
-        self.airmassWdg = RO.Wdg.FloatLabel(self,
+        self.airmassWdg = RO.Wdg.FloatLabel(
+            master = self,
             precision=3,
             width=5,
             helpURL = _HelpURL,
@@ -137,7 +143,8 @@ class MiscWdg (Tkinter.Frame):
         )
 #       self.tccModel.axePos.addCallback(self.setAxePos)
         
-        self.zdWdg = RO.Wdg.FloatLabel(self,
+        self.zdWdg = RO.Wdg.FloatLabel(
+            master = self,
             precision=AzAltRotPrec,
             helpText = "Zenith distance",
             helpURL = _HelpURL,
@@ -152,7 +159,8 @@ class MiscWdg (Tkinter.Frame):
         # start the third column of widgets
         gr.startNewCol(spacing=1)
         
-        self.instNameWdg = RO.Wdg.StrLabel(self,
+        self.instNameWdg = RO.Wdg.StrLabel(
+            master = self,
             width = 10,
             anchor = "w",
             helpText = "Current instrument",
@@ -167,7 +175,8 @@ class MiscWdg (Tkinter.Frame):
         )
         self.tccModel.instName.addROWdg(self.instNameWdg)
         
-        self.secFocusWdg = RO.Wdg.FloatLabel(self,
+        self.secFocusWdg = RO.Wdg.FloatLabel(
+            master = self,
             precision=0,
             width=5,
             helpText = "Secondary mirror focus",
@@ -180,7 +189,8 @@ class MiscWdg (Tkinter.Frame):
         )
         self.tccModel.secFocus.addROWdg(self.secFocusWdg)
         
-        self.gcFocusWdg = RO.Wdg.FloatLabel(self,
+        self.gcFocusWdg = RO.Wdg.FloatLabel(
+            master = self,
             precision=0,
             width=5,
             helpText = "NA2 guide camera focus",
@@ -212,7 +222,7 @@ class MiscWdg (Tkinter.Frame):
         """
         # update utc
         currUTCTuple= time.gmtime(time.time())
-        self.utcWdg.set("%s:%02i:%02i" % currUTCTuple[3:6])
+        self.utcWdg.set(time.strftime("%Y-%m-%d %H:%M:%S", currUTCTuple))
         currUTCMJD = RO.Astro.Tm.mjdFromPyTuple(currUTCTuple)
     
         # update local (at APO) mean sidereal time, in degrees

@@ -52,7 +52,7 @@ History:
 2009-10-09 ROwen    Changed bit 14 description from "Servo error..." to "Motion error...".
 2010-08-26 ROwen    Added new warning bit: slip detected.
 2010-10-08 ROwen    Reworded bit 19 (overcurrent) and removed some unused bits.
-2010-11-04 ROwen    Added target mount position. Tweaked help URLs.
+2010-11-05 ROwen    Added target mount position. Tweaked help URLs.
 """
 import time
 import Tkinter
@@ -186,7 +186,7 @@ class AxisStatusWdg(Tkinter.Frame):
             )
             for axis in self.axisInd
         ]
-        self.tccModel.tccPos.addValueListCallback([wdg.set for wdg in self.tccPosWdgSet])
+        self.tccModel.tccPos.addROWdgSet(self.tccPosWdgSet)
         
         # TCC status widget set (e.g. tracking or halted)
         self.axisCmdStateWdgSet = [
