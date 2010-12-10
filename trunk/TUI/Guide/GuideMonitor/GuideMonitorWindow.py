@@ -11,6 +11,8 @@ History:
                     Combined guide and seeing monitor (since they now have the same timespan).
                     Changed guide star brightness chart to only include star data of type "g"
                     (guider-reported star data); formerly it also showed "c" (manually centroided stars).
+2010-12-10 ROwen    Reduced the memory leak by increasing updateInterval from its default value of 1.8 sec
+                    to 20 seconds. Return to the default value again once the matplotlib bug is fixed.
 """
 import math
 import Tkinter
@@ -58,6 +60,7 @@ class GuideMonitorWdg(Tkinter.Frame):
         self.stripChartWdg = TUI.Base.StripChartWdg.StripChartWdg(
             master = self,
             timeRange = timeRange,
+            updateInterval = 20,
             numSubplots = 4,
             width = width,
             height = height,
