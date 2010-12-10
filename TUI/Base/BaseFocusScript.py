@@ -125,6 +125,9 @@ History:
                     Print cleanup tasks to the log window.
                     Print a "please wait" message if the cleanup tasks are run by end.
                     Call setCurrFocus after setting focus to best estimated focus (why was it done the other way?).
+2010-12-09 ROwen    PR 1211: if a focus sweep failed to converge, restored secondary focus by commanding
+                    the TCC directly instead of calling waitSetFocus. This is bad for the focus script
+                    that moves the NA2 guider focus, since it should never alter secondary focus.
 """
 import inspect
 import math
@@ -1249,10 +1252,9 @@ class BaseFocusScript(object):
             self.logWdg.addMsg(str(e), severity=RO.Constants.sevError)
 
         if self.focPosToRestore != None:
-            tccCmdStr = "set focus=%0.0f" % (self.focPosToRestore,)
-            self.logWdg.addMsg("Setting focus to %0.0f %s" % (self.focPosToRestore, MicronStr))
-            self.focPosToRestore = None
-            yield self.sr.waitCmd(actor="tcc", cmdStr=tccCmdStr)
+            focPosToRestore, self.focPosToRestore = self.focPosToRestore, None
+            self.logWdg.addMsg("Setting focus to %0.0f %s" % (focPosToRestore, MicronStr))
+            yield self.waitSetFocus(focPosToRestore)
 
         doRestoreBoresight = self.currBoreXYDeg != self.begBoreXYDeg
         if doRestoreBoresight:

@@ -11,6 +11,7 @@ History:
 2008-02-13 ROwen    Disabled windowing due to PRs 739 and 740.
 2008-03-17 ROwen    Re-enabled windowing now that PR 739 and 740 are fixed.
 2009-03-02 ROwen    Bug fix: failed to restore initial focus at end due to incorrect member variable name.
+2010-12-09 ROwen    Bug fix: backlash was broken; it would send the wrong command to set focus.
 """
 import TUI.Base.BaseFocusScript
 import RO.Constants
@@ -90,7 +91,7 @@ class ScriptClass(OffsetGuiderFocusScript):
             sr.showMsg("Backlash comp: moving focus to %0.0f %s" % (backlashFocPos, MicronStr))
             yield sr.waitCmd(
                actor = focusActor,
-               cmdStr = "set focus=%0.0f" % (backlashFocPos,),
+               cmdStr = "focus %0.0f" % (backlashFocPos,),
             )
             yield sr.waitMS(self.FocusWaitMS)
         
