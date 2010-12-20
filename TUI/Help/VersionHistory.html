@@ -34,14 +34,7 @@ rm -rf tex.cache
 
 <p>Warning to unix users or others running from source: as of TUI 1.7.3, Python 2.5 or later is required (but 3.x will not work).
 
-<h3>1.8.5b2 2010-12-10</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Reduced rate of memory leakage by 10x by shifting the guide monitor's time axis every 20 seconds instead of every 2 seconds. The display will be jerkier but you will still see all data. I'll restore the old behavior once the matplotlib memory leak is fixed.
-</ul>
-
-<h3>1.8.5b1 2010-12-09</h3>
+<h3>1.8.5 2010-12-20</h3>
 
 <p>Visible changes:
 <ul>
@@ -49,6 +42,16 @@ rm -rf tex.cache
     <li>Added Calibration offsets to the Nudger window.
     <li>Renamed Object offsets to Object Arc offsets in the Offset, Nudger and Status windows and reorganized the associated help files to better consolidate information about types of offsets.
     <li>Enclosure window: added eyelids summary status (which tells you if the eyelid for the current port is open) and Open All and Close All buttons.
+</ul>
+
+<p>Internal changes:
+<ul>
+    <li>Reduced rate of memory leakage by 10x by shifting the guide monitor's time axis every 20 seconds instead of every 2 seconds. The display will be jerkier but you will still see all data. I'll restore the old behavior once the matplotlib memory leak is fixed.
+    <li>The Mac version now includes matplotlib trunk rev 8843 (is a prerelease of 1.0.1) and unix users may wish to install a similar prerelease. This offers two important benefits:
+    <ul>
+        <li>TUI will no longer at startup if matplotlib's font cache is outdated.
+        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&atid=560720&aid=3124990&group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
+    </ul>
 </ul>
 
 <p>Bug fixes:
