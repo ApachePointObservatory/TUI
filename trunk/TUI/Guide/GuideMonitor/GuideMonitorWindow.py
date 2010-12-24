@@ -13,6 +13,7 @@ History:
                     (guider-reported star data); formerly it also showed "c" (manually centroided stars).
 2010-12-10 ROwen    Reduced the memory leak by increasing updateInterval from its default value of 1.8 sec
                     to 20 seconds. Return to the default value again once the matplotlib bug is fixed.
+2010-12-23 ROwen    Modified to use new version of StripChartWdg.
 """
 import math
 import Tkinter
@@ -38,12 +39,6 @@ def addWindow(tlSet):
 class GuideMonitorWdg(Tkinter.Frame):
     """Monitor guide star FWHM, focus and guide corrections.
     """
-    FWHMName = "FWHM"
-    OneArcsecName = "One Arcsec"
-    BrightnessName = "Brightness"
-    AzOffName = "Az (on sky)"
-    AltOffName = "Alt"
-    
     def __init__(self, master, timeRange=3600, width=10, height=6):
         """Create a GuideMonitorWdg
         
@@ -77,8 +72,8 @@ class GuideMonitorWdg(Tkinter.Frame):
         
         # FWHM
         self.stripChartWdg.subplotArr[spInd].yaxis.set_label_text("FWHM (pix)")
-        self.stripChartWdg.addLine(self.FWHMName, subplotInd=spInd, color="green")
-        self.stripChartWdg.addConstantLine(self.OneArcsecName, 1.0, subplotInd=spInd, color="purple")
+        self.fwhmLine = self.stripChartWdg.addLine(label="FWHM", subplotInd=spInd, color="green")
+        self.stripChartWdg.addConstantLine(1.0, subplotInd=spInd, color="purple")
         self.stripChartWdg.showY(0, 1.2, subplotInd=spInd)
         spInd += 1
         
@@ -92,33 +87,28 @@ class GuideMonitorWdg(Tkinter.Frame):
         
         # Brightness
         self.stripChartWdg.subplotArr[spInd].yaxis.set_label_text("Bright (ADU)")
-        self.stripChartWdg.addLine(self.BrightnessName, subplotInd=spInd, color="green")
+        self.brightnessLine = self.stripChartWdg.addLine(label="Brightness", subplotInd=spInd, color="green")
         self.stripChartWdg.showY(0, 100, subplotInd=spInd)
         spInd += 1
 
         # Focus
         self.stripChartWdg.subplotArr[spInd].yaxis.set_label_text("Focus (um)")
-        self.stripChartWdg.plotKeyVar("Sec Piston", subplotInd=spInd, keyVar=self.tccModel.secOrient, color="green")
-        self.stripChartWdg.plotKeyVar("User Focus", subplotInd=spInd, keyVar=self.tccModel.secFocus, color="blue")
+        self.stripChartWdg.plotKeyVar(label="Sec Piston", subplotInd=spInd, keyVar=self.tccModel.secOrient, color="green")
+        self.stripChartWdg.plotKeyVar(label="User Focus", subplotInd=spInd, keyVar=self.tccModel.secFocus, color="blue")
         self.stripChartWdg.showY(0, subplotInd=spInd)
         self.stripChartWdg.subplotArr[spInd].legend(loc=3, frameon=False)
         spInd += 1
 
         # Guide correction
         self.stripChartWdg.subplotArr[spInd].yaxis.set_label_text("Guide Off (\")")
-        self.stripChartWdg.addLine(self.AzOffName, subplotInd=spInd, color="green")
-        self.stripChartWdg.addLine(self.AltOffName, subplotInd=spInd, color="blue")
+        self.azOffLine = self.stripChartWdg.addLine(label="Az (on sky)", subplotInd=spInd, color="green")
+        self.altOffLine = self.stripChartWdg.addLine(label="Alt", subplotInd=spInd, color="blue")
         self.stripChartWdg.showY(-3.0, 3.0, subplotInd=spInd)
         self.stripChartWdg.subplotArr[spInd].legend(loc=3, frameon=False)
         spInd += 1
 
         self.tccModel.guideOff.addCallback(self._updGuideOff, callNow=False)
     
-    def _addPoint(self, name, value):
-        if value == None:
-            return
-        self.stripChartWdg.addPoint(name, value)
-
     def _updGuideOff(self, *args, **kargs):
         """Updated actual guide offset in az, alt (")
         """
@@ -134,8 +124,8 @@ class GuideMonitorWdg(Tkinter.Frame):
             return
         azOffsetOnSky = guideOffArcSecList[0] * math.cos(currAlt * RO.PhysConst.RadPerDeg)
         
-        self._addPoint(self.AzOffName, azOffsetOnSky)
-        self._addPoint(self.AltOffName, guideOffArcSecList[1])
+        self.azOffLine.addPoint(azOffsetOnSky)
+        self.altOffLine.addPoint(guideOffArcSecList[1])
          
     def _updStar(self, valList, isCurrent=True, keyVar=None):
         """Updated star data
@@ -164,8 +154,8 @@ class GuideMonitorWdg(Tkinter.Frame):
             return
         if valList[0] != "g":
             return
-        self._addPoint(self.FWHMName, valList[8])
-        self._addPoint(self.BrightnessName, valList[12])
+        self.fwhmLine.addPoint(valList[8])
+        self.brightnessLine.addPoint(valList[12])
 
 
 if __name__ == "__main__":
