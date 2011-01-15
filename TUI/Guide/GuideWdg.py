@@ -198,6 +198,8 @@ History:
 2010-10-19 ROwen    Further refinements to event handling. Now the crosshair cursor is only shown
                     if the ctrl-click arrow is also shown. Thus the cursor now is a reliable indicator
                     that a center command will be sent if the mouse button is released.
+2011-01-14 ROwen    Fix PR 1188: make the system more robust against unwanted ctrl-click by cancelling
+                    drag and ctrl-click modes on canvas Activate, Deactivate and FocusOut events.
 """
 import atexit
 import os
@@ -1019,6 +1021,10 @@ class GuideWdg(Tkinter.Frame):
         self.gim.cnv.bind("<Control-B1-Motion>", self.doCtrlClickContinue)
         self.gim.cnv.bind("<Control-ButtonRelease-1>", self.doCtrlClickEnd)
         
+        self.gim.cnv.bind("<Activate>", self.doCancelDrag)
+        self.gim.cnv.bind("<Deactivate>", self.doCancelDrag)
+        self.gim.cnv.bind("<FocusOut>", self.doCancelDrag)
+        
         # keyword variable bindings
         self.guideModel.expState.addCallback(self.updExpState)
         self.guideModel.fsActRadMult.addIndexedCallback(self.updRadMult)
@@ -1089,6 +1095,13 @@ class GuideWdg(Tkinter.Frame):
         else:
             sys.stderr.write("GuideWdg warning: cmdCallback called for wrong cmd:\n- doing cmd: %s\n- called by cmd: %s\n" % (self.doingCmd[0], cmdVar))
         self.enableCmdButtons()
+    
+    def doCancelDrag(self, evt=None):
+        """Cancel drag and control-click modes
+        """
+#        print "doCancelDrag"
+        self.endDragMode()
+        self.endCtrlClickMode()
 
     def doCenterOnSel(self, evt):
         """Center up on the selected star.
