@@ -34,16 +34,26 @@ rm -rf tex.cache
 
 <p>Warning to unix users or others running from source: as of TUI 1.7.3, Python 2.5 or later is required (but 3.x will not work).
 
-<h3>1.8.5-post 2010-12-23</h3>
+<h3>1.8.5-post 2011-01-14</h3>
 
 <p>Internal changes:
 <ul>
     <li>Updated for backward-incompatible StripChartWdg
+    <li>The Mac version now includes matplotlib 1.0.1 and unix users may wish to upgrade as well. This offers two important benefits:
+    <ul>
+        <li>TUI will no longer exit at startup if matplotlib's font cache is outdated.
+        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&atid=560720&aid=3124990&group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
+    </ul>
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&database=APO&pr=1188">PR 1188</a> unwanted ctrl-click in slitviewer windows.
 </ul>
 
 <h3>1.8.5+1 2010-12-20</h3>
 
-<p>Mac-only release. Built with matplotlib 1.0.0 because the prerelease version used in 1.8.5 was incompatible with Snow Leopard.
+<p>Mac-only release. Built with matplotlib 1.0.0 because my build of the prerelease version used in 1.8.5 was incompatible with Snow Leopard.
 
 <h3>1.8.5 2010-12-20</h3>
 
@@ -60,7 +70,7 @@ rm -rf tex.cache
     <li>Reduced rate of memory leakage by 10x by shifting the guide monitor's time axis every 20 seconds instead of every 2 seconds. The display will be jerkier but you will still see all data. I'll restore the old behavior once the matplotlib memory leak is fixed.
     <li>The Mac version now includes matplotlib trunk rev 8843 (is a prerelease of 1.0.1) and unix users may wish to install a similar prerelease. This offers two important benefits:
     <ul>
-        <li>TUI will no longer at startup if matplotlib's font cache is outdated.
+        <li>TUI will no longer exit at startup if matplotlib's font cache is outdated.
         <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&atid=560720&aid=3124990&group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
     </ul>
 </ul>
