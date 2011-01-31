@@ -10,10 +10,12 @@ History:
 2010-11-03 ROwen    Added Calibration offsets.
                     Renamed Object to Object Arc
                     Stopped using anchors within the HTML help file.
+2011-01-31 ROwen    Scale Calibration and Guide offsets are now on the sky (scaled by 1/cos(alt)).
 """
 import Tkinter
 import RO.Constants
 import RO.KeyVariable
+import RO.MathUtil
 import RO.Wdg
 import TUI.TUIModel
 import TUI.TCC.TCCModel
@@ -273,12 +275,21 @@ class NudgerWdg (Tkinter.Frame):
         tccOffType = _OffsetTCCNameDict[offType]
         offDeg = [val / 3600.0 for val in self.offArcSec]
         
-        # if necessary, rotate offset appropriately
         try:
+            # if necessary, rotate offset appropriately
             if offType in ("Guide XY", "Calibration XY"):
                 offDeg = self.azAltFromInst(offDeg)
             elif offType == "Object Arc XY":
                 offDeg = self.objFromInst(offDeg)
+        
+            # if necessary, scale from on-sky to axis offset
+            # options: use cos(alt) or spherical trig; the latter is more accurate near the pole
+            if offType.split()[0] in ("Guide", "Calibration"):
+                offDeg = list(offDeg)
+                currAlt = self.tccModel.tccPos.getInd(1)[0]
+                if currAlt == None:
+                    raise RuntimeError("Current altitude unknown")
+                offDeg = (offDeg[0] / RO.MathUtil.cosd(currAlt), offDeg[1])
         except ValueError, e:
             self.statusBar.setMsg("Failed: %s" % (e,), severity=RO.Constants.sevError)
             self.statusBar.playCmdFailed()
@@ -394,6 +405,7 @@ if __name__ == '__main__':
         "ObjSys": ("Gal", "2000"),
         "ObjInstAng": ("30.0", "0.0", "1000.0"),
         "SpiderInstAng": ("-30.0", "0.0", "1000.0"),
+        "TCCPos": ("0.0", "89.0", "30.0"),
     }
     msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
 

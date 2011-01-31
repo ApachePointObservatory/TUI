@@ -12,7 +12,7 @@
 <ul>
 	<li>Mac: works with Mac OS X 10.6, 10.5 and 10.4 and is a universal binary. Mac OS X 10.3.9 is no longer supported but might work. One known problem on 10.3.9 is that you cannot save window positions; this is due to a bug in Tcl/Tk that will never be fixed.
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
-	<li>Windows: 1.7.1 is available for Windows 7, Vista and XP. I have not been able to generate newer versions because something broke in the build process and I've not had time to debug it.
+	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
 <h3>Known Issues</h3>
@@ -34,6 +34,14 @@ rm -rf tex.cache
 
 <p>Warning to unix users or others running from source: as of TUI 1.7.3, Python 2.5 or later is required (but 3.x will not work).
 
+<h3>1.8.6 2011-01-31</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Nudger now nudges "on sky" for all offset types. Formerly Calibration and Guide offsets were simply added to the axis position.
+    <li>Play "command failed" sound if an exposure sequence fails. (This will be useful for Agile users once Agile ICC outputs failed instead of aborted when the sequence fails). We probably want a new sound cue for this.
+</ul>
+
 <h3>1.8.6b1 2011-01-14</h3>
 
 <p>Internal changes:
@@ -51,7 +59,11 @@ rm -rf tex.cache
     <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&database=APO&pr=1188">PR 1188</a> unwanted ctrl-click in slitviewer windows.
 </ul>
 
-<h3>1.8.5+1 2010-12-20</h3>
+<h3>1.8.5+1_Windows 2011-01-28</h3>
+
+<p>Windows-only release. Made to work on more versions of Windows by doing something with win32com. Thanks to Joseph Huehnerhoff for fixing the problem and creating a new release.
+
+<h3>1.8.5+1_Mac 2010-12-20</h3>
 
 <p>Mac-only release. Built with matplotlib 1.0.0 because my build of the prerelease version used in 1.8.5 was incompatible with Snow Leopard.
 
