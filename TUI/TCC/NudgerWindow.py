@@ -11,11 +11,13 @@ History:
                     Renamed Object to Object Arc
                     Stopped using anchors within the HTML help file.
 2011-01-31 ROwen    Scale Calibration and Guide offsets are now on the sky (scaled by 1/cos(alt)).
+                    Use RO.StringUtil.strFromException when formatting command failure messages.
 """
 import Tkinter
 import RO.Constants
 import RO.KeyVariable
 import RO.MathUtil
+import RO.StringUtil
 import RO.Wdg
 import TUI.TUIModel
 import TUI.TCC.TCCModel
@@ -288,10 +290,11 @@ class NudgerWdg (Tkinter.Frame):
                 offDeg = list(offDeg)
                 currAlt = self.tccModel.tccPos.getInd(1)[0]
                 if currAlt == None:
-                    raise RuntimeError("Current altitude unknown")
+                    raise ValueError("current altitude unknown")
                 offDeg = (offDeg[0] / RO.MathUtil.cosd(currAlt), offDeg[1])
-        except ValueError, e:
-            self.statusBar.setMsg("Failed: %s" % (e,), severity=RO.Constants.sevError)
+        except Exception, e:
+            self.statusBar.setMsg("Failed: %s" % (RO.StringUtil.strFromException(e),),
+                severity=RO.Constants.sevError)
             self.statusBar.playCmdFailed()
             return
         
