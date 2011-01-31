@@ -44,6 +44,7 @@ History:
                     Changed name of preferences file from TUIPrefs to <ApplicationName>Prefs.
 2010-03-18 ROwen    Moved _getPrefsFile to TUI.TUIPaths.getPrefsFile.
 2010-07-02 ROwen    Added "Keep Guide Images" preference.
+2011-01-31 ROwen    Added "Exposure Failed" sound preference.
 """
 #import pychecker.checker
 import os
@@ -329,6 +330,15 @@ class TUIPrefs(PrefVar.PrefSet):
                 bellNum = 2,
                 bellDelay = 100,
                 helpText = "Sound for end of exposure",
+                helpURL = _SoundHelpURL,
+            ),
+            PrefVar.SoundPrefVar(
+                name = "Exposure Failed",
+                category = "Sounds",
+                defValue = os.path.join(_SoundsDir, "ExposureFailed.wav"),
+                bellNum = 3,
+                bellDelay = 100,
+                helpText = "Sound for failed exposure",
                 helpURL = _SoundHelpURL,
             ),
             PrefVar.SoundPrefVar(

@@ -311,7 +311,7 @@ class Model (object):
             description = """current exposure info:
             - cmdr (progID.username)
             - exposure state; one of: idle, flushing, integrating, paused,
-                reading, processing, aborting, done or aborted.
+                reading, processing, aborting, failing, done, aborted or failed.
             - start time (an ANSI-format UTC timestamp)
             - remaining time for this state (sec; 0 or None if short or unknown)
             - total time for this state (sec; 0 or None if short or unknown)
