@@ -53,6 +53,8 @@ History:
 2007-08-09 ROwen    Changed Catalog callback function to InputCont.setStar.
 2009-02-05 ROwen    Hid Stop button at request of APO; the button will be restored
                     when we have the new axis controllers.
+2011-02-16 ROwen    Display the Stop button, now that the axis controllers stop gently; it sends "axis stop".
+                    Remove the Enable button; it was hidden and not missed.
 """
 import Tkinter
 import RO.KeyVariable
@@ -123,13 +125,6 @@ class SlewWdg (Tkinter.Frame):
         )
 
         self.slewButton.pack(side="left")
-        self.enableButton = RO.Wdg.Button(
-            master=self.buttonFrame,
-            text="Enable",
-            command=self.setEnable,
-        )
-# don't display the enable button and see if users actually miss it; if not, ditch it!
-#       self.enableButton.pack(side="left")
 
         self.defaultButton = RO.Wdg.Button(
             master = self.buttonFrame,
@@ -165,7 +160,7 @@ class SlewWdg (Tkinter.Frame):
             helpText = "Stop the telescope",
             helpURL = _HelpPrefix + "StopWdg",
         )
-#        self.stopButton.pack(side="left")
+        self.stopButton.pack(side="left")
     
         # pack the principal frames     
         self.inputWdg.pack(side=Tkinter.TOP, anchor=Tkinter.NW)
@@ -207,14 +202,6 @@ class SlewWdg (Tkinter.Frame):
         )
         self.statusBar.doCmd(cmdVar)
         
-    def setEnable(self):
-        """Enable the slew button.
-        Also toggle the Enable button's text appropriately.     
-        """
-        currText = self.enableButton["text"]
-        doEnable = (currText == "Enable")
-        self._slewEnable(doEnable)
-    
     def setObjData(self, name, valueDict):
         """Set the currently displayed info from a value dictionary.
         Note: the name input is ignored, but is present because
@@ -259,17 +246,15 @@ class SlewWdg (Tkinter.Frame):
     def doStop(self):
         """Halt the telescope.
         """
-        self.doCommand("track/stop")
+        self.doCommand("axis stop")
 
     def _slewEnable(self, doEnable=True):
         """Set the state of the Slew button and possibly others
         """
         if doEnable:
             self.slewButton["state"] = "normal"
-            self.enableButton["text"] = "Disable"
         else:
             self.slewButton["state"] = "disabled"
-            self.enableButton["text"] = "Enable"
     
     def _updTelPotential(self, telPotential):
         """Called when some other code updates telPotential.
