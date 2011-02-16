@@ -53,6 +53,7 @@ History:
 2010-08-26 ROwen    Added new warning bit: slip detected.
 2010-10-08 ROwen    Reworded bit 19 (overcurrent) and removed some unused bits.
 2010-11-05 ROwen    Added target mount position. Tweaked help URLs.
+2011-02-16 ROwen    Tweaked code to make display expand to the right of the displayed data.
 """
 import time
 import Tkinter
@@ -252,7 +253,6 @@ class AxisStatusWdg(Tkinter.Frame):
                     self.ctrlStatusWdgSet[axis],
                 )
             )
-            nextCol = wdgSet.nextCol
         
         # widen rotator commanded state widget
         # so there's room to display "NotAvailable"
@@ -263,7 +263,7 @@ class AxisStatusWdg(Tkinter.Frame):
         rotCmdWdg["width"] = 12
 
         # allow the last column to grow to fill the available space
-        self.columnconfigure(nextCol, weight=1)
+        self.columnconfigure(gr.getMaxNextCol(), weight=1)
     
     def setAxisCmdState(self, axisCmdState, isCurrent, keyVar):
         if not isCurrent:

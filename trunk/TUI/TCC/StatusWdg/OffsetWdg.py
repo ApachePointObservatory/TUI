@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 """Displays arc/sky and boresight offsets.
 
-To do:
-- In the test case dispatch reasonable data
-
 History:
 2003-04-04 ROwen
 2003-04-14 ROwen    Modified to show Obj and Obj XY offset at the same time
@@ -17,6 +14,8 @@ History:
                     Removed unused constant _ArcLabelWidth.
 2009-09-09 ROwen    Modified to use TestData.
 2010-11-04 ROwen    Changed Obj Off to Object Arc Off. Tweaked help URLs.
+2011-02-16 ROwen    Tightened the layout a bit.
+                    Made the display expand to the right of the displayed data.
 """
 import Tkinter
 import RO.CoordSys
@@ -25,7 +24,7 @@ import RO.Wdg
 import TUI.TCC.TCCModel
 
 _HelpURL = "Telescope/StatusWin.html#Offsets"
-_DataWidth = 11
+_DataWidth = 10
 
 class OffsetWdg (Tkinter.Frame):
     def __init__ (self, master=None, **kargs):
@@ -36,15 +35,11 @@ class OffsetWdg (Tkinter.Frame):
         """
         Tkinter.Frame.__init__(self, master, **kargs)
         self.tccModel = TUI.TCC.TCCModel.getModel()
-        self.isArc = False
         gr = RO.Wdg.Gridder(self, sticky="w")
 
         gr.gridWdg("Object")
         gr.gridWdg("Arc Off")
-        gr.gridWdg("Calib")
         gr.startNewCol()
-        
-        MountLabels = ("Az", "Alt", "Rot")
 
         # object offset (tcc arc offset)
         self.objLabelSet = []
@@ -67,25 +62,6 @@ class OffsetWdg (Tkinter.Frame):
             wdgSet.labelWdg.configure(width=4, anchor="e")
             self.objLabelSet.append(wdgSet.labelWdg)
 
-        # calib offset
-        self.calibOffWdgSet = [
-            RO.Wdg.DMSLabel(
-                master = self,
-                precision = 1,
-                width = _DataWidth,
-                helpText = "Calibration offset",
-                helpURL = _HelpURL,
-            )
-            for ii in range(3)
-        ]
-        for ii, label in enumerate(MountLabels):
-            wdgSet = gr.gridWdg (
-                label = label,
-                dataWdg = self.calibOffWdgSet[ii],
-                units = RO.StringUtil.DMSStr,
-            )
-            wdgSet.labelWdg.configure(width=4, anchor="e")
-        
         # sky offset
         gr.startNewCol()
         self.objXYOffWdgSet = [
@@ -105,8 +81,11 @@ class OffsetWdg (Tkinter.Frame):
                 units = RO.StringUtil.DMSStr + ")",
             )
 
+        gr.startNewCol()
+        gr.gridWdg(" Bore")
+        gr.startNewCol()
+
         # boresight
-        guideLabelCol = gr.getNextCol() - 1
         gr.startNewCol()
         self.boreWdgSet = [
             RO.Wdg.DMSLabel(
@@ -120,46 +99,21 @@ class OffsetWdg (Tkinter.Frame):
         ]
         for ii in range(2):
             gr.gridWdg (
-                label = (" Bore X", "Y")[ii],
+                label = ("X", "Y")[ii],
                 dataWdg = self.boreWdgSet[ii],
                 units = RO.StringUtil.DMSStr,
             )
-
-        # guide offset
-        guideLabelRow = gr.getNextRow()
-        RO.Wdg.StrLabel(
-            master = self,
-            text = "Guide",
-        ).grid(row=guideLabelRow, column=guideLabelCol, sticky="e")
-        self.guideOffWdgSet = [
-            RO.Wdg.DMSLabel(
-                master = self,
-                precision = 1,
-                width = _DataWidth,
-                helpText = "Guide offset",
-                helpURL = _HelpURL,
-            )
-            for ii in range(3)
-        ]
-        for ii, label in enumerate(MountLabels):
-            wdgSet = gr.gridWdg (
-                label = label,
-                dataWdg = self.guideOffWdgSet[ii],
-                units = RO.StringUtil.DMSStr,
-            )
-            wdgSet.labelWdg.configure(width=4, anchor="e")
+        
+        # allow the last+1 column to grow to fill the available space
+        self.columnconfigure(gr.getMaxNextCol(), weight=1)
 
         # track coordsys and objInstAng changes for arc/sky offset
         self.tccModel.objSys.addIndexedCallback(self._updObjSys)
         self.tccModel.objInstAng.addIndexedCallback(self._updObjXYOff)
         
-        # track objArcOff
+        # track objArcOff and boresight position
         self.tccModel.objArcOff.addCallback(self._updObjOff)
-    
-        # track boresight position
         self.tccModel.boresight.addROWdgSet(self.boreWdgSet)
-        self.tccModel.calibOff.addROWdgSet(self.calibOffWdgSet)
-        self.tccModel.guideOff.addROWdgSet(self.guideOffWdgSet)
         
     def _updObjSys (self, csysObj, isCurrent=True, **kargs):
         """Object coordinate system updated; update arc offset labels
@@ -199,15 +153,6 @@ if __name__ == "__main__":
     testFrame = OffsetWdg(tuiModel.tkRoot)
     testFrame.pack()
 
-    dataList = (
-        "ObjSys=ICRS, 0",
-        "ObjInstAng=30.0, 0.0, 4494436859.66000",
-        "ObjArcOff=-0.012, 0.0, 4494436859.66000, -0.0234, 0.000000, 4494436859.66000",
-        "Boresight=0.0054, 0.0, 4494436859.66000, -0.0078, 0.000000, 4494436859.66000",
-        "CalibOff=-0.001, 0.0, 4494436859.66000, 0.003, 0.000000, 4494436859.66000, -0.017, 0.000000, 4494436859.66000",
-        "GuideOff=-0.003, 0.0, 4494436859.66000, -0.002, 0.000000, 4494436859.66000, 0.023, 0.000000, 4494436859.66000",
-    )
-
-    TestData.testDispatcher.dispatch(dataList)
+    TestData.init()
 
     tuiModel.tkRoot.mainloop()
