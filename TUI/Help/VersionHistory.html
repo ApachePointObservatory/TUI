@@ -19,20 +19,28 @@
 
 <h4>Memory Leak</h4>
 
-<p>TUI has a known memory leak due to a <a href="https://sourceforge.net/tracker/?func=detail&atid=560720&aid=3124990&group_id=80706#">bug in matplotlib</a> that is triggered by the Guide Monitor window. Please do not leave TUI running for days on end.
+<p>TUI has a known memory leak due to a <a href="https://sourceforge.net/tracker/?func=detail&amp;atid=560720&amp;aid=3124990&amp;group_id=80706#">bug in matplotlib</a> that is triggered by the Guide Monitor window. Please do not leave TUI running for days on end.
 
 <h4>Quit At Startup</h4>
 
 <p>If TUI quits while starting up then issue the following command:<pre>
 cd ~/.matplotlib
-rm fontList.cache
-rm -rf tex.cache
+rm -rf ~/.matplotlib*.cache
 </pre>
 <p>matplotlib 1.0.1 fixes the underlying problem; if you are running from source I recommend you upgrade.
 
 <h4>Python 2.5 or later required (unix only)</h4>
 
 <p>Warning to unix users or others running from source: as of TUI 1.7.3, Python 2.5 or later is required (but 3.x will not work).
+
+<h3>1.8.6b3 2011-02-16</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Slew window: reinstated the Stop button. It sends "axis stop", which will stop the telescope quickly but gently, thanks to the graceful handling of stop commands by Fritz' axis controllers.
+    <li>Slew window: hide the Calibrate panel, since it is not well set up for automated operation.
+    <li>Status window: display Calib and Guide offsets.
+</ul>
 
 <h3>1.8.6b2 2011-01-31</h3>
 
@@ -50,14 +58,18 @@ rm -rf tex.cache
     <li>The Mac version now includes matplotlib 1.0.1 and unix users may wish to upgrade as well. This offers two important benefits:
     <ul>
         <li>TUI will no longer exit at startup if matplotlib's font cache is outdated.
-        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&atid=560720&aid=3124990&group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
+        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&amp;atid=560720&amp;aid=3124990&amp;group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
     </ul>
 </ul>
 
 <p>Bug fixes:
 <ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&database=APO&pr=1188">PR 1188</a> unwanted ctrl-click in slitviewer windows.
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1188">PR 1188</a> unwanted ctrl-click in slitviewer windows.
 </ul>
+
+<h3>1.8.5+2_Windows 2011-02-03</h3>
+
+<p>Windows-only release. Further compatibility fixes; now tested on XP, Vista and Windows 7. Thanks to Joseph Huehnerhoff for fixing the problem and creating a new release.
 
 <h3>1.8.5+1_Windows 2011-01-28</h3>
 
@@ -83,7 +95,7 @@ rm -rf tex.cache
     <li>The Mac version now includes matplotlib trunk rev 8843 (is a prerelease of 1.0.1) and unix users may wish to install a similar prerelease. This offers two important benefits:
     <ul>
         <li>TUI will no longer exit at startup if matplotlib's font cache is outdated.
-        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&atid=560720&aid=3124990&group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
+        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&amp;atid=560720&amp;aid=3124990&amp;group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
     </ul>
 </ul>
 

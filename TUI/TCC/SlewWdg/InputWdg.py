@@ -26,6 +26,7 @@ History:
 2007-09-27 ROwen    Removed userModel argument for AxisWrapWdg and CalibWdg
                     (since it was being ignored).
 2007-09-28 ROwen    Fixed PR 666: was sending userModel to sub-widgets even if userModel not supplied.
+2011-02-16 ROwen    Disabled the Calibrate panel at Russet's request.
 """
 import Tkinter
 import ObjPosWdg
@@ -106,7 +107,9 @@ class InputWdg(RO.Wdg.InputContFrame):
             ("Mag, PM", magPMWdg, "Show/hide magnitude and proper motion controls"),
             ("Drift Scan", driftScanWdg, "Show/hide drift scan controls"),
             ("Keep Offsets",  keepOffsetWdg, "Show/hide controls to retain current offsets"),
-            ("Calibrate", calibWdg, "Show/hide pointing calibration controls"),
+# Calibrate panel disabled at Russet's request; she says it is hard to use correctly
+# partly because the exposure time is usually wrong for such bright stars
+#            ("Calibrate", calibWdg, "Show/hide pointing calibration controls"),
             ("Axis Wrap", axisWrapWdg, "Show/hide wrap preference controls"),
         )
     
