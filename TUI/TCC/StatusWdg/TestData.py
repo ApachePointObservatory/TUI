@@ -14,11 +14,35 @@ History:
 2006-03-16 ROwen
 2009-06-24 ROwen    Bug fix: was sending SlewEnds instead of SlewEnd.
 2009-09-09 ROwen    Modified to use TUI.Base.TestDispatcher.
+2011-02-16 ROwen    Added init method and added some offset data.
 """
 import TUI.Base.TestDispatcher
 
 testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("tcc")
 tuiModel = testDispatcher.tuiModel
+
+def init():
+    testDispatcher.dispatch(
+        (   # start with Echelle (no rotator) and stop buttons in
+            "ObjSys=ICRS, 0",
+            "ObjInstAng=30.0, 0.0, 4494436859.66000",
+            "ObjArcOff=-0.012, 0.0, 4494436859.66000, -0.0234, 0.000000, 4494436859.66000",
+            "Boresight=0.0054, 0.0, 4494436859.66000, -0.0078, 0.000000, 4494436859.66000",
+            "CalibOff=-0.001, 0.0, 4494436859.66000, 0.003, 0.000000, 4494436859.66000, -0.017, 0.000000, 4494436859.66000",
+            "GuideOff=-0.003, 0.0, 4494436859.66000, -0.002, 0.000000, 4494436859.66000, 0.023, 0.000000, 4494436859.66000",
+            "Inst=Echelle",
+            "IPConfig=FTF",
+            "AxisCmdState=Tracking, Tracking, NotAvailable",
+            "AxisErrCode='', '', NotAvailable",
+            "AxePos=-340.009, 45, NaN",
+            "AzStat=-340.009, 0.0, 4565, 0x801",
+            "AltStat=45.0, 0.0, 4565, 0x801",
+            "SecFocus=570",
+            "GCFocus=-300",
+        ),
+        actor = "tcc",
+    )
+
 
 def runTest():
     dataSet = (

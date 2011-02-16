@@ -25,6 +25,7 @@ History:
 2009-09-09 ROwen    Modified to use TestData.
 2010-11-04 ROwen    Tweaked help URLs.
 2010-11-05 ROwen    Show UTC date as well as time.
+2011-02-16 ROwen    Made the display expand to the right of the displayed data.
 """
 import time
 import Tkinter
