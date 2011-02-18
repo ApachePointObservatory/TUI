@@ -15,6 +15,7 @@
 2010-03-18 ROwen    Added special file paths to the information.
                     Removed Wingware from the acknowledgements.
 2010-04-23 ROwen    Stopped using Exception.message to make Python 2.6 happier.
+2011-02-18 ROwen    Acknowledge Joseph Huehnerhoff for the Windows builds.
 """
 import os.path
 import sys
@@ -110,6 +111,7 @@ PIL: %(pil)s
 pyfits: %(pyfits)s
 
 With special thanks to:
+- Joseph Huehnerhoff for the Windows builds
 - Craig Loomis and Fritz Stauffer for the APO hub
 - Bob Loewenstein for Remark
 - Dan Long for the photograph used for the icon

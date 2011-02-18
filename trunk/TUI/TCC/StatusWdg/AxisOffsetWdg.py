@@ -3,6 +3,7 @@
 
 History:
 2011-02-16 ROwen
+2011-02-18 ROwen    Removed the rotator axis since we never set rotator calib or guide offsets on the 3.5m.
 """
 import Tkinter
 import RO.CoordSys
@@ -28,7 +29,9 @@ class AxisOffsetWdg (Tkinter.Frame):
         gr.gridWdg("Calib Off")
         gr.startNewCol()
         
-        MountLabels = ("Az", "Alt", "Rot")
+        # just display az and alt offsets because there's no way to measure
+        # rotator correction so it's never set
+        MountLabels = ("Az", "Alt")
 
         # calib offset
         self.calibOffWdgSet = [
@@ -39,7 +42,7 @@ class AxisOffsetWdg (Tkinter.Frame):
                 helpText = "Calibration offset",
                 helpURL = _HelpURL,
             )
-            for ii in range(3)
+            for ii in range(len(MountLabels))
         ]
         for ii, label in enumerate(MountLabels):
             wdgSet = gr.gridWdg (
@@ -62,7 +65,7 @@ class AxisOffsetWdg (Tkinter.Frame):
                 helpText = "Guide offset",
                 helpURL = _HelpURL,
             )
-            for ii in range(3)
+            for ii in range(len(MountLabels))
         ]
         for ii, label in enumerate(MountLabels):
             wdgSet = gr.gridWdg (
