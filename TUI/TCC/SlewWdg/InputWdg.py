@@ -27,6 +27,7 @@ History:
                     (since it was being ignored).
 2007-09-28 ROwen    Fixed PR 666: was sending userModel to sub-widgets even if userModel not supplied.
 2011-02-16 ROwen    Disabled the Calibrate panel at Russet's request.
+2011-02-17 ROwen    Bug fix: Calibrate was still referenced in DisableDict, producing error messages.
 """
 import Tkinter
 import ObjPosWdg
@@ -49,7 +50,7 @@ class InputWdg(RO.Wdg.InputContFrame):
     """
     DisableDict = {
         "Mag, PM": set((RO.CoordSys.Mount, RO.CoordSys.Physical, RO.CoordSys.Observed, RO.CoordSys.Topocentric)),
-        "Calibrate": set((RO.CoordSys.Mount, RO.CoordSys.Physical)),
+#        "Calibrate": set((RO.CoordSys.Mount, RO.CoordSys.Physical)),
         "Axis Wrap": set((RO.CoordSys.Mount,)),
     }
     def __init__ (self,

@@ -33,6 +33,19 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Warning to unix users or others running from source: as of TUI 1.7.3, Python 2.5 or later is required (but 3.x will not work).
 
+<h3>1.8.6b4 2011-02-18</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Status window: removed rotator calib and guide offsets (since we never set them) and reordered a few panels in an attempt to make the layout more logical.
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1240">PR 1240</a> Data entry bug in certain windows.
+    <li>TUI/TCC/SlewWdg/InputWdg.py: Calibrate was still referenced in DisableDict, producing error messages.
+</ul>
+
 <h3>1.8.6b3 2011-02-16</h3>
 
 <p>Visible changes:

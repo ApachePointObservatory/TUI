@@ -55,6 +55,9 @@ History:
                     when we have the new axis controllers.
 2011-02-16 ROwen    Display the Stop button, now that the axis controllers stop gently; it sends "axis stop".
                     Remove the Enable button; it was hidden and not missed.
+2011-02-18 ROwen    Fix ticket 1240: Data entry bug in certain windows.
+                    It was painful to edit position fields because every time the user typed
+                    the cursor position was reset to the end, due to _updTelPotential running.
 """
 import Tkinter
 import RO.KeyVariable
@@ -100,8 +103,6 @@ class SlewWdg (Tkinter.Frame):
         )
         self.inputCont = self.inputWdg.inputCont
         
-        self.enableInputCallback = True
-
         # register local callback function
         self.inputWdg.addCallback(self.inputChanged)
 
@@ -257,27 +258,23 @@ class SlewWdg (Tkinter.Frame):
             self.slewButton["state"] = "disabled"
     
     def _updTelPotential(self, telPotential):
-        """Called when some other code updates telPotential.
+        """Called when telPotential is updated.
         """
-#       print "SlewWdg._updTelPotential"
-        try:
-            self.enableInputCallback = False
-            telPotential = self.userModel.potentialTarget.get()
-            if telPotential:
-                valueDict = telPotential.getValueDict()
-                self.inputWdg.setValueDict(valueDict)
-        finally:
-            self.enableInputCallback = True
+#        print "SlewWdg._updTelPotential"
+        if not self.inputCont.allCallbacksEnabled():
+#             print "returning; some callbacks not enabled"
+            return
+        telPotential = self.userModel.potentialTarget.get()
+        if telPotential:
+            valueDict = telPotential.getValueDict()
+            self.inputWdg.setValueDict(valueDict)
 
     def inputChanged(self, inputCont=None):
         """Called whenever the user changes any input.
         """
-#       print "SlewWdg.inputChanged"
+#        print "SlewWdg.inputChanged"
         self._slewEnable(True)
 
-        if not self.enableInputCallback:
-            return
-        
         try:
             self.inputWdg.getString()
         except ValueError:
