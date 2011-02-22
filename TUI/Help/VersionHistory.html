@@ -10,56 +10,29 @@
 <h3>Compatibility</h3>
 
 <ul>
-	<li>Mac: works with Mac OS X 10.6, 10.5 and 10.4 and is a universal binary.
+	<li>Mac: works with Mac OS X 10.6, 10.5 and 10.4 and is a universal binary. Mac OS X 10.3.9 is no longer supported but might work. One known problem on 10.3.9 is that you cannot save window positions; this is due to a bug in Tcl/Tk that will never be fixed.
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
-	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
+	<li>Windows: 1.7.1 is available for Windows 7, Vista and XP. I have not been able to generate newer versions because something broke in the build process and I've not had time to debug it.
 </ul>
 
 <h3>Known Issues</h3>
 
 <h4>Memory Leak</h4>
 
-<p>TUI has a known memory leak due to a <a href="https://sourceforge.net/tracker/?func=detail&amp;atid=560720&amp;aid=3124990&amp;group_id=80706#">bug in matplotlib</a> that is triggered by the Guide Monitor window. Please do not leave TUI running for days on end.
-
-<p>Matplotlib 1.0.1 dramatically reduces the leak rate. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
+<p>TUI has a known memory leak due to a <a href="https://sourceforge.net/tracker/?func=detail&atid=560720&aid=3124990&group_id=80706#">bug in matplotlib</a> that is triggered by the Guide Monitor window. Please do not leave TUI running for days on end.
 
 <h4>Quit At Startup</h4>
 
-<p>Matplotlib 1.0.0 has a bug that can make TUI quit at startup. If TUI quits while starting up then issue the following command:<pre>
+<p>If TUI quits while starting up then issue the following command (on Mac OS X use Terminal):<pre>
 cd ~/.matplotlib
-rm -rf ~/.matplotlib*.cache
+rm fontList.cache
+rm -rf tex.cache
 </pre>
+<p>Mac users may have to do this any time you move or rename TUI. Unix users will probably only have to do it if you move matplotlib. What's going on is that matplotlib fails to run if its font cache file is out of date. This is a known bug that will be fixed in the next version of matplotlib (1.0.1).
 
-<p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
+<h4>Python 2.5 or later required (unix only)</h4>
 
-<h3>1.8.6 2011-02-22</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Slew window: reinstated the Stop button. It sends "axis stop", which will stop the telescope quickly but gently, thanks to the graceful handling of stop commands by Fritz' axis controllers.
-    <li>Slew window: hide the Calibrate panel, since it is not well set up for automated operation.
-    <li>Status window: display Calib and Guide offsets. Reordered two panels to improve readability.
-    <li>Nudger now nudges "on sky" for all offset types. Formerly Calibration and Guide offsets were simply added to the axis position.
-    <li>Added a new sound cue "Exposure Failed" sound, which is played if an exposure sequence fails. (Warning: Agile presently outputs "aborted", not "failed" when an exposure fails. A fix is in the works, but until it appears, Agile will NOT play this new sound cue.)
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1240">PR 1240</a> Data entry bug in certain windows.
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1188">PR 1188</a> unwanted ctrl-click in slitviewer windows.
-</ul>
-
-<h3>1.8.5+2_Windows 2011-02-03</h3>
-
-<p>Windows-only release. Further compatibility fixes; now tested on XP, Vista and Windows 7. Thanks to Joseph Huehnerhoff for fixing the problem and creating a new release.
-
-<h3>1.8.5+1_Windows 2011-01-28</h3>
-
-<p>Windows-only release. Made to work on more versions of Windows by doing something with win32com. Thanks to Joseph Huehnerhoff for fixing the problem and creating a new release.
-
-<h3>1.8.5+1_Mac 2010-12-20</h3>
-
-<p>Mac-only release. Built with matplotlib 1.0.0 because of a problem with my build of the prerelease version used in 1.8.5.
+<p>Warning to unix users or others running from source: as of TUI 1.7.3, Python 2.5 or later is required (but 3.x will not work).
 
 <h3>1.8.5 2010-12-20</h3>
 
@@ -76,8 +49,8 @@ rm -rf ~/.matplotlib*.cache
     <li>Reduced rate of memory leakage by 10x by shifting the guide monitor's time axis every 20 seconds instead of every 2 seconds. The display will be jerkier but you will still see all data. I'll restore the old behavior once the matplotlib memory leak is fixed.
     <li>The Mac version now includes matplotlib trunk rev 8843 (is a prerelease of 1.0.1) and unix users may wish to install a similar prerelease. This offers two important benefits:
     <ul>
-        <li>TUI will no longer exit at startup if matplotlib's font cache is outdated.
-        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&amp;atid=560720&amp;aid=3124990&amp;group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
+        <li>TUI will no longer at startup if matplotlib's font cache is outdated.
+        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&atid=560720&aid=3124990&group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
     </ul>
 </ul>
 

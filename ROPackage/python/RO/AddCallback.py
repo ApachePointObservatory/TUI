@@ -29,7 +29,6 @@ History:
                     Added a guard to prevent infinite recursion while running callbacks.
 2010-06-07 ROwen    Added a few commented-out print statements.
 2010-08-26 ROwen    Tweaked commented-out print statements.
-2011-02-18 ROwen    Added callbacksEnabled method.
 """
 import re
 import sys
@@ -114,13 +113,6 @@ class BaseMixin(object):
             self._callbacks = (callFunc,)
             self._doCallbacks()
             self._callbacks = currCallbacks
-
-    def callbacksEnabled(self):
-        """Are callbacks enabled?
-        
-        False if executing callbacks (and possibly other reasons if using _disableCallbacksContext).
-        """
-        return self._enableCallbacks
 
     def removeCallback(self, callFunc, doRaise=True):
         """Delete the callback function.

@@ -31,7 +31,6 @@ History:
                     this should make the first "exposure begins" sound more reliable.
 2009-03-02 ROwen    Increased MinExposureBeginsSoundInterval from 9.9 to 29.9 seconds at Russet's request.
 2010-03-01 ROwen    Made master argument explicit for all RO Widgets.
-2011-01-19 ROwen    Play exposureFailed sound cue if exposure sequence fails.
 """
 __all__ = ["ExposeStatusWdg"]
 
@@ -58,8 +57,7 @@ class ExposeStatusWdg (Tkinter.Frame):
 
         self.expModel = ExposeModel.getModel(instName)
         self.tuiModel = self.expModel.tuiModel
-        self.wasExposing = None # was last exposure state integrating or resume? True, False or None if unknown
-        self.wasFailed = None # was last exposure state failed or failing? True, False or None if unknown
+        self.wasExposing = None # True, False or None if unknown
         self.minExposureBeginsSoundTime = 0
         gr = RO.Wdg.Gridder(master=self, sticky="w")
 
@@ -181,16 +179,11 @@ class ExposeStatusWdg (Tkinter.Frame):
         remTime = remTime or 0.0 # change None to 0.0
         netTime = netTime or 0.0 # change None to 0.0
 
-        isFailed = False
-        if lowState in ("failing", "failed"):
-            errState = RO.Constants.sevError
-            isFailed = True
-        elif lowState in ("paused", "aborting", "aborted"):
+        if lowState == "paused":
             errState = RO.Constants.sevWarning
         else:
             errState = RO.Constants.sevNormal
         self.expStateWdg.set(expStateStr, severity = errState)
-        isNewFailure = isFailed and (self.wasFailed != True)
 
         isExposing = lowState in ("integrating", "resume")
         
@@ -241,12 +234,8 @@ class ExposeStatusWdg (Tkinter.Frame):
             else:
                 if self.expModel.instInfo.playExposureEnds:
                     TUI.PlaySound.exposureEnds()
-
-        if isNewFailure:
-            TUI.PlaySound.exposureFailed()
         
         self.wasExposing = isExposing
-        self.wasFailed = isFailed
         
     def _updSeqState(self, seqState, isCurrent, **kargs):
         """sequence state has changed; seqState is:
@@ -260,16 +249,15 @@ class ExposeStatusWdg (Tkinter.Frame):
         if not isCurrent:
             self.seqStateWdg.setNotCurrent()
             self.userWdg.setNotCurrent()
-            self.prevSequenceState = None
             return
         
         cmdr, expType, expDur, expNum, totExp, status = seqState
         progID, username = cmdr.split('.')
                 
-        lowState = status.lower()
-        if lowState == "failed":
+        lstatus = status.lower()
+        if lstatus == "failed":
             severity = RO.Constants.sevError
-        elif lowState in ("paused", "stopped", "aborted"):
+        elif lstatus in ("paused", "stopped", "aborted"):
             severity = RO.Constants.sevWarning
         else:
             severity = RO.Constants.sevNormal

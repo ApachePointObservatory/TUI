@@ -53,8 +53,6 @@ History:
 2010-08-26 ROwen    Added new warning bit: slip detected.
 2010-10-08 ROwen    Reworded bit 19 (overcurrent) and removed some unused bits.
 2010-11-05 ROwen    Added target mount position. Tweaked help URLs.
-2011-02-16 ROwen    Shortened some status bit descriptions.
-                    Tweaked code to make display expand to the right of the displayed data.
 """
 import time
 import Tkinter
@@ -72,8 +70,8 @@ _SoundIntervalMS = 100 # time (ms) between the start of each sound (if more than
 _HelpURL = "Telescope/StatusWin.html#Axes"
 
 ErrorBits = (
-    ( 6, "Reverse limit switch"),
-    ( 7, "Forward limit switch"),
+    ( 6, "Minimum position limit switch"),
+    ( 7, "Maximum position limit switch"),
     (11, "Stop button"),
     (12, "Disable switch"),
     
@@ -81,8 +79,8 @@ ErrorBits = (
     (14, "Motion error too large"),
     (19, "Motor current limit"),
 
-    ( 2, "Reverse software limit"),
-    ( 3, "Forward software limit"),
+    ( 2, "Minimum position software limit"),
+    ( 3, "Maximum position software limit"),
 
     (16, "1 Hz clock signal lost"),
 
@@ -90,8 +88,8 @@ ErrorBits = (
 )
 WarningBits = (
     ( 0, "Motor control buffer empty"),
-    ( 1, "Position update late"),
-    (24, "Fiducial error too large"),
+    ( 1, "Time ran out on an interpolated move"),
+    (24, "Last fiducial error too large"),
     (29, "Motor velocity too large"),
     (15, "Slip detected"),
     (30, "Controller restarted"),
@@ -254,6 +252,7 @@ class AxisStatusWdg(Tkinter.Frame):
                     self.ctrlStatusWdgSet[axis],
                 )
             )
+            nextCol = wdgSet.nextCol
         
         # widen rotator commanded state widget
         # so there's room to display "NotAvailable"
@@ -264,7 +263,7 @@ class AxisStatusWdg(Tkinter.Frame):
         rotCmdWdg["width"] = 12
 
         # allow the last column to grow to fill the available space
-        self.columnconfigure(gr.getMaxNextCol(), weight=1)
+        self.columnconfigure(nextCol, weight=1)
     
     def setAxisCmdState(self, axisCmdState, isCurrent, keyVar):
         if not isCurrent:

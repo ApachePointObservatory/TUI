@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """Displays arc/sky and boresight offsets.
 
+To do:
+- In the test case dispatch reasonable data
+
 History:
 2003-04-04 ROwen
 2003-04-14 ROwen    Modified to show Obj and Obj XY offset at the same time
@@ -14,8 +17,6 @@ History:
                     Removed unused constant _ArcLabelWidth.
 2009-09-09 ROwen    Modified to use TestData.
 2010-11-04 ROwen    Changed Obj Off to Object Arc Off. Tweaked help URLs.
-2011-02-16 ROwen    Tightened the layout a bit.
-                    Made the display expand to the right of the displayed data.
 """
 import Tkinter
 import RO.CoordSys
@@ -24,7 +25,7 @@ import RO.Wdg
 import TUI.TCC.TCCModel
 
 _HelpURL = "Telescope/StatusWin.html#Offsets"
-_DataWidth = 10
+_DataWidth = 11
 
 class OffsetWdg (Tkinter.Frame):
     def __init__ (self, master=None, **kargs):
@@ -35,6 +36,7 @@ class OffsetWdg (Tkinter.Frame):
         """
         Tkinter.Frame.__init__(self, master, **kargs)
         self.tccModel = TUI.TCC.TCCModel.getModel()
+        self.isArc = False
         gr = RO.Wdg.Gridder(self, sticky="w")
 
         gr.gridWdg("Object")
@@ -61,7 +63,7 @@ class OffsetWdg (Tkinter.Frame):
             )
             wdgSet.labelWdg.configure(width=4, anchor="e")
             self.objLabelSet.append(wdgSet.labelWdg)
-
+        
         # sky offset
         gr.startNewCol()
         self.objXYOffWdgSet = [
@@ -81,10 +83,6 @@ class OffsetWdg (Tkinter.Frame):
                 units = RO.StringUtil.DMSStr + ")",
             )
 
-        gr.startNewCol()
-        gr.gridWdg(" Bore")
-        gr.startNewCol()
-
         # boresight
         gr.startNewCol()
         self.boreWdgSet = [
@@ -99,21 +97,21 @@ class OffsetWdg (Tkinter.Frame):
         ]
         for ii in range(2):
             gr.gridWdg (
-                label = ("X", "Y")[ii],
+                label = (" Bore X", "Y")[ii],
                 dataWdg = self.boreWdgSet[ii],
                 units = RO.StringUtil.DMSStr,
             )
-        
-        # allow the last+1 column to grow to fill the available space
-        self.columnconfigure(gr.getMaxNextCol(), weight=1)
 
         # track coordsys and objInstAng changes for arc/sky offset
         self.tccModel.objSys.addIndexedCallback(self._updObjSys)
         self.tccModel.objInstAng.addIndexedCallback(self._updObjXYOff)
         
-        # track objArcOff and boresight position
+        # track objArcOff
         self.tccModel.objArcOff.addCallback(self._updObjOff)
-        self.tccModel.boresight.addROWdgSet(self.boreWdgSet)
+    
+        # track boresight position
+        for ii in range(2):
+            self.tccModel.boresight.addROWdg(self.boreWdgSet[ii], ind=ii)
         
     def _updObjSys (self, csysObj, isCurrent=True, **kargs):
         """Object coordinate system updated; update arc offset labels
@@ -153,6 +151,13 @@ if __name__ == "__main__":
     testFrame = OffsetWdg(tuiModel.tkRoot)
     testFrame.pack()
 
-    TestData.init()
+    dataList = (
+        "ObjSys=ICRS, 0",
+        "ObjInstAng=30.0, 0.0, 4494436859.66000",
+        "ObjArcOff=-0.012, 0.0, 4494436859.66000, -0.0234, 0.000000, 4494436859.66000",
+        "Boresight=0.0054, 0.0, 4494436859.66000, -0.0078, 0.000000, 4494436859.66000",
+    )
+
+    TestData.testDispatcher.dispatch(dataList)
 
     tuiModel.tkRoot.mainloop()

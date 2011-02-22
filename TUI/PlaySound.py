@@ -14,7 +14,6 @@ Gets the sounds from TUI preferences.
 2006-04-14 ROwen    Added guideModeChanges.
 2006-10-24 ROwen    Added logHighlightedText.
 2009-11-09 ROwen    Added support for Play Sounds preference.
-2011-01-31 ROwen    Added exposureFailed.
 """
 import TUI.TUIModel
 
@@ -50,9 +49,6 @@ def exposureBegins():
 
 def exposureEnds():
     _playSound("Exposure Ends")
-
-def exposureFailed():
-    _playSound("Exposure Failed")
 
 def guidingBegins():
     _playSound("Guiding Begins")

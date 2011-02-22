@@ -53,11 +53,6 @@ History:
 2007-08-09 ROwen    Changed Catalog callback function to InputCont.setStar.
 2009-02-05 ROwen    Hid Stop button at request of APO; the button will be restored
                     when we have the new axis controllers.
-2011-02-16 ROwen    Display the Stop button, now that the axis controllers stop gently; it sends "axis stop".
-                    Remove the Enable button; it was hidden and not missed.
-2011-02-18 ROwen    Fix ticket 1240: Data entry bug in certain windows.
-                    It was painful to edit position fields because every time the user typed
-                    the cursor position was reset to the end, due to _updTelPotential running.
 """
 import Tkinter
 import RO.KeyVariable
@@ -103,6 +98,8 @@ class SlewWdg (Tkinter.Frame):
         )
         self.inputCont = self.inputWdg.inputCont
         
+        self.enableInputCallback = True
+
         # register local callback function
         self.inputWdg.addCallback(self.inputChanged)
 
@@ -126,6 +123,13 @@ class SlewWdg (Tkinter.Frame):
         )
 
         self.slewButton.pack(side="left")
+        self.enableButton = RO.Wdg.Button(
+            master=self.buttonFrame,
+            text="Enable",
+            command=self.setEnable,
+        )
+# don't display the enable button and see if users actually miss it; if not, ditch it!
+#       self.enableButton.pack(side="left")
 
         self.defaultButton = RO.Wdg.Button(
             master = self.buttonFrame,
@@ -161,7 +165,7 @@ class SlewWdg (Tkinter.Frame):
             helpText = "Stop the telescope",
             helpURL = _HelpPrefix + "StopWdg",
         )
-        self.stopButton.pack(side="left")
+#        self.stopButton.pack(side="left")
     
         # pack the principal frames     
         self.inputWdg.pack(side=Tkinter.TOP, anchor=Tkinter.NW)
@@ -203,6 +207,14 @@ class SlewWdg (Tkinter.Frame):
         )
         self.statusBar.doCmd(cmdVar)
         
+    def setEnable(self):
+        """Enable the slew button.
+        Also toggle the Enable button's text appropriately.     
+        """
+        currText = self.enableButton["text"]
+        doEnable = (currText == "Enable")
+        self._slewEnable(doEnable)
+    
     def setObjData(self, name, valueDict):
         """Set the currently displayed info from a value dictionary.
         Note: the name input is ignored, but is present because
@@ -247,34 +259,40 @@ class SlewWdg (Tkinter.Frame):
     def doStop(self):
         """Halt the telescope.
         """
-        self.doCommand("axis stop")
+        self.doCommand("track/stop")
 
     def _slewEnable(self, doEnable=True):
         """Set the state of the Slew button and possibly others
         """
         if doEnable:
             self.slewButton["state"] = "normal"
+            self.enableButton["text"] = "Disable"
         else:
             self.slewButton["state"] = "disabled"
+            self.enableButton["text"] = "Enable"
     
     def _updTelPotential(self, telPotential):
-        """Called when telPotential is updated.
+        """Called when some other code updates telPotential.
         """
-#        print "SlewWdg._updTelPotential"
-        if not self.inputCont.allCallbacksEnabled():
-#             print "returning; some callbacks not enabled"
-            return
-        telPotential = self.userModel.potentialTarget.get()
-        if telPotential:
-            valueDict = telPotential.getValueDict()
-            self.inputWdg.setValueDict(valueDict)
+#       print "SlewWdg._updTelPotential"
+        try:
+            self.enableInputCallback = False
+            telPotential = self.userModel.potentialTarget.get()
+            if telPotential:
+                valueDict = telPotential.getValueDict()
+                self.inputWdg.setValueDict(valueDict)
+        finally:
+            self.enableInputCallback = True
 
     def inputChanged(self, inputCont=None):
         """Called whenever the user changes any input.
         """
-#        print "SlewWdg.inputChanged"
+#       print "SlewWdg.inputChanged"
         self._slewEnable(True)
 
+        if not self.enableInputCallback:
+            return
+        
         try:
             self.inputWdg.getString()
         except ValueError:
