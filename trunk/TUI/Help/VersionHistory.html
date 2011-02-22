@@ -10,7 +10,7 @@
 <h3>Compatibility</h3>
 
 <ul>
-	<li>Mac: works with Mac OS X 10.6, 10.5 and 10.4 and is a universal binary. Mac OS X 10.3.9 is no longer supported but might work. One known problem on 10.3.9 is that you cannot save window positions; this is due to a bug in Tcl/Tk that will never be fixed.
+	<li>Mac: works with Mac OS X 10.6, 10.5 and 10.4 and is a universal binary.
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
@@ -21,62 +21,31 @@
 
 <p>TUI has a known memory leak due to a <a href="https://sourceforge.net/tracker/?func=detail&amp;atid=560720&amp;aid=3124990&amp;group_id=80706#">bug in matplotlib</a> that is triggered by the Guide Monitor window. Please do not leave TUI running for days on end.
 
+<p>Matplotlib 1.0.1 dramatically reduces the leak rate. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
+
 <h4>Quit At Startup</h4>
 
-<p>If TUI quits while starting up then issue the following command:<pre>
+<p>Matplotlib 1.0.0 has a bug that can make TUI quit at startup. If TUI quits while starting up then issue the following command:<pre>
 cd ~/.matplotlib
 rm -rf ~/.matplotlib*.cache
 </pre>
-<p>matplotlib 1.0.1 fixes the underlying problem; if you are running from source I recommend you upgrade.
 
-<h4>Python 2.5 or later required (unix only)</h4>
+<p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
 
-<p>Warning to unix users or others running from source: as of TUI 1.7.3, Python 2.5 or later is required (but 3.x will not work).
-
-<h3>1.8.6b4 2011-02-18</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Status window: removed rotator calib and guide offsets (since we never set them) and reordered a few panels in an attempt to make the layout more logical.
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1240">PR 1240</a> Data entry bug in certain windows.
-    <li>TUI/TCC/SlewWdg/InputWdg.py: Calibrate was still referenced in DisableDict, producing error messages.
-</ul>
-
-<h3>1.8.6b3 2011-02-16</h3>
+<h3>1.8.6 2011-02-22</h3>
 
 <p>Visible changes:
 <ul>
     <li>Slew window: reinstated the Stop button. It sends "axis stop", which will stop the telescope quickly but gently, thanks to the graceful handling of stop commands by Fritz' axis controllers.
     <li>Slew window: hide the Calibrate panel, since it is not well set up for automated operation.
-    <li>Status window: display Calib and Guide offsets.
-</ul>
-
-<h3>1.8.6b2 2011-01-31</h3>
-
-<p>Visible changes:
-<ul>
+    <li>Status window: display Calib and Guide offsets. Reordered two panels to improve readability.
     <li>Nudger now nudges "on sky" for all offset types. Formerly Calibration and Guide offsets were simply added to the axis position.
     <li>Added a new sound cue "Exposure Failed" sound, which is played if an exposure sequence fails. (Warning: Agile presently outputs "aborted", not "failed" when an exposure fails. A fix is in the works, but until it appears, Agile will NOT play this new sound cue.)
 </ul>
 
-<h3>1.8.6b1 2011-01-14</h3>
-
-<p>Internal changes:
-<ul>
-    <li>Updated for backward-incompatible StripChartWdg
-    <li>The Mac version now includes matplotlib 1.0.1 and unix users may wish to upgrade as well. This offers two important benefits:
-    <ul>
-        <li>TUI will no longer exit at startup if matplotlib's font cache is outdated.
-        <li>Matplotlib's <a href="https://sourceforge.net/tracker/?func=detail&amp;atid=560720&amp;aid=3124990&amp;group_id=80706#">memory leak</a> in canvas.draw is reduced by a factor of 10.
-    </ul>
-</ul>
-
 <p>Bug fixes:
 <ul>
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1240">PR 1240</a> Data entry bug in certain windows.
     <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1188">PR 1188</a> unwanted ctrl-click in slitviewer windows.
 </ul>
 
@@ -90,7 +59,7 @@ rm -rf ~/.matplotlib*.cache
 
 <h3>1.8.5+1_Mac 2010-12-20</h3>
 
-<p>Mac-only release. Built with matplotlib 1.0.0 because my build of the prerelease version used in 1.8.5 was incompatible with Snow Leopard.
+<p>Mac-only release. Built with matplotlib 1.0.0 because of a problem with my build of the prerelease version used in 1.8.5.
 
 <h3>1.8.5 2010-12-20</h3>
 
