@@ -4,7 +4,7 @@ testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("perms", delay=1.5)
 tuiModel = testDispatcher.tuiModel
 
 MainDataList = (
-    "actors=dis, echelle, tcc, tlamps, tspec",
+    "actors=dis, echelle, tcc, tlamps, tspec, gcam",
     "programs=UW01, CL01, TU01",
     "lockedActors=tspec",
     "authList=CL01, tcc, dis, tspec, tlamps",
@@ -21,7 +21,7 @@ AnimDataSet = (
         "programs=TU01, UW01",
     ),
     (
-        "actors=tcc, tspec, dis, echelle, tlamps, apollo",
+        "actors=tcc, tspec, dis, echelle, tlamps, apollo, gcam",
     ),
     (
         "authList=CL01, apollo, echelle, perms, tcc, tspec",

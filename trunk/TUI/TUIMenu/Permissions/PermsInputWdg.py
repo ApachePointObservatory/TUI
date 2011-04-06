@@ -7,6 +7,11 @@ perms terminology "register" and "unregister" because they work
 better in function calls when one might be toggling the state
 and because the transition has to occur somewhere.
 
+TO DO:
+- Fix alignment of Lockout controls vs. program controls.  The problem is that we have two different panels --
+  the scrolling programs and the non-scrolling header + lockout -- and they do not align horizontally.
+- Add visible divider between categories?
+
 2003-12-19 ROwen    Preliminary version; html help is broken.
 2003-12-29 ROwen    Implemented html help.
 2004-07-22 ROwen    Updated for new RO.KeyVariable
@@ -23,13 +28,14 @@ and because the transition has to occur somewhere.
                     Fixed irregular indentation (extra spaces).
 2006-06-16 ROwen    Bug fix: helpSuffix arg was being ignored (caught by pychecker).
 2006-04-10 ROwen    Fix PR 314: if a new actor was added, it was not properly displayed.
-                    Modified so "sort" sorts actors as well as programs.
+                    Modified so "sort" sorts actorList as well as programs.
 2006-10-31 ROwen    Fix PR 511: program name widgets too narrow on unix.
-2009-07-06 ROwen    Fix PR 940: permissions window does not handle new actors properly.
-                    Modified to always sort actors; only programs may be out of order.
+2009-07-06 ROwen    Fix PR 940: permissions window does not handle new actorList properly.
+                    Modified to always sort actorList; only programs may be out of order.
                     Modified for updated TestData.
 2009-07-09 ROwen    Bug fix: bad class instance reference.
                     Modified test code to look more like tuisdss version.
+2011-04-06 ROwen    Modified to order actors by category. To do: display separation between categories.
 """
 import Tkinter
 import RO.Constants
@@ -52,7 +58,71 @@ _ProgBegRow = 4
 
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
 
-_NewActorDelayMS = 1000 # display disable delay (ms) while adding or removing actors
+_NewActorDelayMS = 1000 # display disable delay (ms) while adding or removing actorList
+
+class ActorList(object):
+    """A list of actorList in category order"""
+    def __init__(self, startCol=1):
+        self._startCol = int(startCol)
+        self._actorSet = set()
+        self._colActorList = []
+    
+    def setActors(self, actors):
+        """Set the actors
+        
+        Inputs:
+        - actors: a collection of actors; order is ignored
+        """
+        self._actorSet = set(actors)
+        # sort by category, then by actor name
+        catActorList = sorted((self._getActorCategory(a), a) for a in actors)
+        currCat = 1
+        col = self._startCol
+        self._colActorList = []
+        for cat, actor in catActorList:
+            if cat != currCat:
+                self._colActorList.append((col, None))
+                currCat = cat
+                col += 1
+            self._colActorList.append((col, actor))
+            col += 1
+    
+    def getColActorList(self):
+        """Return a list of (col, actor)
+        """
+        return self._colActorList
+    
+    def getActorSet(self):
+        """Return the collection of actors as a set"""
+        return self._actorSet
+    
+    def isSameActors(self, actors):
+        """Return True if the set of actors is the same (ignoring order)
+        """
+        return self._actorSet == set(actors)
+        
+    def _getActorCategory(self, actor):
+        """Return a category number for a given actor
+        
+        Returns one of:
+        1: tcc, telmech and tlamps
+        2: instruments
+        3: guiders: dcam, ecam, gcam, tcam
+        """
+        return dict (
+            gmech = 1,
+            tcc = 1,
+            telmech = 1,
+            tlamps = 1,
+            dcam = 3,
+            ecam = 3,
+            gcam = 3,
+            tcam = 3,
+        ).get(actor, 2)
+    
+    def __bool__(self):
+        return len(self._actorSet) > 0
+
 
 class PermsInputWdg(Tkinter.Frame):
     """Inputs:
@@ -77,7 +147,7 @@ class PermsInputWdg(Tkinter.Frame):
         self._readOnlyCallback = readOnlyCallback
         
         self._titleWdgSet = []
-        self._actors = []
+        self._actorList = ActorList(startCol=1)
         self._progDict = {} # prog name: prog perms
         self._nextRow = _ProgBegRow
         self._readOnly = True
@@ -95,7 +165,7 @@ class PermsInputWdg(Tkinter.Frame):
         self._lockoutRow = 3
         self._lockoutWdg = _LockoutPerms(
             master = self._titleFrame,
-            actors = self._actors,
+            actorList = self._actorList,
             readOnly = self._readOnly,
             row = self._lockoutRow,
             statusBar = self._statusBar,
@@ -124,34 +194,28 @@ class PermsInputWdg(Tkinter.Frame):
             del(self._progDict[prog])
     
     def sort(self):
-        """Sort actors and existing programs.
+        """Sort existing programs and redisplay all data.
         """
-        self._actors.sort()
         for wdg in self._titleWdgSet:
             wdg.destroy()
-        col = 1
-        for actor in self._actors:
-            self._addTitle(actor, col)
-            col += 1
+        currCat = 1
+        for col, actor in self._actorList.getColActorList():
+            if not actor:
+                # insert dividor
+                self._addTitle("  ", col)
+            else:
+                self._addTitle(actor, col)
         
-        self._lockoutWdg.display(row=self._lockoutRow, actors=self._actors)
+        self._lockoutWdg.display(row=self._lockoutRow)
         
         progNames = self._progDict.keys()
         progNames.sort()
         self._nextRow = _ProgBegRow
         for prog in progNames:
             progPerms = self._progDict[prog]
-            progPerms.display(row=self._nextRow, actors=self._actors)
+            progPerms.display(row=self._nextRow)
             self._nextRow += 1
-    
-    def __connStateCallback(self, conn):
-        """If the connection closes, clear all programs from the list.
-        """
-        if self._progDict and not conn.isConnected():
-            for prog, progPerms in self._progDict.items():
-                progPerms.delete()
-                del(self._progDict[prog])
-    
+
     def _addProg(self, prog):
         """Create and display a new program.
         
@@ -163,7 +227,7 @@ class PermsInputWdg(Tkinter.Frame):
         newProg = _ProgPerms(
             master = self,
             prog = prog,
-            actors = self._actors,
+            actorList = self._actorList,
             readOnly = self._readOnly,
             row = self._nextRow,
             statusBar = self._statusBar,
@@ -179,7 +243,7 @@ class PermsInputWdg(Tkinter.Frame):
         - text  text for title
         - col   column for title
         """
-#       print "_addTitle(%r, %r)" % (text, col)
+#         print "_addTitle(%r, %r)" % (text, col)
         strWdg = RO.Wdg.StrLabel(self._titleFrame, text=text)
         strWdg.grid(row=0, column=col)
         titleSpacer = Tkinter.Frame(self._titleFrame)
@@ -203,6 +267,14 @@ class PermsInputWdg(Tkinter.Frame):
             if mainSpacer.winfo_width() > titleSpacer.winfo_width():
                 titleSpacer["width"] = mainSpacer.winfo_width()     
         mainSpacer.bind("<Configure>", domain)
+    
+    def __connStateCallback(self, conn):
+        """If the connection closes, clear all programs from the list.
+        """
+        if self._progDict and not conn.isConnected():
+            for prog, progPerms in self._progDict.items():
+                progPerms.delete()
+                del(self._progDict[prog])
 
     def _updActors(self, actors, isCurrent=True, **kargs):
         """Perms list of actors updated.
@@ -211,23 +283,22 @@ class PermsInputWdg(Tkinter.Frame):
         if not isCurrent:
             return
         
-        actors = sorted(actors)
-        if actors == self._actors:
+        if self._actorList.isSameActors(actors):
             return
         
-        if not self._readOnly and self._actors:
+        if not self._readOnly and self._actorList:
             self._statusBar.setMsg("Updating actors", severity=RO.Constants.sevWarning, isTemp = True, duration=_NewActorDelayMS)
             if self._updActorTimer:
                 self.after_cancel(self._updActorTimer)
             self._setReadOnly(True)
             self._updActorTimer = self.after(_NewActorDelayMS, self._setReadOnly, False)
 
-        self._actors = actors
+        self._actorList.setActors(actors)
 
-        # set actors in lockout and each program
-        self._lockoutWdg.setActors(self._actors)
+        # Update lockout and each program
+        self._lockoutWdg.updateActorList()
         for progPerms in self._progDict.itervalues():
-            progPerms.setActors(self._actors)
+            progPerms.updateActorList()
 
         # display new header and everything
         self.sort()
@@ -282,7 +353,7 @@ class PermsInputWdg(Tkinter.Frame):
         
         progAuthList is:
         - program name
-        - 0 or more actors
+        - 0 or more actorList
         """
         if not isCurrent:
             return
@@ -294,7 +365,7 @@ class PermsInputWdg(Tkinter.Frame):
         if prog == self._tuiModel.getProgID().upper():
             # this is info about me (my program); check if I can set permissions
             readOnly = "perms" not in authActors
-#             print "prog=%s is me; readOnly=%s, currReadOnly=%s, actors=%s" % (prog, readOnly, self._readOnly, authActors)
+#             print "prog=%s is me; readOnly=%s, currReadOnly=%s, actorList=%s" % (prog, readOnly, self._readOnly, authActors)
             self._setReadOnly(readOnly)
 
         isNew = prog not in self._progDict
@@ -318,41 +389,40 @@ class PermsInputWdg(Tkinter.Frame):
 class _BasePerms(object):
     """Basic set of permissions.
     
-    Display current locked actors as a set of checkbuttons.
+    Display current locked actorList as a set of checkbuttons.
     Handle read only, help and the action of clicking a button.
     
     Specialize to handle lockout or programs.
     
     Inputs:
     - master    master widget
-    - actors    a list of the currently known actors, in desired display order
+    - actorList an ActorList
     - row       row at which to grid display widgets
     - statusBar object to handle commands (via doCmd)
     """
     def __init__(self,
         master,
-        actors,
+        actorList,
         readOnly,
         row,
         statusBar,
         prog = "",
         helpSuffix = "",
     ):
-#         print "_BasePerms(master=%s, actors=%s, readOnly=%s, row=%s, prog=%s)" % (master, actors, readOnly, row, prog)
+#         print "_BasePerms(master=%s, actorList=%s, readOnly=%s, row=%s, prog=%s)" % (master, actorList, readOnly, row, prog)
         self._master = master
-        self._prog = prog
+        self._actorList = actorList
         self._readOnly = readOnly
         self._row = row
         self._statusBar = statusBar
-
+        self._prog = prog
         self._helpURL = _HelpPrefix + helpSuffix
 
         self._createNameWdg()
 
         # dictionary of actor: auth checkbutton entries
         self._actorWdgDict = {}
-        self._actors = []
-        self.setActors(actors)
+        self.updateActorList()
 
     def delete(self):
         """Cleanup
@@ -365,55 +435,51 @@ class _BasePerms(object):
         for wdg in wdgSet:
             wdg.grid_forget()
             wdg.destroy()
+    
+    def actorInfoIsConsistent(self):
+        return self._actorList.getActorSet() == set(self._actorWdgDict.keys())
         
-    def display(self, row, actors):
-        """Display widgets in the specified row in the specified actor order.
+    def display(self, row):
+        """Display widgets in the specified row.
         If widgets are already displayed, they are first withdrawn.
         
         Replaces the exisiting actor order.
         
-        Raises ValueError if the set of actors does not match.
+        Raises ValueError if the set of actorList does not match.
         """
-        # check actors
-#         print "%s.display(row=%s, actors=%s)" % (self, row, actors)
-        if set(actors) != set(self._actorWdgDict.keys()):
-            sortedDispActors = actors[:]
-            sortedDispActors.sort()
-            sortedLocalActors = self._actorWdgDict.keys()
-            sortedLocalActors.sort()
-            raise ValueError("cannot display perms for %s; my actors %r != %r" % \
-                (self, sortedLocalActors, sortedDispActors))
+        # check actorList
+#         print "%s.display(row=%s)" % (self, row)
+        if not self.actorInfoIsConsistent():
+            listActors = sorted(list(self._actorList.getActorSet()))
+            dictActors = sorted(self._actorWdgDict.keys())
+            raise ValueError("cannot display perms for %s; my actorList %r != %r" % \
+                (self, listActors, dictActors))
         
-        self._actors = actors[:]
-
         self._row = row
-        col = 0
         self._nameWdg.grid_forget()
-        self._nameWdg.grid(row=self._row, column=col, sticky="")
-        col += 1
+        self._nameWdg.grid(row=self._row, column=0, sticky="")
     
-        for actor in actors:
-            wdg = self._actorWdgDict[actor]
-            wdg.grid_forget()
-            wdg.grid(row=self._row, column=col)
-            col += 1
+        for col, actor in self._actorList.getColActorList():
+            if actor:
+                wdg = self._actorWdgDict[actor]
+                wdg.grid_forget()
+                wdg.grid(row=self._row, column=col)
     
-    def setActors(self, actors):
-        """Set the list of actors.
+    def updateActorList(self):
+        """The actorList has been updated
         """
-        #print "%s.setActors(%r); existing actors=%s" % (self.__class__, actors, self._actors)
-        if self._actors == actors:
+        #print "%s.updateActorList()"
+        currActorSet = set(self._actorWdgDict.keys())
+        newActorSet = self._actorList.getActorSet()
+        if currActorSet == newActorSet:
             return
 
-        currActorSet = set(self._actors)
-        newActorSet = set(actors)
-
-        # ungrid and delete any deleted actors
+        # ungrid and delete any deleted actorList
         for actor in currActorSet - newActorSet:
             self._actorWdgDict[actor].grid_forget()
             del(self._actorWdgDict[actor])
 
-        # create any new actors (they will be gridded later as part of display)
+        # create any new actorList (they will be gridded later as part of display)
         for actor in newActorSet - currActorSet:
             if actor in self._actorWdgDict:
                 raise ValueError("%r: actor %r already exists" % (self, actor))
@@ -426,14 +492,13 @@ class _BasePerms(object):
                 command = self._actorCommand,
                 helpURL = self._helpURL,
             )
-        self._actors = actors
-        self.display(self._row, self._actors)
+        self.display(self._row)
     
     def setCurrActors(self, currActors):
-        """Sets the list of actors that should be checked (authorized).
+        """Sets the list of actorList that should be checked (authorized).
         
         Inputs:
-        - currActors: list of actors that should be checked
+        - currActors: list of actorList that should be checked
         """
 #       print "%s.setCurrActors(%r)" % (self.__class__, currActors)
         for actor, wdg in self._actorWdgDict.iteritems():
@@ -507,20 +572,20 @@ class _BasePerms(object):
 class _LockoutPerms(_BasePerms):
     """Lockout permissions
     
-    This class keeps track of locked actors,
+    This class keeps track of locked actorList,
     displays the info as a set of controls
     and responds to these controls by sending the appropriate commands.
     
     Inputs:
     - master    master widget
-    - actors    a list of the currently known actors, in desired display order
+    - actorList    a list of the currently known actorList, in desired display order
     - row       row at which to grid display widgets
     - statusBar object to handle commands (via doCmd)
     """
-    def __init__(self, master, actors, readOnly, row, statusBar):
+    def __init__(self, master, actorList, readOnly, row, statusBar):
         _BasePerms.__init__(self,
             master = master,
-            actors = actors,
+            actorList = actorList,
             readOnly = readOnly,
             row = row,
             statusBar = statusBar,
@@ -565,15 +630,15 @@ class _ProgPerms(_BasePerms):
     Inputs:
     - master    master widget
     - prog      program name
-    - actors    a list of the currently known actors, in desired display order
+    - actorList    a list of the currently known actorList, in desired display order
     - row       row at which to grid display widgets
     - statusBar object to handle commands (via doCmd)
     """
-    def __init__(self, master, prog, actors, readOnly, row, statusBar):
-#         print "_ProgPerms(master=%s, prog=%s, actors=%s, readOnly=%s, row=%s)" % (master, prog, actors, readOnly, row)
+    def __init__(self, master, prog, actorList, readOnly, row, statusBar):
+#         print "_ProgPerms(master=%s, prog=%s, actorList=%s, readOnly=%s, row=%s)" % (master, prog, actorList, readOnly, row)
         _BasePerms.__init__(self,
             master = master,
-            actors = actors,
+            actorList = actorList,
             readOnly = readOnly,
             row = row,
             statusBar = statusBar,
@@ -639,7 +704,7 @@ class _ProgPerms(_BasePerms):
 
     def _progCallFunc(self, wdg=None):
         """Called when the program name button is toggled by any means.
-        Sets enabled of actors.
+        Sets enabled of actorList.
         See also progCommand, which sends commands to the hub.
         """
 #       print "%s._progCallFunc" % (self.__class__)
