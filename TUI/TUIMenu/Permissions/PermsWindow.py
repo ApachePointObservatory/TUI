@@ -12,12 +12,13 @@
 2007-07-27 ROwen    Modified to pay command-completed sounds.
 2009-07-06 ROwen    Modified for updated TestData.
 2009-07-09 ROwen    Modified test code to look more like tuisdss.
+2011-04-08 ROwen    Modified to use updated PermsTableWdg (formerly PermsInputWdg).
 """
 import Tkinter
 import RO.KeyVariable
 import RO.Wdg
 import PermsModel
-import PermsInputWdg
+import PermsTableWdg
 import TUI.TUIModel
 
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
@@ -34,15 +35,14 @@ def addWindow(tlSet):
     )
     Tkinter.Label().update_idletasks()
 
+_HelpPrefix = "TUIMenu/PermissionsWin.html#"
+
 class PermsWdg(Tkinter.Frame):
     def __init__(self, master):
         Tkinter.Frame.__init__(self, master)
 
         tuiModel = TUI.TUIModel.getModel()
 
-        self._titleFrame = Tkinter.Frame(self)
-        self._titleFrame.grid(row=0, sticky="w")
-        
         self._permsModel = PermsModel.getModel()
 
         self._statusBar = RO.Wdg.StatusBar(
@@ -53,24 +53,12 @@ class PermsWdg(Tkinter.Frame):
             summaryLen = 20,
         )
         
-        self._scrollWdg = RO.Wdg.ScrolledWdg(
+        self.permsTableWdg = PermsTableWdg.PermsTableWdg(
             master = self,
-            hscroll = False,
-            vscroll = True,
-        )
-        
-        self.inputWdg = PermsInputWdg.PermsInputWdg(
-            master = self._scrollWdg.getWdgParent(),
             statusBar = self._statusBar,
-            titleFrame = self._titleFrame,
             readOnlyCallback = self.doReadOnly,
         )
-        self._scrollWdg.setWdg(
-            wdg = self.inputWdg,
-            vincr = self.inputWdg.getVertMeasWdg(),
-        )
-
-        self._scrollWdg.grid(row=1, sticky="ns")
+        self.permsTableWdg.grid(row=1, sticky="ns")
         self.grid_rowconfigure(1, weight=1)
 
         self._statusBar.grid(row=2, sticky="ew")
@@ -92,7 +80,7 @@ class PermsWdg(Tkinter.Frame):
         purgeWdg = RO.Wdg.Button(
             master = self.butFrame,
             text = "Purge",
-            command = self.inputWdg.purge,
+            command = self.permsTableWdg.purge,
             helpText = "Purge unregistered programs",
             helpURL = _HelpPrefix + "Purge",
         )
@@ -101,7 +89,7 @@ class PermsWdg(Tkinter.Frame):
         sortWdg = RO.Wdg.Button(
             master = self.butFrame,
             text = "Sort",
-            command = self.inputWdg.sort,
+            command = self.permsTableWdg.sort,
             helpText = "Sort programs and actors",
             helpURL = _HelpPrefix + "Sort",
         )
@@ -144,25 +132,25 @@ if __name__ == "__main__":
     import TestData
     root = TestData.tuiModel.tkRoot
     root.resizable(False, True)
-    
+
     DefReadOnly = False
     
     testFrame = PermsWdg(master=root)
-    testFrame.pack(side="top", expand=True, fill="both")
-    testFrame.inputWdg._setReadOnly(DefReadOnly)
-
+    testFrame.pack(side="top", expand=True, fill="y")
+    testFrame.permsTableWdg._setReadOnly(DefReadOnly)
+    
     def doReadOnly(but):
         readOnly = but.getBool()
-        testFrame.inputWdg._setReadOnly(readOnly)
-    
+        testFrame.permsTableWdg._setReadOnly(readOnly)
+
     butFrame = Tkinter.Frame(root)
     
     Tkinter.Button(butFrame, text="Demo", command=TestData.animate).pack(side="left")
     
-    RO.Wdg.Checkbutton(butFrame, text="Read Only", callFunc=doReadOnly).pack(side="left")
-
-    butFrame.pack(side="top")
+    RO.Wdg.Checkbutton(butFrame, text="Read Only", defValue=DefReadOnly, callFunc=doReadOnly).pack(side="left")
     
+    butFrame.pack(side="top", anchor="w")
+
     TestData.start()
 
     root.mainloop()

@@ -7,11 +7,6 @@ perms terminology "register" and "unregister" because they work
 better in function calls when one might be toggling the state
 and because the transition has to occur somewhere.
 
-TO DO:
-- Fix alignment of Lockout controls vs. program controls.  The problem is that we have two different panels --
-  the scrolling programs and the non-scrolling header + lockout -- and they do not align horizontally.
-- Add visible divider between categories?
-
 2003-12-19 ROwen    Preliminary version; html help is broken.
 2003-12-29 ROwen    Implemented html help.
 2004-07-22 ROwen    Updated for new RO.KeyVariable
@@ -36,6 +31,8 @@ TO DO:
 2009-07-09 ROwen    Bug fix: bad class instance reference.
                     Modified test code to look more like tuisdss version.
 2011-04-06 ROwen    Modified to order actors by category. To do: display separation between categories.
+2011-04-08 ROwen    Renamed from PermsInputWdg to PermsTableWdg and made self-contained
+                    (no need to create external frames for the header and scrolled table).
 """
 import Tkinter
 import RO.Constants
@@ -44,20 +41,10 @@ import RO.KeyVariable
 import RO.Wdg
 import TUI.TUIModel
 import PermsModel
-try:
-    set
-except NameError:
-    from sets import Set as set
-
-# first row for displaying program widgets
-# the preceding rows are: title labels, title width frames,
-# data width frames, lockout
-# note: if no titleFrame then title info is displayed on the main frame
-# otherwise some of these rows are not used in the main frame
-_ProgBegRow = 4
 
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
 
+_ProgramWidth = 7 # width of program control buttons (need room for "Lockout")
 _NewActorDelayMS = 1000 # display disable delay (ms) while adding or removing actorList
 
 class ActorList(object):
@@ -124,32 +111,51 @@ class ActorList(object):
         return len(self._actorSet) > 0
 
 
-class PermsInputWdg(Tkinter.Frame):
+class PermsTableWdg(Tkinter.Frame):
     """Inputs:
     - master        master widget
     - statusBar     status bar to handle commands.
-    - titleFrame    a frame in which to place program names and lockout line;
-        if omitted, the master is used.
-    - readOnlyCallback  a function that is called when the readOnly state changes
-        (note that it starts out True). The function receives one argument:
-        isReadOnly: True for read only, False otherwise
+    - readOnlyCallback  a function that is called when the readOnly state changes;
+        the function receives one argument: isReadOnly: True for read only, False otherwise.
+        Note that isReadOnly always starts out True.
     """
     def __init__(self,
         master,
         statusBar,
-        titleFrame = None,
         readOnlyCallback = None,
     ):
         Tkinter.Frame.__init__(self, master)
         self._statusBar = statusBar
-        self._titleFrame = titleFrame or self
         self._tuiModel = TUI.TUIModel.getModel()
         self._readOnlyCallback = readOnlyCallback
-        
-        self._titleWdgSet = []
+
         self._actorList = ActorList(startCol=1)
         self._progDict = {} # prog name: prog perms
-        self._nextRow = _ProgBegRow
+
+        self._titleWdgSet = []
+
+        self._titleFrame = Tkinter.Frame(self, borderwidth=2, relief="sunken")
+        self._titleFrame.grid(row=0, column=0, sticky="ew")
+        
+        scrollFrame = Tkinter.Frame(self, borderwidth=2, relief="sunken")
+        self._scrollWdg = RO.Wdg.ScrolledWdg(
+            master = scrollFrame,
+            hscroll = False,
+            vscroll = True,
+        )
+        scrollFrame.grid(row=1, column=0, sticky="nsew")
+        self._scrollWdg.grid(row=1, column=0, sticky="ns")
+        self._tableFrame = Tkinter.Frame(self._scrollWdg.getWdgParent())
+        self._vertMeasWdg = Tkinter.Frame(self._tableFrame)
+        self._vertMeasWdg.grid(row=0, column=0, sticky="wns")
+        self._scrollWdg.setWdg(
+            wdg = self._tableFrame,
+            vincr = self._vertMeasWdg,
+        )
+        self.grid_rowconfigure(1, weight=1)
+        scrollFrame.grid_rowconfigure(1, weight=1)
+        
+        self._nextRow = 0
         self._readOnly = True
         self._updActorTimer = None
         
@@ -160,8 +166,6 @@ class PermsInputWdg(Tkinter.Frame):
         self.permsModel.lockedActors.addCallback(self._updLockedActors)
         self.permsModel.programs.addCallback(self._updPrograms)
         
-        self._addTitle("", col = 0)
-
         self._lockoutRow = 3
         self._lockoutWdg = _LockoutPerms(
             master = self._titleFrame,
@@ -170,17 +174,9 @@ class PermsInputWdg(Tkinter.Frame):
             row = self._lockoutRow,
             statusBar = self._statusBar,
         )
-        
-        self._vertMeasWdg = Tkinter.Frame(self)
-        self._vertMeasWdg.grid(row=_ProgBegRow, sticky="wns")
-        
+
         statusBar.dispatcher.connection.addStateCallback(self.__connStateCallback)
     
-    def getVertMeasWdg(self):
-        """A widget whose height is the height of one row of data.
-        """
-        return self._vertMeasWdg
-
     def purge(self):
         """Remove unregistered programs.
         """
@@ -210,7 +206,7 @@ class PermsInputWdg(Tkinter.Frame):
         
         progNames = self._progDict.keys()
         progNames.sort()
-        self._nextRow = _ProgBegRow
+        self._nextRow = 0
         for prog in progNames:
             progPerms = self._progDict[prog]
             progPerms.display(row=self._nextRow)
@@ -225,7 +221,7 @@ class PermsInputWdg(Tkinter.Frame):
         """
         prog = prog.upper()
         newProg = _ProgPerms(
-            master = self,
+            master = self._tableFrame,
             prog = prog,
             actorList = self._actorList,
             readOnly = self._readOnly,
@@ -244,11 +240,14 @@ class PermsInputWdg(Tkinter.Frame):
         - col   column for title
         """
 #         print "_addTitle(%r, %r)" % (text, col)
-        strWdg = RO.Wdg.StrLabel(self._titleFrame, text=text)
+        strWdg = RO.Wdg.StrLabel(
+            master = self._titleFrame,
+            text = text,
+        )
         strWdg.grid(row=0, column=col)
         titleSpacer = Tkinter.Frame(self._titleFrame)
         titleSpacer.grid(row=1, column=col, sticky="ew")
-        mainSpacer = Tkinter.Frame(self)
+        mainSpacer = Tkinter.Frame(self._tableFrame)
         mainSpacer.grid(row=2, column=col, sticky="ew")
         self._titleWdgSet += [strWdg, titleSpacer, mainSpacer]
         
@@ -602,7 +601,9 @@ class _LockoutPerms(_BasePerms):
         """
         self._nameWdg = RO.Wdg.StrLabel (
             master = self._master,
-            text = str(self),
+            text = "Lockout",
+            width = _ProgramWidth,
+            anchor = "center",
             helpText = "lock out non-APO users",
             helpURL = self._helpURL,
         )
@@ -677,6 +678,7 @@ class _ProgPerms(_BasePerms):
             prog = self._prog,
             command = self._progCommand,
             readOnly = self._readOnly,
+            width = _ProgramWidth,
             helpText = "Press to delete program %r" % (self._prog),
             helpURL = self._helpURL,
         )
@@ -942,7 +944,7 @@ class _ProgramWdg(_SettingsWdg):
 if __name__ == "__main__":
     import TestData
     root = TestData.tuiModel.tkRoot
-    root.resizable(False, False)
+    root.resizable(False, True)
 
     DefReadOnly = False
     
@@ -951,48 +953,26 @@ if __name__ == "__main__":
         dispatcher = TestData.tuiModel.dispatcher
     )
     
-    testFrame = PermsInputWdg(
-        master=root,
+    testFrame = PermsTableWdg(
+        master = root,
         statusBar = statusBar,
     )
-    testFrame.pack()
+    testFrame.pack(side="top", expand=True, fill="y")
     testFrame._setReadOnly(DefReadOnly)
     
-    statusBar.pack(expand="yes", fill="x")
+    statusBar.pack(side="top", fill="x")
     
     def doReadOnly(but):
         readOnly = but.getBool()
         testFrame._setReadOnly(readOnly)
 
-    def doNew(evt):
-        wdg = evt.widget
-        if not wdg.isOK():
-            return
-
-        progName = wdg.getString().upper()
-        
-        testFrame._addProg(progName)
-        wdg.clear()
-        wdg.focus_set()
-
     butFrame = Tkinter.Frame(root)
-    
-    Tkinter.Label(butFrame, text="Add:").pack(side="left", anchor="e")
-    newEntryWdg = RO.Wdg.StrEntry (
-        master = butFrame,
-        partialPattern = r"^[a-zA-Z]{0,2}[0-9]{0,2}$",
-        finalPattern = r"^[a-zA-Z][a-zA-Z][0-9][0-9]$",
-        width = 4,
-    )
-    newEntryWdg.bind("<Return>", doNew)
-    
-    newEntryWdg.pack(side="left", anchor="w")
 
     Tkinter.Button(butFrame, text="Demo", command=TestData.animate).pack(side="left")
     
     RO.Wdg.Checkbutton(butFrame, text="Read Only", defValue=DefReadOnly, callFunc=doReadOnly).pack(side="left")
     
-    butFrame.pack(anchor="w")
+    butFrame.pack(side="top", anchor="w")
 
     TestData.start()
 
