@@ -200,6 +200,12 @@ History:
                     that a center command will be sent if the mouse button is released.
 2011-01-14 ROwen    Fix PR 1188: make the system more robust against unwanted ctrl-click by cancelling
                     drag and ctrl-click modes on canvas Activate, Deactivate and FocusOut events.
+2011-06-08 ROwen    Modified Thresh and RadMult entry widgets as follows:
+                    - Initial default is now based on fsDefThresh/RadMult; formerly it was hard-coded
+                    - Subsequent defaults are based on fsActThresh/RadMult (but only if the values were
+                      used to obtain the image or were changed by this user, as usual for this widget).
+                    - Fixed several bugs that were incorrectly making their backgrounds pink.
+                    Stop setting imObj.currGuideMode and defGuideMode since they were not being used.
 """
 import atexit
 import os
@@ -797,7 +803,6 @@ class GuideWdg(Tkinter.Frame):
             inputFrame2,
             label = "Thresh",
             minValue = 1.5,
-            defValue = 3.0, # set from hub, once we can!!!
             defFormat = "%.1f",
             defMenu = "Current",
             doneFunc = self.doFindStars,
@@ -825,7 +830,6 @@ class GuideWdg(Tkinter.Frame):
             inputFrame2,
             label = "Rad Mult",
             minValue = 0.5,
-            defValue = 1.0, # set from hub, once we can!!!
             defFormat = "%.1f",
             defMenu = "Current",
             autoIsCurrent = True,
@@ -1027,8 +1031,10 @@ class GuideWdg(Tkinter.Frame):
         
         # keyword variable bindings
         self.guideModel.expState.addCallback(self.updExpState)
-        self.guideModel.fsActRadMult.addIndexedCallback(self.updRadMult)
-        self.guideModel.fsActThresh.addIndexedCallback(self.updThresh)
+        self.guideModel.fsActRadMult.addIndexedCallback(self.updFSActRadMult)
+        self.guideModel.fsActThresh.addIndexedCallback(self.updFSActThresh)
+        self.guideModel.fsDefRadMult.addIndexedCallback(self.updFSDefRadMult)
+        self.guideModel.fsDefThresh.addIndexedCallback(self.updFSDefThresh)
         self.guideModel.files.addCallback(self.updFiles)
         self.guideModel.star.addCallback(self.updStar)
         self.guideModel.guideState.addCallback(self.updGuideState)
@@ -1406,14 +1412,13 @@ class GuideWdg(Tkinter.Frame):
             self.statusBar.setMsg("No guide image", severity = RO.Constants.sevWarning)
             return
 
-        if (radMult == self.dispImObj.currRadMult)\
-            and (thresh == self.dispImObj.currThresh):
+        if (radMult == self.dispImObj.radMult) and (thresh == self.dispImObj.thresh):
                 return
 
         # not strictly necessary since the hub will return this data;
         # still, it is safer to set it now and be sure it gets set
-        self.dispImObj.currThresh = thresh
-        self.dispImObj.currRadMult = radMult
+        self.dispImObj.thresh = thresh
+        self.dispImObj.radMult = radMult
         
         # execute new command
         cmdStr = "findstars file=%r thresh=%.2f radMult=%.2f" % (self.dispImObj.imageName, thresh, radMult)
@@ -1958,39 +1963,33 @@ class GuideWdg(Tkinter.Frame):
     def setRadMultWdg(self, imObj, forceCurr=False):
         """Set radMultWdg from data in imObj
         
-        Disables callbacks, so no command is sent while updating the control
+        Checks for equality to the nearest 0.1 because that is all the guider outputs.
         
         Inputs:
-        - imObj: image data (reads fields currThresh and defThresh)
+        - imObj: image data (reads field radMult)
         - forceCurr: if True then modifies the displayed value even if wdg value is not current;
             otherwise only updates the displayed value if wdg value is already current
         """
-        with self.radMultWdg._disableCallbacksContext():
-            if forceCurr or self.radMultWdg.getIsCurrent():
-                if imObj.currRadMult != None:
-                    self.radMultWdg.set(imObj.currRadMult)
-                else:
-                    self.radMultWdg.set(imObj.defRadMult)
-            self.radMultWdg.setDefault(imObj.defRadMult)
+        if forceCurr or self.radMultWdg.getIsCurrent() \
+            or (round(self.radMultWdg.getNum(), 1) == imObj.radMult):
+            self.radMultWdg.set(imObj.radMult, isCurrent=True)
+        self.radMultWdg.setDefault(imObj.radMult)
 
     def setThreshWdg(self, imObj, forceCurr=False):
         """Set threshWdg from data in imObj
         
-        Disables callbacks, so no command is sent while updating the control
+        Checks for equality to the nearest 0.1 because that is all the guider outputs.
         
         Inputs:
-        - imObj: image data (reads fields currThresh and defThresh)
+        - imObj: image data (reads field thresh)
         - forceCurr: if True then modifies the displayed value even if wdg value is not current;
             otherwise only updates the displayed value if wdg value is already current
         """
-        with self.threshWdg._disableCallbacksContext():
-            if forceCurr or self.threshWdg.getIsCurrent():
-                if imObj.currThresh != None:
-                    self.threshWdg.set(imObj.currThresh)
-                else:
-                    self.threshWdg.set(imObj.defThresh)
-            self.threshWdg.setDefault(imObj.defThresh)
-    
+        if forceCurr or self.threshWdg.getIsCurrent() \
+            or (round(self.threshWdg.getNum(), 1) == imObj.thresh):
+            self.threshWdg.set(imObj.thresh)
+        self.threshWdg.setDefault(imObj.thresh)
+
     def showFITSFile(self, imPath):
         """Display a FITS file.
         """     
@@ -2256,17 +2255,11 @@ class GuideWdg(Tkinter.Frame):
         
         # create new object data
         localBaseDir = self.guideModel.ftpSaveToPref.getValue()
-        defRadMult = self.guideModel.fsDefRadMult[0]
-        defThresh = self.guideModel.fsDefThresh[0]
-        defGuideMode = self.guideModel.locGuideMode[0]
         imObj = GuideImage.GuideImage(
             localBaseDir = localBaseDir,
             imageName = imageName,
             downloadWdg = self.guideModel.downloadWdg,
             fetchCallFunc = self.fetchCallback,
-            defRadMult = defRadMult,
-            defThresh = defThresh,
-            defGuideMode = defGuideMode,
         )
         self._trackMem(imObj, str(imObj))
         self.addImToHist(imObj)
@@ -2324,12 +2317,6 @@ class GuideWdg(Tkinter.Frame):
         if not guideMode or not isCurrent:
             return
         
-        imObj = self.dispImObj
-        if imObj:
-            if imObj.currGuideMode == None:
-                imObj.defGuideMode = guideMode
-            imObj.currGuideMode = guideMode
-
         if self.showCurrWdg.getBool():
             if self.guideModeWdg.getIsCurrent():
                 self.guideModeWdg.set(guideMode)
@@ -2506,10 +2493,10 @@ class GuideWdg(Tkinter.Frame):
         # add this star to the display
         self.showStar(starData)
     
-    def updRadMult(self, radMult, isCurrent, keyVar):
+    def updFSActRadMult(self, radMult, isCurrent, keyVar):
         """New radMult data found.
         """
-        #print "%s updRadMult(radMult=%r, isCurrent=%r)" % (self.actor, radMult, isCurrent)
+#         print "%s updFSActRadMult(radMult=%r, isCurrent=%r)" % (self.actor, radMult, isCurrent)
         if not isCurrent:
             return
 
@@ -2517,16 +2504,15 @@ class GuideWdg(Tkinter.Frame):
         if imObj == None:
             return
         
-        if imObj.currRadMult == None:
-            imObj.defRadMult = radMult
-        imObj.currRadMult = radMult
+        imObj.radMult = radMult
 
         if self.isDispObj(imObj):
             self.setRadMultWdg(imObj)
 
-    def updThresh(self, thresh, isCurrent, keyVar):
+    def updFSActThresh(self, thresh, isCurrent, keyVar):
         """New threshold data found.
         """
+#         print "%s updFSActThresh(thresh=%r, isCurrent=%r)" % (self.actor, thresh, isCurrent)
         if not isCurrent:
             return
 
@@ -2534,12 +2520,34 @@ class GuideWdg(Tkinter.Frame):
         if imObj == None:
             return
         
-        if imObj.currThresh == None:
-            imObj.defThresh = thresh
-        imObj.currThresh = thresh
+        imObj.thresh = thresh
 
         if self.isDispObj(imObj):
             self.setThreshWdg(imObj)
+    
+    def updFSDefRadMult(self, radMult, isCurrent, keyVar):
+        """Saw fsDefRadMult
+        
+        Set the default for the RadMult widget, but only if it's not already set
+        """
+#         print "%s updFSDefRadMult(radMult=%r, isCurrent=%r)" % (self.actor, radMult, isCurrent)
+        if not isCurrent:
+            return
+
+        if not self.radMultWdg.getDefault():
+            self.radMultWdg.setDefault(radMult)
+    
+    def updFSDefThresh(self, thresh, isCurrent, keyVar):
+        """Saw fsDefThresh
+        
+        Set the default for the Thresh widget, but only if it's not already set
+        """
+#         print "%s updFSDefThresh(thresh=%r, isCurrent=%r)" % (self.actor, thresh, isCurrent)
+        if not isCurrent:
+            return
+
+        if not self.threshWdg.getDefault():
+            self.threshWdg.setDefault(thresh)
 
     def whyNotCenter(self, evt=None):
         """Is it possible to center up on a position in the current image?
@@ -2563,6 +2571,8 @@ class GuideWdg(Tkinter.Frame):
 
         if evt and not self.gim.evtOnCanvas(evt):
            return "event not on canvas"
+        
+        return None
         
     def _exitHandler(self):
         """Delete all image files

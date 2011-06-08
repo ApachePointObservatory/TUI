@@ -10,6 +10,9 @@ History:
 2007-01-30 ROwen    Was not caching FITS header info (despite code to do this).
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
 2010-07-02 ROwen    Added support for Keep Guide Images preference.
+2011-06-08 ROwen    Combined currThresh and defThresh into thresh.
+                    Combined currRadMult and defRadMult into radMult.
+                    Ditched currGuideMode and defGuideMode because they were not being used.
 """
 import os
 import pyfits
@@ -202,21 +205,16 @@ class GuideImage(BasicImage):
         imageName,
         downloadWdg = None,
         fetchCallFunc = None,
-        defRadMult = None,
-        defThresh = None,
-        defGuideMode = None,
+        radMult = None,
+        thresh = None,
         isLocal = False,
     ):
         self.starDataDict = {} # dict of star type char: star keyword data
         self.defSelDataColor = None
         self.selDataColor = None
         self.guiderPredPos = None
-        self.defRadMult = defRadMult
-        self.defThresh = defThresh
-        self.defGuideMode = defGuideMode
-        self.currRadMult = None
-        self.currThresh = None
-        self.currGuideMode = None
+        self.radMult = radMult
+        self.thresh = thresh
         self.parsedFITSHeader = False
         self.binFac = None
         self.expTime = None
