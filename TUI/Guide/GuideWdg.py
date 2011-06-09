@@ -249,7 +249,7 @@ _CentroidTag = "centroid"
 _FindTag = "findStar"
 _GuideTag = "guide"
 _SelTag = "showSelection"
-_CtrlClickArrowTag = "ctrlClickArrow"
+_CenterSelArrowTag = "centerSelArrow"
 _BoreTag = "boresight"
 _CtrlClickTag = "ctrlClick"
 
@@ -385,7 +385,7 @@ class GuideWdg(Tkinter.Frame):
         self.tuiModel = TUI.TUIModel.getModel()
         self.boreXY = None
         self.ctrlClickOK = False
-        self.ctrlClickArrow = None
+        self.centerSelArrow = None
         self.dragStart = None
         self.dragRect = None
         self.exposing = None # True, False or None if unknown
@@ -1227,6 +1227,7 @@ class GuideWdg(Tkinter.Frame):
         cmdSummary = None,
     ):
         """Execute a command.
+
         Inputs:
         - cmdStr        the command to execute
         - cmdBtn        the button that triggered the command
@@ -1235,6 +1236,8 @@ class GuideWdg(Tkinter.Frame):
                         defaults to the actor for the guide camera
         - abortCmdStr   abort command, if any
         - cmdSummary    command summary for the status bar
+        
+        Returns the cmdVar.
         """
         actor = actor or self.actor
         cmdVar = RO.KeyVariable.CmdVar(
@@ -1252,6 +1255,7 @@ class GuideWdg(Tkinter.Frame):
             self.doingCmd = None
         self.enableCmdButtons()
         self.statusBar.doCmd(cmdVar, cmdSummary)
+        return cmdVar
     
     def doExistingImage(self, imageName, cmdChar, cmdr, cmdID):
         """Data is about to arrive for an existing image.
@@ -1615,6 +1619,38 @@ class GuideWdg(Tkinter.Frame):
         
         self.subFrameToViewBtn.setEnable(False)
     
+    def drawCenterSelArrow(self):
+        """Draw or redraw the center selection arrow
+        
+        Not used at present, but could be used as follows:
+        - If Center Sel is executed then draw the arrow and leave it until the command end
+          (or, perhaps, just until it fails).  
+        - As long as the arrow is not being shown then:
+          - Draw the arrow when the user hovers over Center Sel button (if button is enabled)
+          - Erase the arrow when the mouse leaves the Center Sel button unless the cmd was issued
+        - Prevent the arrow from being shown once the Center Sel command has succeeded for this image?
+          That's tricky since it should be disabled for all users. Maybe safest to skip this refinement.
+          
+        The trick is dealing with reliably showing and hiding the arrow. Among other things
+        this requires ditching the arrow-related cmd callback when a new image is shown.
+        """
+        if not self.imDisplayed():
+            return
+
+        self.eraseCenterSelArrow()
+        
+        if not self.dispImObj.selDataColor:
+            return
+        selStarData = self.dispImObj.selDataColor[0]
+        selCnvPos = self.gim.cnvPosFromImPos(selStarData[2:4])
+        boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
+        self.centerSelArrow = self.gim.cnv.create_line(
+            selCnvPos[0], selCnvPos[1], boreCnvPos[0], boreCnvPos[1],
+            fill = self.boreColorPref.getValue(),
+            tags = _CtrlClickTag,
+            arrow = "last",
+        )
+    
     def drawCtrlClickSelection(self, evt):
         """Draw a ctrl-click selection at the cursor
         """
@@ -1649,37 +1685,6 @@ class GuideWdg(Tkinter.Frame):
             self.dispImObj.selDataColor = (starData, color)
         finally:
             self.showSelection()
-    
-    def drawCtrlClickArrow(self, evt):
-        """Draw or redraw the ctrl-click arrow
-        
-        The arrow will not be drawn if the event is off the canvas
-        (which is why self.ctrlClickArrow==None is NOT a valid replacement for self.ctrlClickOK)
-        
-        If an error occurs then leaves ctrl-click mode.
-        """
-        try:
-            if not self.ctrlClickOK or not self.gim.evtOnCanvas(evt) or not self.gim.isNormalMode():
-                self.eraseCtrlClickArrow()
-                return
-
-            evtCnvPos = self.gim.cnvPosFromEvt(evt)
-            boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
-            if self.ctrlClickArrow:
-                self.gim.cnv.coords(self.ctrlClickArrow,
-                    evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
-                )
-            else:
-                self.ctrlClickArrow = self.gim.cnv.create_line(
-                    evtCnvPos[0], evtCnvPos[1], boreCnvPos[0], boreCnvPos[1],
-                    fill = self.boreColorPref.getValue(),
-                    tags = _CtrlClickTag,
-                    arrow = "last",
-                )
-            self.gim.cnv["cursor"] = "crosshair"
-        except Exception:
-            self.endCtrlClickMode()
-            raise
     
     def enableCmdButtons(self, wdg=None):
         """Set enable of command buttons.
@@ -1774,15 +1779,15 @@ class GuideWdg(Tkinter.Frame):
         self.dragStart = None
         self.eraseDragRect()
     
-    def eraseCtrlClickArrow(self, evt=None):
-        """Erase the control-click arrow, if present
+    def eraseCenterSelArrow(self):
+        """Erase the center selection arrow, if present
         """
         self.gim.cnv["cursor"] = self.defCnvCursor
-        if self.ctrlClickArrow:
+        if self.centerSelArrow:
             try:
-                self.gim.cnv.delete(self.ctrlClickArrow)
+                self.gim.cnv.delete(self.centerSelArrow)
             finally:
-                self.ctrlClickArrow = None
+                self.centerSelArrow = None
 
     def eraseDragRect(self, evt=None):
         """Erase the drag rectangle, if present
