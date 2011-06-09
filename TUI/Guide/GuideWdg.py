@@ -206,6 +206,14 @@ History:
                       used to obtain the image or were changed by this user, as usual for this widget).
                     - Fixed several bugs that were incorrectly making their backgrounds pink.
                     Stop setting imObj.currGuideMode and defGuideMode since they were not being used.
+2011-06-09 ROwen    Overhauled ctrl-click handling:
+                    - Ctrl-click puts the selection at the cursor, allowing Center Sel to center on it.
+                      Thus you must push a button to move the telescope, making unexpected motion unlikely.
+                    - Normal drag vs. ctrl-click is now based on the initial ctrl key state, simplifying
+                      the event handling.
+                    - Normal drag or ctrl-click is temporarily disabled by dragging off the canvas;
+                      thus you have a clear way to cancel either mode, good visual feedback.
+                      The mode resumes if you drag back onto the canvas.
 """
 import atexit
 import os
@@ -1022,8 +1030,6 @@ class GuideWdg(Tkinter.Frame):
         self.gim.cnv.bind("<B1-Motion>", self.doDragContinue, add=True)
         self.gim.cnv.bind("<ButtonRelease-1>", self.doDragEnd, add=True)
         self.gim.cnv.bind("<Control-Button-1>", self.doCtrlClickBegin)
-        self.gim.cnv.bind("<Control-B1-Motion>", self.doCtrlClickContinue)
-        self.gim.cnv.bind("<Control-ButtonRelease-1>", self.doCtrlClickEnd)
         
         self.gim.cnv.bind("<Activate>", self.doCancelDrag)
         self.gim.cnv.bind("<Deactivate>", self.doCancelDrag)
@@ -1045,7 +1051,6 @@ class GuideWdg(Tkinter.Frame):
         tl = self.winfo_toplevel()
         tl.bind("<Control-KeyPress>", self.eraseDragRect, add=True)
         tl.bind("<Control-KeyRelease>", self.ignoreEvt, add=True)
-        tl.bind("<KeyRelease>", self.eraseCtrlClickArrow, add=True)
         
         # exit handler
         atexit.register(self._exitHandler)
@@ -1180,7 +1185,7 @@ class GuideWdg(Tkinter.Frame):
             return
         
         self.ctrlClickOK = True
-        self.drawCtrlClickArrow(evt)
+        self.drawCtrlClickSelection(evt)
    
     def doCtrlClickContinue(self, evt):
         """Drag control-click arrow around.
@@ -1189,27 +1194,14 @@ class GuideWdg(Tkinter.Frame):
             # in drag-to-centroid mode; delete the selection rectangle and ignore this event
             self.eraseDragRect()
             return
-            
-        self.drawCtrlClickArrow(evt)
+
+        self.drawCtrlClickSelection(evt)
     
     def doCtrlClickEnd(self, evt):
-        """Center up on the command-clicked image location.
+        """Make a new star at the cursor and select it
         """
         try:
-            if not self.ctrlClickOK or not self.ctrlClickArrow or not self.gim.isNormalMode():
-                return
-    
-            if not self.gim.evtOnCanvas(evt):
-                # mouse is off canvas; don't do anything
-                return
-    
-            evtCnvPos = self.gim.cnvPosFromEvt(evt)
-            imPos = self.gim.imPosFromCnvPos(evtCnvPos)
-            
-            expArgs = self.getExpArgStr() # inclThresh=False)
-            cmdStr = "guide centerOn=%.2f,%.2f %s" % (imPos[0], imPos[1], expArgs)
-    
-            self.doCmd(cmdStr)
+            self.drawCtrlClickSelection(evt)
         finally:
             self.endCtrlClickMode()
             self.endDragMode()
@@ -1310,10 +1302,17 @@ class GuideWdg(Tkinter.Frame):
     
     def doDragContinue(self, evt):
         # print "doDragContinue; dragStart=%s; dragRect=%s" % (self.dragStart, self.dragRect)
+        if self.ctrlClickOK:
+            self.doCtrlClickContinue(evt)
+
         try:
             if not self.gim.isNormalMode():
                 return
             if not self.dragStart:
+                return
+            
+            if not self.gim.evtOnCanvas(evt):
+                self.eraseDragRect()
                 return
 
             newPos = self.gim.cnvPosFromEvt(evt)
@@ -1331,6 +1330,9 @@ class GuideWdg(Tkinter.Frame):
             raise
     
     def doDragEnd(self, evt):
+        if self.ctrlClickOK:
+            self.doCtrlClickEnd(evt)
+    
         try:
             if not self.gim.isNormalMode():
                 return
@@ -1339,6 +1341,9 @@ class GuideWdg(Tkinter.Frame):
             if not self.dragStart:
                 return
             if not self.dragRect:
+                return
+            
+            if not self.evtOnCanvas(evt):
                 return
     
             endPos = self.gim.cnvPosFromEvt(evt)
@@ -1609,6 +1614,41 @@ class GuideWdg(Tkinter.Frame):
         
         self.subFrameToViewBtn.setEnable(False)
     
+    def drawCtrlClickSelection(self, evt):
+        """Draw a ctrl-click selection at the cursor
+        """
+        if not self.ctrlClickOK or not self.gim.isNormalMode():
+            return
+
+        if not self.gim.evtOnCanvas(evt):
+            # mouse is off canvas; erase selection
+            self.eraseSelection()
+            return
+
+        cnvPos = self.gim.cnvPosFromEvt(evt)
+        imPos = self.gim.imPosFromCnvPos(cnvPos)
+
+        try:
+            # get current image object
+            if not self.imDisplayed():
+                return
+            
+            # erase data for now (helps for early return)
+            self.dispImObj.selDataColor = None
+        
+            # create new "star"
+            tag, colorPref = self.typeTagColorPrefDict["c"]
+            color = colorPref.getValue()
+
+            starData = [None]*15
+            starData[0] = "c" # type
+            starData[1] = 0 # index; irrelevant
+            starData[2:4] = imPos
+            starData[6] = 5 # radius of centroid region
+            self.dispImObj.selDataColor = (starData, color)
+        finally:
+            self.showSelection()
+    
     def drawCtrlClickArrow(self, evt):
         """Draw or redraw the ctrl-click arrow
         
@@ -1726,7 +1766,6 @@ class GuideWdg(Tkinter.Frame):
         """End control-click-drag-to-center mode
         """
         self.ctrlClickOK = False
-        self.eraseCtrlClickArrow()
 
     def endDragMode(self):
         """End drag-to-centroid-region mode
@@ -1752,6 +1791,16 @@ class GuideWdg(Tkinter.Frame):
                 self.gim.cnv.delete(self.dragRect)
             finally:
                 self.dragRect = None
+
+    def eraseSelection(self, evt=None):
+        """Erase current selection
+        """
+        # clear current selection
+        self.gim.removeAnnotation(_SelTag)
+        
+        if not self.dispImObj:
+            return
+        self.dispImObj.selDataColor = None
                 
     def fetchCallback(self, imObj):
         """Called when an image is finished downloading.
@@ -2144,7 +2193,7 @@ class GuideWdg(Tkinter.Frame):
                     )
             
             self.showSelection()
-
+        
     def showSelection(self):
         """Display the current selection.
         """
@@ -2179,7 +2228,10 @@ class GuideWdg(Tkinter.Frame):
         # update data display
         self.starXPosWdg.set(starData[2])
         self.starYPosWdg.set(starData[3])
-        fwhm = (starData[8] + starData[9]) / 2.0
+        if None in starData[8:10]:
+            fwhm = None
+        else:
+            fwhm = (starData[8] + starData[9]) / 2.0
         self.starFWHMWdg.set(fwhm)
         self.starAmplWdg.set(starData[14])
         self.starBkgndWdg.set(starData[13])
@@ -2646,6 +2698,5 @@ if __name__ == "__main__":
       waitMs = 2500,
     )
     testFrame.doChooseIm()
-    testFrame.showFITSFile("/Users/rowen/test.fits")
 
     root.mainloop()
