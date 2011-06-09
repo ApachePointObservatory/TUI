@@ -214,6 +214,7 @@ History:
                     - Normal drag or ctrl-click is temporarily disabled by dragging off the canvas;
                       thus you have a clear way to cancel either mode, good visual feedback.
                       The mode resumes if you drag back onto the canvas.
+                    Bug fix: drag-to-centroid now works for any drag direction.
 """
 import atexit
 import os
@@ -1343,14 +1344,14 @@ class GuideWdg(Tkinter.Frame):
             if not self.dragRect:
                 return
             
-            if not self.evtOnCanvas(evt):
+            if not self.gim.evtOnCanvas(evt):
                 return
     
             endPos = self.gim.cnvPosFromEvt(evt)
             startPos = self.dragStart or endPos
     
             meanPos = numpy.divide(numpy.add(startPos, endPos), 2.0)
-            deltaPos = numpy.subtract(endPos, startPos)
+            deltaPos = numpy.abs(numpy.subtract(endPos, startPos))
     
             rad = max(deltaPos) / (self.gim.zoomFac * 2.0)
             imPos = self.gim.imPosFromCnvPos(meanPos)
