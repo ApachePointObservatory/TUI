@@ -32,16 +32,17 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
 
-<h3>1.9.0b1+ 2011-06-17</h3>
+<h3>1.9.0b2 2011-06-17</h3>
 
 <p>Visible changes:
 <ul>
     <li>Log window filters "Commands and Replies" and "My Commands and Replies" now hide debug-level replies to commands.
+    <li>Guider windows: ctrl-click now complains if guiding. This reduces the chances that you can ctrl-click while the Center Sel button is disabled (there is still one such case: if you initiate any command in the guider window Center Sel is disabled while that command is running).
 </ul>
 
 <p>Internal changes:
 <ul>
-    <li>Changed "type" to "msgType" in parsed message dictionaries to reduce conflicts with the Python builtin function
+    <li>Changed "type" to "msgType" in parsed message dictionaries to reduce conflict with Python built in function.
 </ul>
 
 <h3>1.9.0b1 2011-06-16</h3>
