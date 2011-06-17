@@ -17,7 +17,8 @@ History:
 2006-04-14 ROwen    Added explicit default to absOrRelWdg (required
                     due to recent changes in RO.Wdg.RadiobuttonSet).
 2010-11-03 ROwen    Renamed Object to Object Arc
-2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+"""
 import Tkinter
 import RO.CoordSys
 import RO.InputCont

@@ -13,6 +13,7 @@
 2009-07-06 ROwen    Modified for updated TestData.
 2009-07-09 ROwen    Modified test code to look more like tuisdss.
 2011-04-08 ROwen    Modified to use updated PermsTableWdg (formerly PermsInputWdg).
+2011-06-17 ROwen    Added constants WindowName
 """
 import Tkinter
 import RO.KeyVariable
@@ -21,13 +22,15 @@ import PermsModel
 import PermsTableWdg
 import TUI.TUIModel
 
+WindowName = "TUI.Permissions"
+
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
 
 def addWindow(tlSet):
     """Create the window for TUI.
     """
     tlSet.createToplevel(
-        name = "TUI.Permissions",
+        name = WindowName,
         defGeom = "180x237+172+722",
         visible = True,
         resizable = (False, True),

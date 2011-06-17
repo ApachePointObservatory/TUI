@@ -39,7 +39,9 @@ History:
 2005-06-03 ROwen    Improved uniformity of indentation.
 2005-06-06 ROwen    Modified to use tcc-reported az limits instead of hard-coded.
 2005-06-08 ROwen    Changed AzAltTarget to a new-style class.
-2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+                    Added constant WindowName.
+"""
 import math
 import Tkinter
 import RO.CanvasUtil
@@ -51,11 +53,13 @@ import TUI.TUIModel
 import TUI.TCC.TCCModel
 import TUI.TCC.UserModel
 
+WindowName = "TCC.Sky"
+
 def addWindow(tlSet):
     """Create the window for TUI.
     """
     tlSet.createToplevel(
-        name = "TCC.Sky",
+        name = WindowName,
         defGeom = "201x201+434+22",
         wdgFunc = SkyWdg,
     )

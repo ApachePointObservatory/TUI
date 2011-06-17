@@ -12,7 +12,8 @@ History:
                     Stopped using anchors within the HTML help file.
 2011-01-31 ROwen    Scale Calibration and Guide offsets are now on the sky (scaled by 1/cos(alt)).
                     Use RO.StringUtil.strFromException when formatting command failure messages.
-2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+"""
 import Tkinter
 import RO.Constants
 import RO.KeyVariable

@@ -21,7 +21,8 @@ History:
 2005-01-05 ROwen    Changed level to severity for RO.Wdg.StatusBar.
 2005-08-02 ROwen    Modified for TUI.Sounds->TUI.PlaySound.
 2010-11-03 ROwen    Stopped using anchors within the HTML help file.
-2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+"""
 import Tkinter
 import RO.Constants
 import RO.Wdg
