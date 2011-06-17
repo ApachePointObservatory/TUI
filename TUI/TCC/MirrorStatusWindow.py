@@ -14,7 +14,7 @@
 2006-09-27 ROwen    Updated for new 5-axis secondary.
 2010-09-24 ROwen    Modified to get keyVars from TCC model (now that they are available).
                     Added WindowName constant.
-"""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
 import Tkinter
 import RO.Wdg
 import TUI.TUIModel
@@ -162,7 +162,7 @@ if __name__ == "__main__":
         "TertActMount": (825550., 456400., 773050.), 
         "TertOrient": (205.26, 55.01, 0.95, 0.15, -21.05), 
     }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
     kd.dispatch(msgDict)
 
     root.mainloop()

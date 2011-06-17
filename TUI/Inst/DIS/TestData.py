@@ -60,7 +60,7 @@ AnimDataSet = (
     {"turretPos": ("2",)},
 )
 
-BaseMsgDict = {"cmdr":cmdr, "cmdID":11, "actor":"dis", "type":":"}
+BaseMsgDict = {"cmdr":cmdr, "cmdID":11, "actor":"dis", "msgType":":"}
 MainMsgDict = {"data":MainDataSet}.update(BaseMsgDict)
 
 def dispatch(dataSet=None):

@@ -218,6 +218,8 @@ History:
 2011-06-16 ROwen    Refined ctrl-click to show an arrow when the user hovers over the Center Sel button
                     (if the button is enabled).
                     Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
+2011-06-17 ROwen    Added "auto-guiding is on" to reasons why ctrl-click is disabled;
+                    now Center Sel will be disabled when ctrl-click is allowed only if executing a cmd.
 """
 import atexit
 import os
@@ -1185,7 +1187,7 @@ class GuideWdg(Tkinter.Frame):
         self.endCtrlClickMode()
         self.endDragMode()
 
-        reasonStr = self.whyNotCenter()
+        reasonStr = self.whyNotCtrlClick()
         if reasonStr:
             errMsg = "Ctrl-click error: %s" % (reasonStr,)
             self.statusBar.setMsg(errMsg, severity = RO.Constants.sevError)
@@ -1698,8 +1700,10 @@ class GuideWdg(Tkinter.Frame):
         self.currentBtn.setEnable(areParamsModified)
         
         self.exposeBtn.setEnable(showCurrIm and not isExecOrGuiding)
-        reasonStr = self.whyNotCenter()
-        self.centerBtn.setEnable(showCurrIm and isCurrIm and isSel and not isExecOrGuiding and not reasonStr)
+
+        # most reasons for disabling centerBtn are given by whyNotCtrlClick
+        reasonStr = self.whyNotCtrlClick()
+        self.centerBtn.setEnable(isSel and not isExecOrGuiding and not reasonStr)
                 
         self.guideOnBtn.setEnable(showCurrIm and guideCmdOK and not isExecOrGuiding)
         
@@ -2596,8 +2600,8 @@ class GuideWdg(Tkinter.Frame):
         if not self.threshWdg.getDefault():
             self.threshWdg.setDefault(thresh)
 
-    def whyNotCenter(self, evt=None):
-        """Is it possible to center up on a position in the current image?
+    def whyNotCtrlClick(self, evt=None):
+        """Is ctrl-click permitted (for centering up on the pointer position)?
         
         Return None if one can center, or a reason why not if not
         """
@@ -2615,6 +2619,9 @@ class GuideWdg(Tkinter.Frame):
         
         if self.boreXY == None:
             return "boresight unknown"
+        
+        if self.isGuiding():
+            return "auto-guiding"
 
         if evt and not self.gim.evtOnCanvas(evt):
            return "event not on canvas"

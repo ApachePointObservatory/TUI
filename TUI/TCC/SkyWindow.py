@@ -39,7 +39,7 @@ History:
 2005-06-03 ROwen    Improved uniformity of indentation.
 2005-06-06 ROwen    Modified to use tcc-reported az limits instead of hard-coded.
 2005-06-08 ROwen    Changed AzAltTarget to a new-style class.
-"""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
 import math
 import Tkinter
 import RO.CanvasUtil
@@ -688,7 +688,7 @@ if __name__ == '__main__':
         "AxePos": objList[0].getAzAlt() + ("NaN",),
         "TCCPos": objList[1].getAzAlt() + ("NaN",),
     }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
 
     kd.dispatch(msgDict)
 

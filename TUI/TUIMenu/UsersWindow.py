@@ -19,7 +19,7 @@ To do:
 2010-03-10 ROwen    Modified to also show system info.
                     Removed unused import of RO.KeyVariable and RO.StringUtil.
                     Added WindowName.
-"""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
 import time
 import Tkinter
 import RO.Wdg
@@ -311,7 +311,7 @@ if __name__ == "__main__":
         except StopIteration:
             return
         
-        msgDict = {"cmdr":".hub", "cmdID":11, "actor":"hub", "type":"i", "data":newDataDict}
+        msgDict = {"cmdr":".hub", "cmdID":11, "actor":"hub", "msgType":"i", "data":newDataDict}
         kd.dispatch(msgDict)
         root.after(delayMS, dispatchNext)
     dispatchNext() 

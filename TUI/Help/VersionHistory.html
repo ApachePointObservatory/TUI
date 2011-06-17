@@ -32,6 +32,18 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
 
+<h3>1.9.0b1+ 2011-06-17</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Log window filters "Commands and Replies" and "My Commands and Replies" now hide debug-level replies to commands.
+</ul>
+
+<p>Internal changes:
+<ul>
+    <li>Changed "type" to "msgType" in parsed message dictionaries to reduce conflicts with the Python builtin function
+</ul>
+
 <h3>1.9.0b1 2011-06-16</h3>
 
 <p>Visible changes:
@@ -39,7 +51,7 @@ rm -rf ~/.matplotlib*.cache
     <li>The guider window now shows an arrow from the current selection to the boresight if the Center Up button is enabled (which requires that there be both boresight and a selection, and that you are not in Hold mode).
     <li>Log window changes:
     <ul>
-        <li>Added three new filters: "Commands and Replies", "My Commands and Replies" and "Custom" (which are explained in the Log Window manual page).
+        <li>Added three new filters: "Commands and Replies", "My Commands and Replies" and "Custom" (which is explained in the Log Window manual page).
         <li>Increased log message length.
     </ul>
     <li>Status window: added support for the axis controller's new amplifier overcurrent bit (bit 18). The text displayed is "Amplifier too hot" and it is a warning (as Fritz requested).

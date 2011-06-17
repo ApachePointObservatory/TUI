@@ -43,14 +43,14 @@ History:
 2010-05-04 ROwen    Restored None to the filter severity menu (it was lost in the 2010-03-11 changes).
 2010-06-29 ROwen    Adopted multiple log support from STUI.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
-2011-06-13 ROwen    Added new filters: "Commands and Replies", "My Command and Replies" and "Custom"
+                    Added new filters: "Commands and Replies", "My Command and Replies" and "Custom"
                     (the latter of which uses python lambda expressions).
                     Removed filter "Commands".
                     Made the filter text widget wider.
                     Increased default maximum log length from 5000 to 20000.
                     Separated filter function into two separate components: severity filter and misc filter.
                     Filter description is now stored in function __doc__.
-                    
+2011-06-17 ROwen    Modified filters "Commands and Replies" and "My Command and Replies" to hide debug messages.
 """
 import bisect
 import re
@@ -612,6 +612,7 @@ class TUILogWdg(Tkinter.Frame):
             def filterFunc(logEntry, maxUserCmdNum=maxUserCmdNum):
                 return (logEntry.cmdr and logEntry.cmdr[0] != ".") \
                     and (logEntry.cmdr != "apo.apo") \
+                    and (logEntry.severity > RO.Constants.sevDebug) \
                     and (0 < logEntry.cmdID <= maxUserCmdNum)
             filterFunc.__doc__ = "most commands and replies"
             return filterFunc
@@ -621,7 +622,9 @@ class TUILogWdg(Tkinter.Frame):
             maxUserCmdNum = self.dispatcher.getMaxUserCmdID()
             
             def filterFunc(logEntry, cmdr=cmdr, maxUserCmdNum=maxUserCmdNum):
-                return (logEntry.cmdr == cmdr) and (0 < logEntry.cmdID <= maxUserCmdNum)
+                return (logEntry.cmdr == cmdr) \
+                    and (logEntry.severity > RO.Constants.sevDebug) \
+                    and (0 < logEntry.cmdID <= maxUserCmdNum)
             filterFunc.__doc__ = "most of my commands and replies"
             return filterFunc
 
@@ -1104,15 +1107,26 @@ if __name__ == '__main__':
     
     severities = RO.Constants.SevNameDict.keys()
     
+    cmdrs = (".tcc", "TU01.me", "UW02.other")
+    cmdIDs = (0, 0, 0, 1, 2, 1001, 1002)
     actors = ("ecam", "disExpose","dis", "keys")
+    msgTypes = ("d", "i", "w", "f")
 
     hubModel = TUI.HubModel.getModel()
     hubModel.actors.set(actors)
 
-    for ii in range(10):
+    for ii in range(100):
+        cmdr = random.choice(cmdrs)
+        cmdID = random.choice(cmdIDs)
         actor = random.choice(actors)
-        severity = random.choice((RO.Constants.sevDebug, RO.Constants.sevNormal, \
-            RO.Constants.sevWarning, RO.Constants.sevError))
-        tuiModel.logMsg("%s sample entry %s" % (actor, ii), severity=severity)
-    
+        msgType = random.choice(msgTypes)
+        msgDict = tuiModel.dispatcher.makeMsgDict(
+            dataStr = 'Text="sample entry %s from %s"' % (ii, actor),
+            msgType = msgType,
+            actor = actor,
+            cmdr = cmdr,
+            cmdID = cmdID,
+        )
+        tuiModel.dispatcher.logMsgDict(msgDict)
+        
     root.mainloop()

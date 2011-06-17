@@ -21,7 +21,7 @@ History:
 2005-01-05 ROwen    Changed level to severity for RO.Wdg.StatusBar.
 2005-08-02 ROwen    Modified for TUI.Sounds->TUI.PlaySound.
 2010-11-03 ROwen    Stopped using anchors within the HTML help file.
-"""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
 import Tkinter
 import RO.Constants
 import RO.Wdg
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     dataDict = {
         "ObjInstAng": (30.0, 0.0, 1.0),
     }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
 #   kd.dispatch(msgDict)
 
     root.mainloop()

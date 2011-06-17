@@ -23,7 +23,7 @@ def setModel(tuiModel):
     dispatcher = tuiModel.dispatcher
 
 def dispatchDataDict(dataDict):
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
     keys = dataDict.keys()
     keys.sort()
     print "Dispatching:"
