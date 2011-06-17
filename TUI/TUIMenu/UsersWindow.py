@@ -19,7 +19,8 @@ To do:
 2010-03-10 ROwen    Modified to also show system info.
                     Removed unused import of RO.KeyVariable and RO.StringUtil.
                     Added WindowName.
-2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+"""
 import time
 import Tkinter
 import RO.Wdg
@@ -27,9 +28,9 @@ import TUI.HubModel
 import TUI.TUIModel
 import TUI.Version
 
-_HelpPage = "TUIMenu/UsersWin.html"
-
 WindowName = "%s.Users" % TUI.Version.ApplicationName
+
+_HelpPage = "TUIMenu/UsersWin.html"
 
 def addWindow(tlSet):
     tlSet.createToplevel(

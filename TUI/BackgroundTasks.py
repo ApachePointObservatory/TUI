@@ -23,7 +23,8 @@ History:
 2010-07-21 ROwen    Added support for detecting sleep and failed connections.
 2010-10-27 ROwen    Fixed "no data seen" message to report correct time interval.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
-2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+"""
 import sys
 import time
 import RO.CnvUtil

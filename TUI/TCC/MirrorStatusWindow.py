@@ -14,7 +14,8 @@
 2006-09-27 ROwen    Updated for new 5-axis secondary.
 2010-09-24 ROwen    Modified to get keyVars from TCC model (now that they are available).
                     Added WindowName constant.
-2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+"""
 import Tkinter
 import RO.Wdg
 import TUI.TUIModel
