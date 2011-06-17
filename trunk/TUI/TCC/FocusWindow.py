@@ -22,6 +22,8 @@ History:
                     Fixed a few glitches in timer handling.
 2008-07-02 ROwen	Updated for changes to TUI.Base.FocusWdg.
 					Fixed PR 836: increased focusWidth from 5 to 8.
+2011-06-17 ROwen    Added WindowName constant.
+                    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
 """
 import Tkinter
 import RO.Wdg
@@ -32,12 +34,13 @@ import TUI.TCC.TCCModel
 import TUI.Base.FocusWdg
 
 _HelpURL = "Telescope/SecFocusWin.html"
+WindowName = "TCC.Secondary Focus"
 
 def addWindow(tlSet):
     """Create the window for TUI.
     """
     tlSet.createToplevel(
-        name = "TCC.Secondary Focus",
+        name = WindowName,
         defGeom = "+240+507",
         resizable = False,
         visible = True,
@@ -150,11 +153,12 @@ if __name__ == "__main__":
     tuiModel = TUI.TUIModel.getModel(True)
     kd = tuiModel.dispatcher
     addWindow(tuiModel.tlSet)
+    tuiModel.tlSet.makeVisible(WindowName)
 
     dataDict = {
         "SecFocus": (325.0,),
     }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
     kd.dispatch(msgDict)
 
     root.mainloop()

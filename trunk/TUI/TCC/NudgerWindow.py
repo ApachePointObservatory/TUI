@@ -12,7 +12,7 @@ History:
                     Stopped using anchors within the HTML help file.
 2011-01-31 ROwen    Scale Calibration and Guide offsets are now on the sky (scaled by 1/cos(alt)).
                     Use RO.StringUtil.strFromException when formatting command failure messages.
-"""
+2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only)."""
 import Tkinter
 import RO.Constants
 import RO.KeyVariable
@@ -410,7 +410,7 @@ if __name__ == '__main__':
         "SpiderInstAng": ("-30.0", "0.0", "1000.0"),
         "TCCPos": ("0.0", "89.0", "30.0"),
     }
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
 
     kd.dispatch(msgDict)
 

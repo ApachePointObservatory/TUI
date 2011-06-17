@@ -32,6 +32,8 @@ History:
 2005-06-06 ROwen    Bug fix: if rotator limits changed the current and target
                     rotator position might not be centered on the spiral.
 2005-06-08 ROwen    Changed Axis to a new style class.
+2011-06-17 ROwen    Added WindowName constant.
+                    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
 """
 import Tkinter
 import tkFont
@@ -41,12 +43,13 @@ import RO.CanvasUtil
 import TUI.TCC.TCCModel
 
 _HelpPage = "Telescope/FocalPlaneWin.html"
+WindowName = "TCC.Focal Plane"
 
 def addWindow(tlSet):
     """Create the window for TUI.
     """
     tlSet.createToplevel(
-        name = "TCC.Focal Plane",
+        name = WindowName,
         defGeom = "201x201+636+22",
         wdgFunc = FocalPlaneWdg,
     )
@@ -476,7 +479,7 @@ if __name__ ==  '__main__':
             "inst": ("SPICam",),
         }
 
-        msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+        msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
         kd.dispatch(msgDict)
         root.update_idletasks()
 
@@ -497,7 +500,7 @@ if __name__ ==  '__main__':
         "IImScale": (-3000, 3000),
     }
 
-    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "type":":", "data":dataDict}
+    msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
     kd.dispatch(msgDict)
 
 

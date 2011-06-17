@@ -29,7 +29,7 @@ AnimDataSet = (
     {"mirror": ("sky",), "lamps": (0,0,0), "shutter": ("closed",)},
 )
 
-BaseMsgDict = {"cmdr":cmdr, "cmdID":11, "actor":"echelle", "type":":"}
+BaseMsgDict = {"cmdr":cmdr, "cmdID":11, "actor":"echelle", "msgType":":"}
 
 def dispatch(dataSet=None):
     """Dispatch a set of data, i.e. a list of keyword, value tuples"""

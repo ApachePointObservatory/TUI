@@ -203,7 +203,7 @@ if __name__ == "__main__":
         ("hobbes", "2003-06-25T23:53:47", "Not bad, but we're just about out of tuna; I'm not sure I'll make it through our observing run."),
     )
     for cmdr, msgTime, msgStr in dataList:
-        msgDict = {"cmdr":cmdr, "cmdID":11, "actor":"msg", "type":":",
+        msgDict = {"cmdr":cmdr, "cmdID":11, "actor":"msg", "msgType":":",
             "data":{"msg": (msgTime, msgStr)}}
         kd.dispatch(msgDict)
     root.mainloop()
