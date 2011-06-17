@@ -20,7 +20,7 @@ History:
                     this simplified the hack for PR 132.
                     Modified to prebuild the menu at startup.
                     Modified test code to show a standard pull-down menu.
-                    
+2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 import os
 import sys
@@ -237,8 +237,6 @@ class _LoadScript:
                     resizable = False,
                     wdgFunc = self.makeWdg,
                 )
-            except (SystemExit, KeyboardInterrupt):
-                raise
             except Exception, e:
                 tkMessageBox.showerror(
                     message = "Could not load script:\n%r\n%s\n(See console for more info.)" % (self.fullPath, e),

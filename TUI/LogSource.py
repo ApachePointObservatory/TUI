@@ -7,6 +7,8 @@ History:
 2010-07-20 ROwen    LogEntry:
                     - Changed taiDate to unixTime and taiDateStr to taiTimeStr
                     - Documented the fields
+2011-06-15 ROwen    Increased default maximum log length from 2000 to 40000.
+                    Added cmdID argument to LogEntry, LogSource.logEntryFromLogMsg and LogSource.logMsg.
 """
 import time
 import collections
@@ -26,6 +28,7 @@ class LogEntry(object):
     - actor: actor who sent the reply or to whom the command was sent
     - severity: one of the RO.Constants.sevX constants
     - cmdr: commander ID
+    - cmdID: command ID (an integer)
     - tags: a list of strings used as tags in a Tk Text widget; see LogSource for the standard tags
     """
     def __init__(self,
@@ -33,6 +36,7 @@ class LogEntry(object):
         severity=RO.Constants.sevNormal,
         actor = TUI.Version.ApplicationName,
         cmdr = None,
+        cmdID = 0,
         tags = (),
     ):
         self.unixTime = time.time()
@@ -41,6 +45,7 @@ class LogEntry(object):
         self.actor = actor
         self.severity = severity
         self.cmdr = cmdr
+        self.cmdID = int(cmdID)
         self.tags = tags
 
     def getStr(self):
@@ -66,10 +71,11 @@ class LogSource(RO.AddCallback.BaseMixin):
     """
     ActorTagPrefix = "act_"
     CmdrTagPrefix = "cmdr_"
-    def __new__(cls, dispatcher, maxEntries=2000):
+    def __new__(cls, dispatcher, maxEntries=40000):
         """Construct the singleton LogSource if not already constructed
         
         Inputs:
+        - dispatcher: message dispatcher; an instance of RO.KeyDispatcher.KeyDispatcher
         - maxEntries: the maximum number of entries saved (older entries are removed)
         """
         if hasattr(cls, 'self'):
@@ -94,6 +100,7 @@ class LogSource(RO.AddCallback.BaseMixin):
         severity=RO.Constants.sevNormal,
         actor = TUI.Version.ApplicationName,
         cmdr = None,
+        cmdID = 0,
     ):
         """Create a LogEntry from log message information.
         
@@ -102,6 +109,7 @@ class LogSource(RO.AddCallback.BaseMixin):
         - severity: message severity (an RO.Constants.sevX constant)
         - actor: name of actor; defaults to TUI
         - cmdr: commander; defaults to self
+        - cmdID: command ID (an integer)
         """
         # strip keys. from keys.<actor>
         if actor and actor.startswith("keys."):
@@ -120,13 +128,21 @@ class LogSource(RO.AddCallback.BaseMixin):
             tags.append(self.CmdrTagPrefix + cmdr.lower())
         if actor:
             tags.append(self.ActorTagPrefix + actor.lower())
-        return LogEntry(msgStr, severity=severity, actor=actor, cmdr=cmdr, tags=tags)
+        return LogEntry(
+            msgStr = msgStr,
+            severity = severity,
+            actor = actor,
+            cmdr = cmdr,
+            cmdID = cmdID,
+            tags = tags,
+        )
 
     def logMsg(self,
         msgStr,
         severity=RO.Constants.sevNormal,
         actor = TUI.Version.ApplicationName,
         cmdr = None,
+        cmdID = 0,
     ):
         """Add a log message to the repository.
         
@@ -138,8 +154,15 @@ class LogSource(RO.AddCallback.BaseMixin):
         - severity: message severity (an RO.Constants.sevX constant)
         - actor: name of actor; defaults to TUI
         - cmdr: commander; defaults to self
+        - cmdID: command ID (an integer)
         """
-        self.lastEntry = self.logEntryFromLogMsg(msgStr, severity=severity, actor=actor, cmdr=cmdr)
+        self.lastEntry = self.logEntryFromLogMsg(
+            msgStr = msgStr,
+            severity = severity,
+            actor = actor,
+            cmdr = cmdr,
+            cmdID = cmdID,
+        )
         self.entryList.append(self.lastEntry)
         if len(self.entryList) > self.maxEntries:
             self.entryList.popleft()

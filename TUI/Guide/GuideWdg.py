@@ -215,6 +215,9 @@ History:
                       thus you have a clear way to cancel either mode, good visual feedback.
                       The mode resumes if you drag back onto the canvas.
                     Bug fix: drag-to-centroid now works for any drag direction.
+2011-06-16 ROwen    Refined ctrl-click to show an arrow when the user hovers over the Center Sel button
+                    (if the button is enabled).
+                    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 import atexit
 import os
@@ -539,7 +542,7 @@ class GuideWdg(Tkinter.Frame):
             )
         self.imNameWdg.pack(side="left", expand=True, fill="x", padx=4)
         
-        def showRight(evt=None):
+        def showRight(dumEvt=None):
             self.imNameWdg.xview("end")
         self.imNameWdg.bind("<Configure>", showRight)
         
@@ -1036,6 +1039,9 @@ class GuideWdg(Tkinter.Frame):
         self.gim.cnv.bind("<Deactivate>", self.doCancelDrag)
         self.gim.cnv.bind("<FocusOut>", self.doCancelDrag)
         
+        self.centerBtn.bind("<Enter>", self.drawCenterSelArrow)
+        self.centerBtn.bind("<Leave>", self.eraseCenterSelArrow)
+        
         # keyword variable bindings
         self.guideModel.expState.addCallback(self.updExpState)
         self.guideModel.fsActRadMult.addIndexedCallback(self.updFSActRadMult)
@@ -1108,12 +1114,13 @@ class GuideWdg(Tkinter.Frame):
             sys.stderr.write("GuideWdg warning: cmdCallback called for wrong cmd:\n- doing cmd: %s\n- called by cmd: %s\n" % (self.doingCmd[0], cmdVar))
         self.enableCmdButtons()
     
-    def doCancelDrag(self, evt=None):
+    def doCancelDrag(self, dumEvt=None):
         """Cancel drag and control-click modes
         """
 #        print "doCancelDrag"
         self.endDragMode()
         self.endCtrlClickMode()
+        self.eraseCenterSelArrow()
 
     def doCenterOnSel(self, evt):
         """Center up on the selected star.
@@ -1390,8 +1397,6 @@ class GuideWdg(Tkinter.Frame):
                 self.ds9Win.doOpen()
             else:
                 self.ds9Win = RO.DS9.DS9Win(self.actor)
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except Exception, e:
             self.statusBar.setMsg(RO.StringUtil.strFromException(e), severity = RO.Constants.sevError)
             return
@@ -1474,7 +1479,7 @@ class GuideWdg(Tkinter.Frame):
             cmdBtn = self.applyBtn,
         )
     
-    def doMap(self, evt=None):
+    def doMap(self, dumEvt=None):
         """Window has been mapped"""
         if self.dispImObj:
             # give the guide frame a chance to be redrawn so zoom can be set correctly
@@ -1619,28 +1624,12 @@ class GuideWdg(Tkinter.Frame):
         
         self.subFrameToViewBtn.setEnable(False)
     
-    def drawCenterSelArrow(self):
-        """Draw or redraw the center selection arrow
-        
-        Not used at present, but could be used as follows:
-        - If Center Sel is executed then draw the arrow and leave it until the command end
-          (or, perhaps, just until it fails).  
-        - As long as the arrow is not being shown then:
-          - Draw the arrow when the user hovers over Center Sel button (if button is enabled)
-          - Erase the arrow when the mouse leaves the Center Sel button unless the cmd was issued
-        - Prevent the arrow from being shown once the Center Sel command has succeeded for this image?
-          That's tricky since it should be disabled for all users. Maybe safest to skip this refinement.
-          
-        The trick is dealing with reliably showing and hiding the arrow. Among other things
-        this requires ditching the arrow-related cmd callback when a new image is shown.
+    def drawCenterSelArrow(self, dumEvt=None):
+        """Draw or redraw the "center selection" arrow
         """
-        if not self.imDisplayed():
+        if self.centerBtn["state"] != "normal":
             return
-
-        self.eraseCenterSelArrow()
-        
-        if not self.dispImObj.selDataColor:
-            return
+            
         selStarData = self.dispImObj.selDataColor[0]
         selCnvPos = self.gim.cnvPosFromImPos(selStarData[2:4])
         boreCnvPos = self.gim.cnvPosFromImPos(self.boreXY)
@@ -1779,7 +1768,7 @@ class GuideWdg(Tkinter.Frame):
         self.dragStart = None
         self.eraseDragRect()
     
-    def eraseCenterSelArrow(self):
+    def eraseCenterSelArrow(self, dumEvt=None):
         """Erase the center selection arrow, if present
         """
         self.gim.cnv["cursor"] = self.defCnvCursor
@@ -1789,7 +1778,7 @@ class GuideWdg(Tkinter.Frame):
             finally:
                 self.centerSelArrow = None
 
-    def eraseDragRect(self, evt=None):
+    def eraseDragRect(self, dumEvt=None):
         """Erase the drag rectangle, if present
         """
         if self.dragRect:
@@ -1798,7 +1787,7 @@ class GuideWdg(Tkinter.Frame):
             finally:
                 self.dragRect = None
 
-    def eraseSelection(self, evt=None):
+    def eraseSelection(self, dumEvt=None):
         """Erase current selection
         """
         # clear current selection
@@ -1970,7 +1959,7 @@ class GuideWdg(Tkinter.Frame):
         numpy.subtract(endImPos, begImPos, binSubSize)
         return SubFrame.SubFrame.fromBinInfo(self.guideModel.gcamInfo.imSize, self.dispImObj.binFac, binSubBeg, binSubSize)
 
-    def ignoreEvt(self, evt=None):
+    def ignoreEvt(self, dumEvt=None):
         pass
 
     def imDisplayed(self):

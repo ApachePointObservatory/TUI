@@ -22,6 +22,7 @@ History:
                     was printed and "Loading..." was shown indefinitely.
                     Also, if statusBar omitted, messages are printed to stderr.
 2005-01-05 ROwen    Changed level to severity.
+2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 import os
 import sys
@@ -142,8 +143,6 @@ class CatalogMenuWdg(Tkinter.Frame):
         self.update_idletasks()
         try:
             objCat, errList = self._catParser.parseCat(catFile)
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except Exception, e:
             self.showMsg(
                 msgStr = "Could not load %s: %s" % (catFile, e),

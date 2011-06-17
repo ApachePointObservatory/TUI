@@ -7,6 +7,7 @@ of ExposeStatusWdg there are, to avoid downloading duplicate images.
 2009-05-06 ROwen    Modified to use getEvery download preference isntead of autoGet.
 2009-07-09 ROwen    Removed unused import of Tkinter (found by pychecker).
                     Removed unusable test code (found by pychecker).
+2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 __all__ = ['getModel']
 
@@ -75,8 +76,6 @@ class FileGetter (object):
                 elif not ds9Win.isOpen():
                     ds9Win.doOpen()
                 ds9Win.showFITSFile(httpGet.toPath)
-            except (SystemExit, KeyboardInterrupt):
-                raise
             except Exception, e:
                 self.tuiModel.logMsg(
                     msgStr = RO.StringUtil.strFromException(e),

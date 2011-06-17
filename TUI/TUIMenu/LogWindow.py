@@ -42,6 +42,15 @@ History:
 2010-03-11 ROwen    Modified to use RO.Wdg.LogWdg 2010-11-11, which has severity support built in.
 2010-05-04 ROwen    Restored None to the filter severity menu (it was lost in the 2010-03-11 changes).
 2010-06-29 ROwen    Adopted multiple log support from STUI.
+2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
+2011-06-13 ROwen    Added new filters: "Commands and Replies", "My Command and Replies" and "Custom"
+                    (the latter of which uses python lambda expressions).
+                    Removed filter "Commands".
+                    Made the filter text widget wider.
+                    Increased default maximum log length from 5000 to 20000.
+                    Separated filter function into two separate components: severity filter and misc filter.
+                    Filter description is now stored in function __doc__.
+                    
 """
 import bisect
 import re
@@ -106,10 +115,21 @@ class RegExpInfo(object):
             (self.regExp, self.tag, self.lineTag)
 
 class TUILogWdg(Tkinter.Frame):
+    """A log widget that displays messages from the hub
+
+    Filter Functions:
+    Log messages are filtered using a pair of filter functions:
+    - self.sevFilterFunc: filters out based on severity
+    - self.miscFilterFunc: filters out based on other criteria
+    Both filter functions take a single argument, a LogEntry,
+    and return True if the entry is to be shown, False otherwise.
+    The doc string may be None or a brief one-line description of the filter
+    (long or multi-line doc strings will result in garbage in the status bar).
+    """
     def __init__(self,
         master,
         maxCmds = 50,
-        maxLines = 5000,
+        maxLines = 20000,
     **kargs):
         """
         Inputs:
@@ -128,8 +148,12 @@ class TUILogWdg(Tkinter.Frame):
         self.highlightRegExpInfo = None
         self.highlightTag = None
         self.isConnected = False
-        # bool = filterFunc(logEntry): return True if logEntry matches current filter, False otherwise
-        self.filterFunc = lambda x: True
+        
+        # severity filter function: return True if severity filter criteria are met
+        # for more information see the description of filter functions in class doc string
+        self.sevFilterFunc = lambda x: False
+        # miscellaneous filter function: return True if non-severity filter criteria are met
+        self.miscFilterFunc = lambda x: False
         # highlightAllFunc(): clear existing highlighting and apply desired highlighting to all existing text
         self.highlightAllFunc = lambda: None
         # highlightLastFunc(): apply highlighting to last line of text and play sound if appropriate
@@ -162,7 +186,7 @@ class TUILogWdg(Tkinter.Frame):
             self.filterFrame,
             items = [val.title() for val in RO.Constants.NameSevDict.iterkeys()] + ["None"],
             defValue = "Normal",
-            callFunc = self.applyFilter,
+            callFunc = self.updateSeverity,
             helpText = "show replies with at least this severity",
             helpURL = HelpURL,
         )
@@ -172,7 +196,7 @@ class TUILogWdg(Tkinter.Frame):
 #       RO.Wdg.StrLabel(self.filterFrame, text="and").grid(row=0, column=filtCol)
 #       filtCol += 1
         
-        self.filterCats = ("Actor", "Actors", "Commands", "Text")
+        self.filterCats = ("Actor", "Actors", "Text", "Commands and Replies", "My Commands and Replies", "Custom")
         filterItems = [""] + [FilterMenuPrefix + fc for fc in self.filterCats]
         self.filterMenu = RO.Wdg.OptionMenu(
             self.filterFrame,
@@ -206,23 +230,24 @@ class TUILogWdg(Tkinter.Frame):
         )       
         self.filterActorsWdg.grid(row=0, column=filtCol)
     
-        self.filterCommandsWdg = RO.Wdg.StrEntry(
-            self.filterFrame,
-            width = 15,
-            doneFunc = self.applyFilter,
-            helpText = "space-separated command numbers to show; . = any char; * = any chars",
-            helpURL = HelpURL,
-        )       
-        self.filterCommandsWdg.grid(row=0, column=filtCol)
-        
         self.filterTextWdg = RO.Wdg.StrEntry(
             self.filterFrame,
-            width = 15,
+            width = 20,
             doneFunc = self.applyFilter,
             helpText = "text (regular expression) to show",
             helpURL = HelpURL,
         )       
         self.filterTextWdg.grid(row=0, column=filtCol)
+
+        self.filterCustomWdg = RO.Wdg.StrEntry(
+            self.filterFrame,
+            width = 40,
+            doneFunc = self.applyFilter,
+            helpText = "custom filter, a python lambda expression",
+            helpURL = HelpURL,
+        )
+        self.filterCustomWdg.set("lambda x: True")
+        self.filterCustomWdg.grid(row=0, column=filtCol)
         
         # all filter controls that share a column have been gridded
         filtCol += 1
@@ -316,7 +341,7 @@ class TUILogWdg(Tkinter.Frame):
     
         self.highlightCommandsWdg = RO.Wdg.StrEntry(
             self.highlightFrame,
-            width = 15,
+            width = 20,
             doneFunc = self.doHighlightCommands,
             helpText = "space-separated command numbers to highlight; . = any char; * = any chars",
             helpURL = HelpURL,
@@ -428,7 +453,8 @@ class TUILogWdg(Tkinter.Frame):
             self.updHighlightColor(HighlightLineColor)
         self.logWdg.text.tag_configure(ShowTag, elide=False)
         self.logWdg.text.tag_raise("sel")
-        
+
+        self.updateSeverity()
         self.doFilterOnOff()
         self.doShowHideAdvanced()
         self.logWdg.text.bind('<KeyPress-Return>', RO.TkUtil.EvtNoProp(self.doSearchBackwards))
@@ -452,20 +478,21 @@ class TUILogWdg(Tkinter.Frame):
         if not self.isConnected:
             return
         try:
-            filterFunc, filterDescr = self.createFilterFunc()
+            miscFilterFunc = self.createMiscFilterFunc()
+            fullFilterDescr = " or ".join(descr for descr in (self.sevFilterFunc.__doc__, miscFilterFunc.__doc__) if descr)
             self.statusBar.setMsg(
-                filterDescr,
+                fullFilterDescr,
                 isTemp = True,
             )
         except Exception, e:
-            filterFunc = self.createSeverityFilterFunc()
+            miscFilterFunc = lambda x: False
             self.statusBar.setMsg(
                 str(e),
                 severity = RO.Constants.sevError,
                 isTemp = True,
             )
             TUI.PlaySound.cmdFailed()
-        self.filterFunc = filterFunc
+        self.miscFilterFunc = miscFilterFunc
 
         retainScrollPos = not self.logWdg.isScrolledToEnd()
         if retainScrollPos:
@@ -480,7 +507,8 @@ class TUILogWdg(Tkinter.Frame):
         # this is inefficient; logWdg does a lot of processing that is unnecessary
         # when inserting a lot of lines at once; add an insertMany method to avoid this
         strTagsSevList = [(logEntry.getStr(), logEntry.tags, logEntry.severity)
-            for logEntry in self.logSource.entryList if self.filterFunc(logEntry)]
+            for logEntry in self.logSource.entryList
+            if self.sevFilterFunc(logEntry) or self.miscFilterFunc(logEntry)]
         self.logWdg.addOutputList(strTagsSevList)
 
         if retainScrollPos:
@@ -519,101 +547,93 @@ class TUILogWdg(Tkinter.Frame):
             )
         return None
 
-    def createSeverityFilterFunc(self):
-        """Return a function that tests a logEntry based on severity
-        """
-        sevName = self.severityMenu.getString().lower()
-        if sevName == "none":
-            def filterFunc(logEntry):
-                return False
-            return filterFunc
-        else:
-            minSeverity = RO.Constants.NameSevDict[sevName]
-            def filterFunc(logEntry, minSeverity=minSeverity):
-                return logEntry.severity >= minSeverity
-            return filterFunc
-
-    def createFilterFunc(self):
-        """Return a function that filters based on the current filter settings
+    def createMiscFilterFunc(self):
+        """Return a function that filters based on current filter settings other than severity
+        
+        A filter function accepts one argument: a logEntry.
+        It returns True if the logEntry is to be displayed, False otherwise.
+        
+        The result of the filter function is ORed with the results of self.sevFilterFunc.
         
         Return:
-        - filter function
-        - description
+        - filter function; the doc string is set to a brief description of what the filter does
         """
         filterEnabled = self.filterOnOffWdg.getBool()
         filterCat = self.filterMenu.getString()
         filterCat = filterCat[len(FilterMenuPrefix):] # strip prefix
         #print "applyFilter: filterEnabled=%r; filterCat=%r" % (filterEnabled, filterCat)
+        
+        def nullFunc(logEntry):
+            return False
 
         if not filterEnabled:
-            def filterFunc(logEntry):
-                return True
-            return filterFunc, "Showing all messages"
-
-        sevFunc = self.createSeverityFilterFunc()
-        sevFuncDescr = self.getFilterSeverityDescr()
+            return nullFunc
 
         if not filterCat:
-            return sevFunc, sevFuncDescr
+            return nullFunc
 
         elif filterCat == "Actor":
             actor = self.filterActorWdg.getString().lower()
             if not actor:
-                return sevFunc, sevFuncDescr
-            def filterFunc(logEntry, actor=actor, sevFunc=sevFunc):
-                return sevFunc(logEntry) or logEntry.actor == actor
-            return filterFunc, "%s and actor=%s" % (sevFuncDescr, actor)
+                return nullFunc
+            def filterFunc(logEntry, actor=actor):
+                return logEntry.actor == actor
+            filterFunc.__doc__ = "actor=%s" % (actor,)
+            return filterFunc
 
         elif filterCat == "Actors":
             regExpList = self.filterActorsWdg.getString().split()
             if not regExpList:
-                return sevFunc, sevFuncDescr
+                return nullFunc
             actorList = self.getActors(regExpList)
 
-            def filterFunc(logEntry, actorList=actorList, sevFunc=sevFunc):
-                return sevFunc(logEntry) or logEntry.actor in actorList
-            return filterFunc, "%s and actor in %s" % (sevFuncDescr, actorList)
+            def filterFunc(logEntry, actorList=actorList):
+                return logEntry.actor in actorList
+            filterFunc.__doc__ = "actor in %s" % (actorList,)
+            return filterFunc
 
-        elif filterCat == "Commands":
-            cmdWdgStr = self.filterCommandsWdg.getString().replace(",", " ")
-            cmdList = cmdWdgStr.split()
-            if not cmdList:
-                return sevFunc, sevFuncDescr
-            
-            # create a regular expression;
-            # it must show both outgoing commands: cmdNum
-            # and replies: cmdr cmdNum
-            # where cmdr is my commander ID, so only replies to my commands are matched
-            orCmds = "|".join(["(%s)" % (cmd,) for cmd in cmdList])
-            
-            cmdr = self.dispatcher.connection.getCmdr()
-            
-            regExp = r"^(%s +)?(%s) " % (cmdr, orCmds)
-            try:
-                compiledRegExp = re.compile(regExp, re.I)
-            except Exception:
-                raise RuntimeError("Invalid command list %s" % (" ".join(cmdList)))
-            
-            if len(cmdList) == 1:
-                cmdDescr = "command"
-            else:
-                cmdDescr = "commands"
-            def filterFunc(logEntry, compiledRegExp=compiledRegExp, sevFunc=sevFunc):
-                return sevFunc(logEntry) or compiledRegExp.match(logEntry.msgStr)
-            return filterFunc, "%s and %s %s" % (sevFuncDescr, cmdDescr, " ".join(cmdList))
-                
         elif filterCat == "Text":
             regExp = self.filterTextWdg.getString()
             if not regExp:
-                return sevFunc, sevFuncDescr
+                return nullFunc
                 
             try:
                 compiledRegEx = re.compile(regExp, re.I)
             except Exception:
                 raise RuntimeError("Invalid regular expression %r" % (regExp,))
-            def filterFunc(logEntry, compiledRegEx=compiledRegEx, sevFunc=sevFunc):
-                return sevFunc(logEntry) or compiledRegEx.search(logEntry.msgStr)
-            return filterFunc, "%s and text contains %s" % (sevFuncDescr, regExp)
+            def filterFunc(logEntry, compiledRegEx=compiledRegEx):
+                return compiledRegEx.search(logEntry.msgStr)
+            filterFunc.__doc__ = "text contains %s" % (regExp)
+            return filterFunc
+
+        elif filterCat == "Commands and Replies":
+            maxUserCmdNum = self.dispatcher.getMaxUserCmdID()
+            
+            def filterFunc(logEntry, maxUserCmdNum=maxUserCmdNum):
+                return (logEntry.cmdr and logEntry.cmdr[0] != ".") \
+                    and (logEntry.cmdr != "apo.apo") \
+                    and (0 < logEntry.cmdID <= maxUserCmdNum)
+            filterFunc.__doc__ = "most commands and replies"
+            return filterFunc
+
+        elif filterCat == "My Commands and Replies":
+            cmdr = self.dispatcher.connection.getCmdr()
+            maxUserCmdNum = self.dispatcher.getMaxUserCmdID()
+            
+            def filterFunc(logEntry, cmdr=cmdr, maxUserCmdNum=maxUserCmdNum):
+                return (logEntry.cmdr == cmdr) and (0 < logEntry.cmdID <= maxUserCmdNum)
+            filterFunc.__doc__ = "most of my commands and replies"
+            return filterFunc
+
+        elif filterCat == "Custom":
+            funcStr = self.filterCustomWdg.getString()
+            if not funcStr:
+                return nullFunc
+            filterFunc = eval(funcStr)
+            if not callable(filterFunc):
+                raise RuntimeError("not a function: %s" % (funcStr,))
+            filterFunc.__doc__ = funcStr
+            return filterFunc
 
         else:
             raise RuntimeError("Bug: unknown filter category %s" % (filterCat,))
@@ -649,8 +669,6 @@ class TUILogWdg(Tkinter.Frame):
                 callFunc = self._cmdCallback,
                 dispatcher = self.dispatcher,
             )
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except Exception, e:
             self.statusBar.setMsg(
                 RO.StringUtil.strFromException(e),
@@ -699,7 +717,9 @@ class TUILogWdg(Tkinter.Frame):
         #print "doFilter; cat=%r" % (filterCat,)
         
         for cat in self.filterCats:
-            wdg = getattr(self, "filter%sWdg" % (cat,))
+            wdg = getattr(self, "filter%sWdg" % (cat,), None)
+            if not wdg:
+                continue
             if cat == filterCat:
                 wdg.grid()
             else:
@@ -996,7 +1016,7 @@ class TUILogWdg(Tkinter.Frame):
         logEntry = logSource.lastEntry
         if not logEntry:
             return
-        if self.filterFunc(logEntry):
+        if self.sevFilterFunc(logEntry) or self.miscFilterFunc(logEntry):
             self.appendLogEntry(logEntry)
 
     def mapOrUnmap(self, evt=None):
@@ -1021,6 +1041,21 @@ class TUILogWdg(Tkinter.Frame):
         newTextColor = RO.TkUtil.addColors((newColor, HighlightColorScale))
         self.logWdg.text.tag_configure(HighlightTag, background=newColor)
         self.logWdg.text.tag_configure(HighlightTextTag, background=newTextColor)
+
+    def updateSeverity(self, dumWdg=None):
+        """The severity menu was changed. Update self.sevFilterFunc and refilter entries.
+        """
+        sevName = self.severityMenu.getString().lower()
+        if sevName == "none":
+            def filterFunc(logEntry):
+                return False
+        else:
+            minSeverity = RO.Constants.NameSevDict[sevName]
+            def filterFunc(logEntry, minSeverity=minSeverity):
+                return logEntry.severity >= minSeverity
+            filterFunc.__doc__ = "severity >= %s" % (sevName,)
+        self.sevFilterFunc = filterFunc
+        self.applyFilter()
 
     def _actorsCallback(self, actors, isCurrent, keyVar=None):
         """Actor keyword callback.

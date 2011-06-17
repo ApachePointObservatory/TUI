@@ -22,6 +22,7 @@ History:
                     see UTCMinusTAI before it sees the current TAI).
 2010-07-21 ROwen    Added support for detecting sleep and failed connections.
 2010-10-27 ROwen    Fixed "no data seen" message to report correct time interval.
+2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 import sys
 import time
@@ -140,8 +141,6 @@ class BackgroundKwds(object):
                         "Your clock appears to be off; time error = %.1f" % (timeErr,),
                         severity = RO.Constants.sevError,
                     )
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except Exception, e:
             self.tuiModel.logMsg(
                 "TAI time keyword seen but clock check failed; error=%s" % (e,),

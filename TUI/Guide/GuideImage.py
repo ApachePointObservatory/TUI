@@ -13,6 +13,7 @@ History:
 2011-06-08 ROwen    Combined currThresh and defThresh into thresh.
                     Combined currRadMult and defRadMult into radMult.
                     Ditched currGuideMode and defGuideMode because they were not being used.
+2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 import os
 import pyfits
@@ -150,8 +151,6 @@ class BasicImage(object):
                 self.state = self.FileReadFailed
                 self.errMsg = "No image data found"
                 return None
-            except (SystemExit, KeyboardInterrupt):
-                raise
             except Exception, e:
                 self.state = self.FileReadFailed
                 self.errMsg = RO.StringUtil.strFromException(e)

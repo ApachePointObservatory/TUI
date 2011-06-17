@@ -3,6 +3,7 @@
 
 2005-08-08 ROwen
 2006-10-25 ROwen    Minor clarifications of logFunc in a doc string.
+2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 import os
 import sys
@@ -92,8 +93,6 @@ def loadWindows(
             module.addWindow(tlSet)
             if logFunc:
                 logFunc("Added %r" % (moduleName,))
-        except (SystemExit, KeyboardInterrupt):
-            raise
         except Exception, e:
             errMsg = "%s.addWindow failed: %s" % (moduleName, e)
             if logFunc:
