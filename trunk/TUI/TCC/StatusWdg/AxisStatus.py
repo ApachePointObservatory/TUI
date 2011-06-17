@@ -89,6 +89,7 @@ ErrorBits = (
     (13, "Motor output disabled"),
 )
 WarningBits = (
+    (18, "Amplifier too hot"),
     ( 0, "Motor control buffer empty"),
     ( 1, "Position update late"),
     (24, "Fiducial error too large"),

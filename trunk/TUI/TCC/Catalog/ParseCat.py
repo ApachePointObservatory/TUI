@@ -18,6 +18,7 @@ History:
 2005-08-15 ROwen    Modified the test code to run again.
 2005-08-22 ROwen    Commented out a diagnostic print statement from last time.
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
+2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 import os.path
 import re
@@ -160,8 +161,6 @@ class CatalogParser(object):
                     self._combineDicts(dataDict, optDict)
                     
                     objList.append(TUI.TCC.TelTarget.TelTarget(dataDict))
-            except (SystemExit, KeyboardInterrupt):
-                raise
             except Exception, e:
                 if isDefault:
                     raise RuntimeError(RO.StringUtil.strFromException(e))
