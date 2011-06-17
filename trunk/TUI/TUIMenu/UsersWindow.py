@@ -45,13 +45,13 @@ class User(object):
     """Information about a user
     
     cmdr: commander ID = program_name.user_name
-    userInfo: data from hub user keyword (or None if unknown). If known:
+    userInfo: data from hub user keyword (or None if unknown). If known, a list containing:
     - cmdrID (program.name)
     - client name (typically "TUI" or "monitor")
     - client version (sortable)
     - system info (e.g. platform.platform())
     - IP address (numeric)
-    ? FQDN (if supplied)
+    - fully qualified domain name (if supplied)
     """
     def __init__(self, cmdr, userInfo=None):
         self.cmdr = cmdr
