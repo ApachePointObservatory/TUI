@@ -220,6 +220,15 @@ History:
                     Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-06-17 ROwen    Added "auto-guiding is on" to reasons why ctrl-click is disabled;
                     now Center Sel will be disabled when ctrl-click is allowed only if executing a cmd.
+2011-06-27 ROwen    Changed Hold/Current and history behavior to reduce confusion between user-chosen
+                    FITS files and images received from the guider:
+                    - Current always shows an image from the guider, if one is available, else nothing.
+                      Formerly if you used Choose... to view a FITS file and you had never received any images
+                      from the guider, then the image you were viewing would stay up when you pressed Current.
+                    - The image history is reserved for images received from the guider. Images viewed using
+                      Choose... are not added to the image history. 
+                    Added initial default values for Thresh and RadMult because when the guide actors
+                    are first started they don't report values for these parameters.
 """
 import atexit
 import os
@@ -817,6 +826,7 @@ class GuideWdg(Tkinter.Frame):
             inputFrame2,
             label = "Thresh",
             minValue = 1.5,
+            defValue = 2.5, # guider reports no value when it is first started, so just in case...
             defFormat = "%.1f",
             defMenu = "Current",
             doneFunc = self.doFindStars,
@@ -844,6 +854,7 @@ class GuideWdg(Tkinter.Frame):
             inputFrame2,
             label = "Rad Mult",
             minValue = 0.5,
+            defValue = 1.2,  # guider reports no value when it is first started, so just in case...
             defFormat = "%.1f",
             defMenu = "Current",
             autoIsCurrent = True,
@@ -1086,6 +1097,16 @@ class GuideWdg(Tkinter.Frame):
             return True
 
         return False
+    
+    def clearImage(self):
+        """Clear image (if any), showing nothing.
+        """
+        self.boreXY = None
+        self.dispImObj = None
+        self.gim.clear()
+        self.endCtrlClickMode()
+        self.endDragMode()
+        self.enableCmdButtons()
 
     def cmdCancel(self, wdg=None):
         """Cancel the current command.
@@ -1586,16 +1607,17 @@ class GuideWdg(Tkinter.Frame):
         if not doShowCurr:
             return
 
-        # show most recent downloaded image, if any, else most recent image
+        # show first fully downloaded image, if any, else most recent not-fully-downloaded image,
+        # else show nothing
         revHist = self.imObjDict.values()
         if not revHist:
+            self.clearImage()
             return
 
         for imObj in revHist:
             if imObj.isDone():
                 break
         else:
-            # display show most recent image
             imObj = revHist[0]
         
         self.showImage(imObj, forceCurr=True)
@@ -2041,20 +2063,6 @@ class GuideWdg(Tkinter.Frame):
     def showFITSFile(self, imPath):
         """Display a FITS file.
         """     
-        # try to find image in history
-        # using samefile is safer than trying to match paths as strings
-        # (RO.OS.expandPath *might* be thorough enough to allow that,
-        # but no promises and one would have to expand every path being checked)
-        for imObj in self.imObjDict.itervalues():
-            try:
-                isSame = os.path.samefile(imPath, imObj.getLocalPath())
-            except OSError:
-                continue
-            if isSame:
-                self.showImage(imObj)
-                return
-        # not in history; create new local imObj and load that
-
         # try to split off user's base dir if possible
         localBaseDir = ""
         imageName = imPath
@@ -2082,7 +2090,6 @@ class GuideWdg(Tkinter.Frame):
                 ind = self.imObjDict.index(self.dispImObj.imageName)
             except KeyError:
                 pass
-        self.addImToHist(imObj, ind)
         self.showImage(imObj)
         
     def showImage(self, imObj, forceCurr=None):
