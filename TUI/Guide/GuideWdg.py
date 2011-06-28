@@ -220,7 +220,7 @@ History:
                     Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-06-17 ROwen    Added "auto-guiding is on" to reasons why ctrl-click is disabled;
                     now Center Sel will be disabled when ctrl-click is allowed only if executing a cmd.
-2011-06-27 ROwen    Changed Hold/Current and history behavior to reduce confusion between user-chosen
+2011-06-28 ROwen    Changed Hold/Current and history behavior to reduce confusion between user-chosen
                     FITS files and images received from the guider:
                     - Current always shows an image from the guider, if one is available, else nothing.
                       Formerly if you used Choose... to view a FITS file and you had never received any images
@@ -229,6 +229,8 @@ History:
                       Choose... are not added to the image history. 
                     Added initial default values for Thresh and RadMult because when the guide actors
                     are first started they don't report values for these parameters.
+                    Changed ctrl-click annotation from a hollow X to a filled X.
+                    Bug fix: star selection was much too picky.
 """
 import atexit
 import os
@@ -256,9 +258,11 @@ try:
 except NameError:
     from sets import Set as set
 
+_DebugCtrlClick = False
+
 _HelpPrefix = "Guiding/index.html#"
 
-_MaxDist = 15
+_MaxDist = 25
 _CentroidTag = "centroid"
 _FindTag = "findStar"
 _GuideTag = "guide"
@@ -1542,9 +1546,7 @@ class GuideWdg(Tkinter.Frame):
         self.showImage(self.imObjDict[prevImName])
             
     def doSelect(self, evt):
-        """Select a star based on a mouse click
-        - If near a found star, select it
-        - Otherwise centroid at that point and select the result (if successful)
+        """Select star nearest to mouse pointer.
         """
         if not self.gim.isNormalMode():
             return
@@ -1561,7 +1563,7 @@ class GuideWdg(Tkinter.Frame):
     
             # look for nearby centroid to choose
             selStarData = None
-            minDistSq = _MaxDist
+            minDistSq = _MaxDist**2
             for typeChar, starDataList in self.dispImObj.starDataDict.iteritems():
                 #print "doSelect checking typeChar=%r, nstars=%r" % (typeChar, len(starDataList))
                 tag, colorPref = self.typeTagColorPrefDict[typeChar]
@@ -1670,34 +1672,41 @@ class GuideWdg(Tkinter.Frame):
         if not self.ctrlClickOK or not self.gim.isNormalMode():
             return
 
+        self.eraseSelection()
+
         if not self.gim.evtOnCanvas(evt):
             # mouse is off canvas; erase selection
-            self.eraseSelection()
             return
 
         cnvPos = self.gim.cnvPosFromEvt(evt)
         imPos = self.gim.imPosFromCnvPos(cnvPos)
 
-        try:
-            # get current image object
-            if not self.imDisplayed():
-                return
-            
-            # erase data for now (helps for early return)
-            self.dispImObj.selDataColor = None
+        # get current image object
+        if not self.imDisplayed():
+            return
         
-            # create new "star"
-            tag, colorPref = self.typeTagColorPrefDict["c"]
-            color = colorPref.getValue()
+        # erase data for now (helps for early return)
+        self.dispImObj.selDataColor = None
+    
+        # create new "star"
+        tag, colorPref = self.typeTagColorPrefDict["c"]
+        color = colorPref.getValue()
 
-            starData = [None]*15
-            starData[0] = "c" # type
-            starData[1] = 0 # index; irrelevant
-            starData[2:4] = imPos
-            starData[6] = 5 # radius of centroid region
-            self.dispImObj.selDataColor = (starData, color)
-        finally:
-            self.showSelection()
+        starData = [None]*15
+        starData[0] = "c" # type
+        starData[1] = 0 # index; irrelevant
+        starData[2:4] = imPos
+        starData[6] = 5 # radius of centroid region
+        self.dispImObj.selDataColor = (starData, color)
+
+        self.gim.addAnnotation(
+            GImDisp.ann_X,
+            imPos = starData[2:4],
+            isImSize = False,
+            rad = _SelRad,
+            tags = _SelTag,
+            fill = self.dispImObj.selDataColor[1],
+        )
     
     def enableCmdButtons(self, wdg=None):
         """Set enable of command buttons.
@@ -2612,6 +2621,10 @@ class GuideWdg(Tkinter.Frame):
         
         Return None if one can center, or a reason why not if not
         """
+        if _DebugCtrlClick:
+            print "WARNING: _DebugCtrlClick is True"
+            return None
+        
         if not self.guideModel.gcamInfo.isSlitViewer:
             return "not a slitviewer"
 

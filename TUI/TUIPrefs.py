@@ -45,6 +45,7 @@ History:
 2010-03-18 ROwen    Moved _getPrefsFile to TUI.TUIPaths.getPrefsFile.
 2010-07-02 ROwen    Added "Keep Guide Images" preference.
 2011-01-31 ROwen    Added "Exposure Failed" sound preference.
+2011-06-28 ROwen    Added " and ctrl-click" to help string for Centroid Color.
 """
 #import pychecker.checker
 import os
@@ -227,7 +228,7 @@ class TUIPrefs(PrefVar.PrefSet):
                 name = "Centroid Color",
                 category = "Guide Colors",
                 defValue = "cyan",
-                helpText = "Color for manually centroided stars",
+                helpText = "Color for manually centroided stars and ctrl-click",
                 helpURL = _HelpURL,
             ),
             PrefVar.ColorPrefVar(

@@ -32,7 +32,7 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
 
-<h3>1.9.0b2+ 2011-06-27</h3>
+<h3>1.9.0b2+ 2011-06-28</h3>
 
 <p>Visible changes:
 <ul>
@@ -42,6 +42,12 @@ rm -rf ~/.matplotlib*.cache
         <li>The image history is reserved for images received from the guider. Images viewed using Choose... are not added to the image history. 
     </ul>
     <li>Re-added initial default values for Thresh and RadMult because when the guide actors are first started they don't report values for these parameters.
+    <li>Guider window: ctrl-click annotation is now a filled X to make it more distinctive. I also tried other colors but could not find any that worked as well (except red, which is reserved for problems).
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li>Guider windows: selecting stars was hard because you had to click much too close to the center of the star.
 </ul>
 
 <h3>1.9.0b2 2011-06-17</h3>
