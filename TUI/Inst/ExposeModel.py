@@ -79,6 +79,7 @@ Notes:
 2010-09-21 ROwen    Changed canPause to canPauseExposure similarly for canStop and canAbort.
                     Added canStopSeq and renamed canPauseSequence to canPauseSeq.
 2010-10-06 ROwen    NICFPS: set canStopExp false (as it should have been).
+2011-07-20 ROwen    Added Shack-Hartmann.
 """
 __all__ = ['getModel']
 
@@ -217,6 +218,14 @@ def _getInstInfoDict():
             canPauseExp = False,
             canStopExp = False,
             canAbortExp = False,
+        ),
+        _ExpInfo(
+            instName = "Shack-Hartmann",
+            instActor = "shack",
+            imSize = (512, 512),
+            minExpTime = 0.12,
+            expTypes = ("object", "reference", "dark"),
+            canPauseExp = False,
         ),
         _ExpInfo(
             instName = "SPIcam",

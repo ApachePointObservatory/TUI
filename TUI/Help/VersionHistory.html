@@ -32,10 +32,11 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
 
-<h3>1.9.0b2+ 2011-06-28</h3>
+<h3>1.9.0b3 2011-07-20</h3>
 
 <p>Visible changes:
 <ul>
+    <li>Added preliminary support for the Shack-Hartmann instrument. None of the instrument-specific controls are yet supported because I don't yet know the commands and reply keywords to support them.
     <li>Guider windows: modified Hold/Current and history behavior to reduce confusion between user-chosen FITS files and images received from the guider:
     <ul>
         <li>Current always shows an image from the guider, if one is available, else nothing. Formerly if you used Choose... to view a FITS file and you had never received any images from the guider, then the image you were viewing would stay up when you pressed Current.

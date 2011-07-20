@@ -47,6 +47,8 @@ or register ROWdg widgets to automatically display updating values.
 2010-03-04 ROwen    Added moveItems.
 2010-06-28 ROwen    Removed unused _RotTypeDict (thanks to pychecker).
 2010-09-24 ROwen    Added <mir> keywords.
+2011-07-14 ROwen    Added ipConfig, gcFocus, gcFocusLim, gcNomFocus, instFocus, rotInstXYAng and rotOffsetScale;
+                    all of these except ipConfig and gcFocus are new in TCC 2.15.0.
 """
 import RO.CnvUtil
 import RO.CoordSys
@@ -329,6 +331,13 @@ The value is a string containing the following characters, each of which is eith
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Rotator limits: min pos, max pos, vel, accel, jerk",
         )
+        
+        self.rotOffsetScale = keyVarFact(
+            keyword = "RotOffsetScale",
+            nval = 2,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Rotator offset, scale: mount position = offset + (physical position * scale).",
+        )
 
         # a set of controller status variables for each axis;
         # the entry for each axis consists of:
@@ -360,6 +369,26 @@ The value is a string containing the following characters, each of which is eith
             converters = str,
             description = "Name of current instrument position",
         )
+        
+        self.ipConfig = keyVarFact(
+            keyword = "IPConfig",
+            converters = str,
+            description = """Instrument-position configuration, e.g. is an instrument rotator available?
+
+str contains the following elements, each of which is either "T" (true) or "N" (false):
+
+instrument rotator is available
+guide camera is available
+guider mechanical controller is available
+""",
+        )
+        
+        self.instFocus = keyVarFact(
+            keyword = "InstFocus",
+            nval = 1,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Secondary mirror focus offset due to instrument (um)",
+        )
 
         self.iimCtr = keyVarFact(
             keyword = "IImCtr",
@@ -380,6 +409,13 @@ The value is a string containing the following characters, each of which is eith
             nval = 2,
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Scale of current instrument (unbinned pixels/deg)",
+        )
+        
+        self.rotInstXYAng = keyVarFact(
+            keyword = "RotInstXYAng",
+            nval = 3,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Position of the center of the instrument rotator in instrument coordinate frame (x, y deg) and angle of instrument rotator x axis in instrument coordinate frame (deg).",
         )
         
         # guider data
@@ -403,7 +439,28 @@ The value is a string containing the following characters, each of which is eith
             nval = 2,
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Scale of current guider (unbinned pixels/deg)",
-        )        
+        )
+        
+        self.gcFocus = keyVarFact(
+            keyword = "GCFocus",
+            nval = 1,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "User-specified focus offset for guide camera (um).",
+        )
+
+        self.gcFocusLim = keyVarFact(
+            keyword = "GCFocusLim",
+            nval = 2,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Limits of travel for guide camera focus actuator (um)",
+        )
+
+        self.gcNomFocus = keyVarFact(
+            keyword = "GCNomFocus",
+            nval = 1,
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Nominal position for guide camera focus actuator (um).",
+        )
 
         # miscellaneous
         
