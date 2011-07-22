@@ -80,6 +80,8 @@ Notes:
                     Added canStopSeq and renamed canPauseSequence to canPauseSeq.
 2010-10-06 ROwen    NICFPS: set canStopExp false (as it should have been).
 2011-07-20 ROwen    Added Shack-Hartmann.
+2011-07-21 ROwen    Bug fix: the exposure model was using instInfo.name instead of instInfo.instActor
+                    as prefixes for keywords from the <instInfo.instActor>Expose actor.
 """
 __all__ = ['getModel']
 
@@ -119,6 +121,9 @@ class _ExpInfo:
     - defOverscan: default overscan in x, y; None if cannot set overscan; ignored if canWindow False
     - playExposureEnds: play ExposureEnds sound when appropriate;
         set False if time is short between ending one exposure and beginning the next
+    
+    Also sets fields:
+    - exposeActor = <instActor>Expose
     """
     def __init__(self,
         instName,
@@ -298,6 +303,7 @@ class Model (object):
         self.instName = instName
         self.instInfo = _InstInfoDict[instName.lower()]
         self.actor = self.instInfo.exposeActor
+        instActor = self.instInfo.instActor
         
         self.tuiModel = TUI.TUIModel.getModel()
         
@@ -315,7 +321,7 @@ class Model (object):
         )
 
         self.expState = keyVarFact(
-            keyword = self.instName + "ExpState",
+            keyword = instActor + "ExpState",
             converters = (str, str, str, RO.CnvUtil.asFloatOrNone, RO.CnvUtil.asFloatOrNone),
             description = """current exposure info:
             - cmdr (progID.username)
@@ -333,7 +339,7 @@ class Model (object):
         self.expState.addCallback(self._updExpState)
 
         self.files = keyVarFact(
-            keyword = self.instName + "Files",
+            keyword = instActor + "Files",
             nval = 5 + self.instInfo.getNumCameras(),
             description = """file(s) just saved:
             - cmdr (progID.username)
@@ -354,7 +360,7 @@ class Model (object):
         )
 
         self.newFiles = keyVarFact(
-            keyword = self.instName + "NewFiles",
+            keyword = instActor + "NewFiles",
             nval = 5 + self.instInfo.getNumCameras(),
             description = """file(s) that will be saved at the end of the current exposure:
             - cmdr (progID.username)
@@ -372,7 +378,7 @@ class Model (object):
         )
 
         self.nextPath = keyVarFact(
-            keyword = self.instName + "NextPath",
+            keyword = instActor + "NextPath",
             nval = 5,
             description = """default file settings (used for the next exposure):
             - cmdr (progID.username)
@@ -385,7 +391,7 @@ class Model (object):
         )
         
         self.seqState = keyVarFact(
-            keyword = self.instName + "SeqState",
+            keyword = instActor + "SeqState",
             converters = (str, str, RO.CnvUtil.asFloatOrNone, RO.CnvUtil.asInt, RO.CnvUtil.asInt, str),
             description = """current sequence info:
             - cmdr (progID.username)

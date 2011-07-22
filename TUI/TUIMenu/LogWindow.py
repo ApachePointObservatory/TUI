@@ -51,6 +51,8 @@ History:
                     Separated filter function into two separate components: severity filter and misc filter.
                     Filter description is now stored in function __doc__.
 2011-06-17 ROwen    Modified filters "Commands and Replies" and "My Command and Replies" to hide debug messages.
+2011-07-22 ROwen    Modified filter "Command and Replies" to ditch commands from MN01 (the site monitor)
+                    and stopped filtering out apo.apo since the 3.5m apparently doesn't have an apo actor.
 """
 import bisect
 import re
@@ -611,7 +613,7 @@ class TUILogWdg(Tkinter.Frame):
             
             def filterFunc(logEntry, maxUserCmdNum=maxUserCmdNum):
                 return (logEntry.cmdr and logEntry.cmdr[0] != ".") \
-                    and (logEntry.cmdr != "apo.apo") \
+                    and not logEntry.cmdr.startswith("MN01") \
                     and (logEntry.severity > RO.Constants.sevDebug) \
                     and (0 < logEntry.cmdID <= maxUserCmdNum)
             filterFunc.__doc__ = "most commands and replies"
