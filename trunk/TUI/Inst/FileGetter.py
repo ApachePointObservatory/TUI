@@ -8,6 +8,7 @@ of ExposeStatusWdg there are, to avoid downloading duplicate images.
 2009-07-09 ROwen    Removed unused import of Tkinter (found by pychecker).
                     Removed unusable test code (found by pychecker).
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
+2011-07-21 ROwen    Renamed instModel to exposeModel for improved clarity.
 """
 __all__ = ['getModel']
 
@@ -25,9 +26,9 @@ import TUI.HubModel
 import TUI.TUIModel
 
 class FileGetter (object):
-    def __init__(self, instModel):
-        self.instModel = instModel
-        self.instName = self.instModel.instName
+    def __init__(self, exposeModel):
+        self.exposeModel = exposeModel
+        self.instName = self.exposeModel.instName
         self.ds9WinDict = {}
         
         self.hubModel = TUI.HubModel.getModel()
@@ -46,7 +47,7 @@ class FileGetter (object):
         
         if self.downloadWdg:
             # set up automatic ftp; we have all the info we need
-            self.instModel.files.addCallback(self._updFiles)
+            self.exposeModel.files.addCallback(self._updFiles)
 
     def _downloadFinished(self, camName, httpGet):
         """Call when an image file has been downloaded"""
@@ -60,12 +61,12 @@ class FileGetter (object):
         self._handlePendingDownloads()
         
         # display image if display wanted and camera name known and download succeeded
-#         print "viewImageVarCont=%r" % (self.instModel.viewImageVarCont.get())
-        if self.instModel.viewImageVarCont.get() and (camName != None) and (httpGet.getState() == httpGet.Done):
+#         print "viewImageVarCont=%r" % (self.exposeModel.viewImageVarCont.get())
+        if self.exposeModel.viewImageVarCont.get() and (camName != None) and (httpGet.getState() == httpGet.Done):
             ds9Win = self.ds9WinDict.get(camName)
             try:
                 if not ds9Win:
-                    if camName not in self.instModel.instInfo.camNames:
+                    if camName not in self.exposeModel.instInfo.camNames:
                         raise RuntimeError("Unknown camera name %r for %s" % (camName, self.instName))
                     if camName:
                         ds9Name = "%s_%s" % (self.instName, camName)
@@ -101,7 +102,7 @@ class FileGetter (object):
             return
 
 #         print "_updFiles(%r, %r)" % (fileInfo, isCurrent)
-        getEveryNum = self.instModel.getEveryVarCont.get()
+        getEveryNum = self.exposeModel.getEveryVarCont.get()
         if getEveryNum == 0:
             # no downloads wanted
             self.pendingDownloadArgs.clear()
@@ -120,11 +121,11 @@ class FileGetter (object):
         if self.tuiModel.getProgID() not in (progID, "APO"):
             # files are for a different program; ignore them unless user is APO
             return
-        if not self.instModel.getCollabPref.getValue() and username != self.tuiModel.getUsername():
+        if not self.exposeModel.getCollabPref.getValue() and username != self.tuiModel.getUsername():
             # files are for a collaborator and we don't want those
             return
         
-        toRootDir = self.instModel.ftpSaveToPref.getValue()
+        toRootDir = self.exposeModel.ftpSaveToPref.getValue()
 
         # save in userDir subdirectory of ftp directory
         argList = []
@@ -136,7 +137,7 @@ class FileGetter (object):
             fromURL = "".join(("http://", host, fromRootDir, progDir, userDir, fileName))
             toPath = os.path.join(toRootDir, progDir, userDir, fileName)
             
-            camName = RO.SeqUtil.get(self.instModel.instInfo.camNames, ii)
+            camName = RO.SeqUtil.get(self.exposeModel.instInfo.camNames, ii)
             doneFunc = RO.Alg.GenericCallback(self._downloadFinished, camName)
             if camName == None:
                 self.tuiModel.logMsg(
@@ -161,7 +162,7 @@ class FileGetter (object):
         """Examine pending downloads and start next download, if appropriate"""
 #         print "%s._handlePendingDownloads(); there are %s active and %s pending downloads" % \
 #             (self.__class__.__name__, len(self.activeDownloads), len(self.pendingDownloadArgs),)
-        getEveryNum = self.instModel.getEveryVarCont.get()
+        getEveryNum = self.exposeModel.getEveryVarCont.get()
         if getEveryNum == 0:
             # no downloads wanted
 #             print "No downloads wanted; clearing pending downloads"

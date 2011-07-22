@@ -32,6 +32,8 @@ History:
 2009-03-02 ROwen    Increased MinExposureBeginsSoundInterval from 9.9 to 29.9 seconds at Russet's request.
 2010-03-01 ROwen    Made master argument explicit for all RO Widgets.
 2011-01-19 ROwen    Play exposureFailed sound cue if exposure sequence fails.
+2011-07-21 ROwen    Renamed _updFiles to _updNewFiles for clarity.
+
 """
 __all__ = ["ExposeStatusWdg"]
 
@@ -132,13 +134,14 @@ class ExposeStatusWdg (Tkinter.Frame):
         
         self.columnconfigure(1, weight=1)
 
-        self.expModel.newFiles.addCallback(self._updFiles)
+        self.expModel.newFiles.addCallback(self._updNewFiles)
         self.expModel.expState.addCallback(self._updExpState)
         self.expModel.seqState.addCallback(self._updSeqState)
         
-    def _updFiles(self, fileInfo, isCurrent, **kargs):
-        """newFiles has changed. newFiles is file(s) that will be saved
-        at the end of the current exposure:
+    def _updNewFiles(self, fileInfo, isCurrent, **kargs):
+        """newFiles has changed.
+        
+        newFiles lists file(s) that will be saved at the end of the current exposure:
         - cmdr (progID.username)
         - host
         - common root directory
@@ -146,7 +149,7 @@ class ExposeStatusWdg (Tkinter.Frame):
         - user subdirectory
         - file name(s)
         """
-#       print "ExposeStatusWdg._updFiles(%r, %r)" % (fileInfo, isCurrent)
+#       print "ExposeStatusWdg._updNewFiles(%r, %r)" % (fileInfo, isCurrent)
         if not isCurrent:
             for wdg in self.fileNameWdgs:
                 wdg.setNotCurrent()
