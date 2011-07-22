@@ -25,7 +25,6 @@ import RO.Astro.Sph
 import RO.CoordSys
 import RO.MathUtil
 import RO.TkUtil
-import TUI.TCC.TCCModel
 import TelConst
 
 # default color for displaying catalog objects
@@ -46,24 +45,9 @@ class TelTarget(object):
 
     def __init__(self, valueDict=None):
         self.setValueDict(valueDict)
-        self.tccModel = TUI.TCC.TCCModel.getModel()
 
     def getAzAlt(self):
-        """Returns the current (az, alt) of the object, in degrees.
-        """
-        info = self.getAzAltDirAtPole()
-        if info == None:
-            return None
-        return info[0]
-    
-    def getAzAltDirAtPole(self):
-        """Returns the current (az, alt) of the object and other information
-        
-        Returns:
-        - azAltPos: the az,alt position (in degrees)
-        - orientAng: angle of input coordinate system longitudinal axis in az/alt axis
-        - atPole: if True then too close to the pole to compute some items
-        """
+        """Returns the current (az, alt) of the object, in degrees"""
         if self.csysConst == None:
             return None
             
@@ -79,48 +63,7 @@ class TelTarget(object):
             fromRadVel = self.radVel,
         )
         # eventually we'll want to handle toDir as well, but for now...
-        return toPos, toDir, atPole
-    
-    def getAzAltRotMount(self):
-        """returns the current (az, alt) and rotMount
-        """
-        info = self.getAzAltDirAtPole()
-        if info == None:
-            return None
-        azAltPos, orientAng, atPole = info[0:3]
-        
-
-    def computeRotMount(self):
-        if None in (self.rotType, self.rotAng):
-            return None
-
-        lowRotType = self.rotType.lower()
-            
-        if lowRotType == "mount":
-            return self.rotAng
-
-        rotOffset, rotScale = self.tccModel.rotOffsetScale.get()[0]
-        if None in (rotOffset, rotScale):
-            return None
-
-        if lowRotType == "phys":
-            return rotOffset + (self.rotAng * rotScale)
-        
-        if lowRotType in ("horizon", "mount"):
-            rotInstAng = self.tccModel.rotInstXYAng.get()[0][3]
-            spiderInstAng = self.tccModel.spiderInstAng.get()[0][0]
-            if None in (rotInstAng, spiderInstAng):
-                return None
-                
-            if lowRotType == "horizon":
-                # how does spiderInstAng figure into this? Look up my coord conversion diagram!
-                rotPhys = None # COMPUTE ME
-            else:
-                rotPhys = None # COMPUTE ME
-                
-            return rotOffset + (self.rotAng * rotScale)
-        
-        raise RuntimeError("Unknown rotType %s" % (self.rotType,))
+        return toPos
     
     def getValueDict(self):
         """Return the value dictionary.
@@ -143,8 +86,6 @@ class TelTarget(object):
                         equatorial is d'" or hms, depending on RO.CoordSys;
                         polar is always d'"
             - CSys      coordinate system name
-            - RotAng    rotator angle
-            - RotType   rotation type; one of "Object", "Horizon", "Phys", "Mount" or "None"
             - Date      date of observation and/or equinox;
                         units of date and default value depends on coordinate system
             - Name      object name
@@ -191,19 +132,6 @@ class TelTarget(object):
                 
         # get position in degrees
         self.posDeg = self.csysConst.posDegFromDispStr(*self.posStr)
-        
-        RotAng = valDict.get("RotAng")
-        if RotAng in (None, "", "None"):
-            self.rotAng = None
-        else:
-            self.rotAng = RotAng
-        
-        # get rotator type and angle
-        RotType = valDict.get("RotType")
-        if RotType in (None, ""):
-            self.rotType = None
-        else:
-            self.rotType = rotType
         
         PM = valueDict.get("PM", ("", ""))
         Px = valueDict.get("Px", "")
