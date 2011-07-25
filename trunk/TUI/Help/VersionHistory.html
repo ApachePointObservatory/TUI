@@ -36,8 +36,12 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Visible changes:
 <ul>
-    <li>Log window: the "Command and Replies" category now hides -mon commands and replies.
-    <li>Ctrl-click is disabled while executing another guider command that you have triggered (this already disabled Center Sel, but in earlier 1.9 betas you could still ctrl-click; now they use exactly the same test).
+    <li>Log window:
+    <ul>
+        <li>Changed the default filter configuration to Warnings + Commands and Replies.
+        <li>The "Command and Replies" category now hides monitor commands and replies (everything from program MN01).
+    </ul>
+    <li>Ctrl-click is disabled if you already have a guider command (such as ctrl-click) running. This always disabled Center Sel, but in earlier 1.9 betas you could still ctrl-click; now they use exactly the same test.
 </ul>
 
 <p>Bug fixes:
