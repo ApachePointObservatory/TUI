@@ -53,6 +53,7 @@ History:
 2011-06-17 ROwen    Modified filters "Commands and Replies" and "My Command and Replies" to hide debug messages.
 2011-07-22 ROwen    Modified filter "Command and Replies" to ditch commands from MN01 (the site monitor)
                     and stopped filtering out apo.apo since the 3.5m apparently doesn't have an apo actor.
+2011-07-25 ROwen    Changed default filter configuration from Normal to Warning + Commands and Replies.
 """
 import bisect
 import re
@@ -187,7 +188,7 @@ class TUILogWdg(Tkinter.Frame):
         self.severityMenu = RO.Wdg.OptionMenu(
             self.filterFrame,
             items = [val.title() for val in RO.Constants.NameSevDict.iterkeys()] + ["None"],
-            defValue = "Normal",
+            defValue = "Warning",
             callFunc = self.updateSeverity,
             helpText = "show replies with at least this severity",
             helpURL = HelpURL,
@@ -203,7 +204,7 @@ class TUILogWdg(Tkinter.Frame):
         self.filterMenu = RO.Wdg.OptionMenu(
             self.filterFrame,
             items = filterItems,
-            defValue = "",
+            defValue = FilterMenuPrefix + "Commands and Replies",
             callFunc = self.doFilter,
             helpText = "additional messages to show",
             helpURL = HelpURL,

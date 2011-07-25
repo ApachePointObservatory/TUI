@@ -82,6 +82,7 @@ Notes:
 2011-07-20 ROwen    Added Shack-Hartmann.
 2011-07-21 ROwen    Bug fix: the exposure model was using instInfo.name instead of instInfo.instActor
                     as prefixes for keywords from the <instInfo.instActor>Expose actor.
+2011-07-25 ROwen    Eliminated minimum exposure time for Shack-Hartmann. Let the actor deal with it.
 """
 __all__ = ['getModel']
 
@@ -228,7 +229,6 @@ def _getInstInfoDict():
             instName = "Shack-Hartmann",
             instActor = "shack",
             imSize = (512, 512),
-            minExpTime = 0.12,
             expTypes = ("object", "reference", "dark"),
             canPauseExp = False,
         ),
