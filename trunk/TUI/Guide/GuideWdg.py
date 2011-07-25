@@ -231,6 +231,9 @@ History:
                     are first started they don't report values for these parameters.
                     Changed ctrl-click annotation from a hollow X to a filled X.
                     Bug fix: star selection was much too picky.
+2011-07-25 ROwen    Bug fix: enableCmdButtons was not being reliably called after ctrl-click.
+                    Modified to disallow ctrl-click while executing a command.
+                    Thus Center Sel should always be enabled after ctrl-click.
 """
 import atexit
 import os
@@ -1240,6 +1243,7 @@ class GuideWdg(Tkinter.Frame):
         finally:
             self.endCtrlClickMode()
             self.endDragMode()
+            self.enableCmdButtons()
     
     def doCurrent(self, wdg=None):
         """Restore default value of all guide parameter widgets"""
@@ -1734,7 +1738,7 @@ class GuideWdg(Tkinter.Frame):
 
         # most reasons for disabling centerBtn are given by whyNotCtrlClick
         reasonStr = self.whyNotCtrlClick()
-        self.centerBtn.setEnable(isSel and not isExecOrGuiding and not reasonStr)
+        self.centerBtn.setEnable(isSel and not reasonStr)
                 
         self.guideOnBtn.setEnable(showCurrIm and guideCmdOK and not isExecOrGuiding)
         
@@ -2642,6 +2646,9 @@ class GuideWdg(Tkinter.Frame):
         
         if self.isGuiding():
             return "auto-guiding"
+        
+        if self.doingCmd != None:
+            return "executing a command"
 
         if evt and not self.gim.evtOnCanvas(evt):
            return "event not on canvas"
