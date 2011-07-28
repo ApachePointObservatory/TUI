@@ -14,14 +14,15 @@ History:
                     Combined currRadMult and defRadMult into radMult.
                     Ditched currGuideMode and defGuideMode because they were not being used.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
+2011-07-27 ROwen    Updated for new location of HubModel.
 """
 import os
 import pyfits
 import sys
 import traceback
 import RO.StringUtil
-import TUI.HubModel
 import TUI.TUIModel
+import TUI.Models
 import SubFrame
 
 _DebugMem = False # print a message when a file is deleted from disk?
@@ -59,7 +60,7 @@ class BasicImage(object):
         self.localBaseDir = localBaseDir
         self.imageName = imageName
         self.downloadWdg = downloadWdg
-        self.hubModel = TUI.HubModel.getModel()
+        self.hubModel = TUI.Models.HubModel.getModel()
         self.errMsg = None
         self.fetchCallFunc = fetchCallFunc
         self.isLocal = isLocal

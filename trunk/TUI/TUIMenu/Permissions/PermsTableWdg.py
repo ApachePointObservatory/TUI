@@ -33,6 +33,7 @@ and because the transition has to occur somewhere.
 2011-04-06 ROwen    Modified to order actors by category. To do: display separation between categories.
 2011-04-08 ROwen    Renamed from PermsInputWdg to PermsTableWdg and made self-contained
                     (no need to create external frames for the header and scrolled table).
+2011-07-27 ROwen    Modified to find PermsModel in TUI.Models.
 """
 import Tkinter
 import RO.Constants
@@ -40,7 +41,7 @@ import RO.Alg
 import RO.KeyVariable
 import RO.Wdg
 import TUI.TUIModel
-import PermsModel
+import TUI.Models.PermsModel
 
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
 
@@ -159,7 +160,7 @@ class PermsTableWdg(Tkinter.Frame):
         self._readOnly = True
         self._updActorTimer = None
         
-        self.permsModel = PermsModel.getModel()
+        self.permsModel = TUI.Models.PermsModel.getModel()
         
         self.permsModel.actors.addCallback(self._updActors)
         self.permsModel.authList.addCallback(self._updAuthList)

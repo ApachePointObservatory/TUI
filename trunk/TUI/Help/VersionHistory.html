@@ -32,6 +32,28 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
 
+<h3>1.9.0b6 2011-07-27</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Log windows:
+    <ul>
+        <li>Added a new filter "Commands". This is useful for a very succinct view.
+        <li>Added new messages CmdStarted and CmdDone (based on messages from the cmds actor).
+    </ul>
+</ul>
+
+<p>Internal changes:
+<ul>
+    <li>Moved HubModel and PermsModel into TUI.Models and added CmdsModel there. Others will eventually move there, but that will be a more disruptive change.
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li>Guider windows: the initial image is often be black. Thanks to Jack Dembicky for reporting this and to Russet McMillan for additional help tracking it down.
+    <li>Log windows: the Commands and Replies filter did not show other user's commands.
+</ul>
+
 <h3>1.9.0b5 2011-07-25</h3>
 
 <p>Visible changes:
