@@ -83,6 +83,9 @@ Notes:
 2011-07-21 ROwen    Bug fix: the exposure model was using instInfo.name instead of instInfo.instActor
                     as prefixes for keywords from the <instInfo.instActor>Expose actor.
 2011-07-25 ROwen    Eliminated minimum exposure time for Shack-Hartmann. Let the actor deal with it.
+2011-07-27 ROwen    Added modelIter.
+                    Removed unneeded import of HubModel.
+                    Changed all classes into modern style classes.
 """
 __all__ = ['getModel']
 
@@ -94,11 +97,10 @@ import RO.DS9
 import RO.KeyVariable
 import RO.SeqUtil
 import RO.StringUtil
-import TUI.HubModel
 import TUI.TUIModel
 import FileGetter
 
-class _ExpInfo:
+class _ExpInfo(object):
     """Exposure information for a camera
     
     Inputs:
@@ -190,8 +192,13 @@ class _ExpInfo:
     def getNumCameras(self):
         return len(self.camNames)
 
-def _getInstInfoDict():
-    # instrument information
+
+def _makeInstInfoDict():
+    """Generate instInfo dictionary and exposure model dictionary
+    
+    Returns:
+    * instInfoDict: a dictionary if instName.lower(): _ExpInfo
+    """
     _InstInfoList = (
         _ExpInfo(
             instName = "agile",
@@ -252,14 +259,14 @@ def _getInstInfoDict():
         instInfoDict[instInfo.instName.lower()] = instInfo
     return instInfoDict
 
-# dictionary of instrument information
-_InstInfoDict = _getInstInfoDict()
+# dictionary of instName.lower(): _ExpInfo
+_InstInfoDict = _makeInstInfoDict()
 
-# cache of instrument exposure models
-# each entry is instName: model
+# cache of instName: model; filled as needed
 _modelDict = {}
 
-class _BoolPrefVarCont:
+
+class _BoolPrefVarCont(object):
     """Class to set a Tkinter.BooleanVar from a RO.Pref boolean preference variable.
     If the preference value changes, the variable changes, but not visa versa.
     The contained var can be used as the var in a Checkbutton
@@ -273,7 +280,8 @@ class _BoolPrefVarCont:
         """Return the current var value as a bool"""
         return self.var.get()
 
-class _IntPrefVarCont:
+
+class _IntPrefVarCont(object):
     """Class to set a Tkinter StringVar from a RO.Pref int preference variable.
     If the preference value changes, the variable changes, but not visa versa.
     The contained var can be used as the var in an entry widget
@@ -288,6 +296,7 @@ class _IntPrefVarCont:
         """Return the current var value as an int"""
         return int(self.var.get())
 
+
 def getModel(instName):
     global _modelDict
     instNameLow = instName.lower()
@@ -298,7 +307,13 @@ def getModel(instName):
     return model
 
 
-class Model (object):
+def modelIter():
+    global _InstInfoDict
+    for instInfo in _InstInfoDict.itervalues():
+        yield getModel(instInfo.instName)
+
+
+class Model(object):
     def __init__(self, instName):
         self.instName = instName
         self.instInfo = _InstInfoDict[instName.lower()]
@@ -541,7 +556,7 @@ class Model (object):
         modValues[3] = None
         modValues[4] = None
         keyVar._valueList = tuple(modValues)
-        
+
 
 def formatValList(name, valList, valFmt, numElts=None):
     #print "formatValList(name=%r, valList=%s, valFmt=%r, numElts=%s)" % (name, valList, valFmt, numElts)
@@ -550,6 +565,8 @@ def formatValList(name, valList, valFmt, numElts=None):
     valStr = ",".join([valFmt % (val,) for val in valList])
     return "%s=%s" % (name, valStr)
 
+
 if __name__ == "__main__":
-    for actor in _InstInfoDict:
-        getModel(actor)
+    print "Contains exposure models for these instruments:"
+    for model in modelIter():
+        print model.instName

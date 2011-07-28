@@ -54,6 +54,10 @@ History:
 2011-07-22 ROwen    Modified filter "Command and Replies" to ditch commands from MN01 (the site monitor)
                     and stopped filtering out apo.apo since the 3.5m apparently doesn't have an apo actor.
 2011-07-25 ROwen    Changed default filter configuration from Normal to Warning + Commands and Replies.
+2011-07-27 ROwen    Added "Commands" filter.
+                    Upgraded filters to use new LogEntry fields cmdInfo and isKeys.
+                    Bug fix: "Commands and Replies" did not show other user's commands.
+                    Tweaked help text for "My Commands and Replies" to match STUI.
 """
 import bisect
 import re
@@ -63,7 +67,7 @@ import RO.Alg
 import RO.StringUtil
 import RO.TkUtil
 import RO.Wdg
-import TUI.HubModel
+import TUI.Models.HubModel
 import TUI.TUIModel
 import TUI.PlaySound
 import TUI.Version
@@ -199,7 +203,7 @@ class TUILogWdg(Tkinter.Frame):
 #       RO.Wdg.StrLabel(self.filterFrame, text="and").grid(row=0, column=filtCol)
 #       filtCol += 1
         
-        self.filterCats = ("Actor", "Actors", "Text", "Commands and Replies", "My Commands and Replies", "Custom")
+        self.filterCats = ("Actor", "Actors", "Text", "Commands", "Commands and Replies", "My Commands and Replies", "Custom")
         filterItems = [""] + [FilterMenuPrefix + fc for fc in self.filterCats]
         self.filterMenu = RO.Wdg.OptionMenu(
             self.filterFrame,
@@ -441,7 +445,7 @@ class TUILogWdg(Tkinter.Frame):
         
         cmdFrame.grid(row=5, column=0, columnspan=5, sticky="ew")
         
-        hubModel = TUI.HubModel.getModel()
+        hubModel = TUI.Models.HubModel.getModel()
         hubModel.actors.addCallback(self._actorsCallback)
         
         # dictionary of actor name, tag name pairs:
@@ -609,26 +613,34 @@ class TUILogWdg(Tkinter.Frame):
             filterFunc.__doc__ = "text contains %s" % (regExp)
             return filterFunc
 
+        elif filterCat == "Commands":
+            def filterFunc(logEntry):
+                return (logEntry.cmdr and logEntry.cmdr[0] != ".") \
+                    and not logEntry.cmdr.startswith("MN01") \
+                    and logEntry.cmdInfo \
+                    and not logEntry.isKeys
+            filterFunc.__doc__ = "most commands"
+            return filterFunc
+
         elif filterCat == "Commands and Replies":
-            maxUserCmdNum = self.dispatcher.getMaxUserCmdID()
-            
-            def filterFunc(logEntry, maxUserCmdNum=maxUserCmdNum):
+            def filterFunc(logEntry):
                 return (logEntry.cmdr and logEntry.cmdr[0] != ".") \
                     and not logEntry.cmdr.startswith("MN01") \
                     and (logEntry.severity > RO.Constants.sevDebug) \
-                    and (0 < logEntry.cmdID <= maxUserCmdNum)
+                    and not logEntry.isKeys \
+                    and not logEntry.cmdInfo
             filterFunc.__doc__ = "most commands and replies"
             return filterFunc
 
         elif filterCat == "My Commands and Replies":
             cmdr = self.dispatcher.connection.getCmdr()
-            maxUserCmdNum = self.dispatcher.getMaxUserCmdID()
             
-            def filterFunc(logEntry, cmdr=cmdr, maxUserCmdNum=maxUserCmdNum):
+            def filterFunc(logEntry, cmdr=cmdr):
                 return (logEntry.cmdr == cmdr) \
                     and (logEntry.severity > RO.Constants.sevDebug) \
-                    and (0 < logEntry.cmdID <= maxUserCmdNum)
-            filterFunc.__doc__ = "most of my commands and replies"
+                    and not logEntry.isKeys \
+                    and ((logEntry.cmdInfo == None) or (logEntry.cmdInfo.isMine))
+            filterFunc.__doc__ = "my commands and replies"
             return filterFunc
 
         elif filterCat == "Custom":
@@ -1115,7 +1127,7 @@ if __name__ == '__main__':
     actors = ("ecam", "disExpose","dis", "keys")
     msgTypes = ("d", "i", "w", "f")
 
-    hubModel = TUI.HubModel.getModel()
+    hubModel = TUI.Models.HubModel.getModel()
     hubModel.actors.set(actors)
 
     for ii in range(100):

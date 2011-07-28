@@ -20,11 +20,12 @@ To do:
                     Removed unused import of RO.KeyVariable and RO.StringUtil.
                     Added WindowName.
 2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+2011-07-27 ROwen    Updated for new location of HubModel.
 """
 import time
 import Tkinter
 import RO.Wdg
-import TUI.HubModel
+import TUI.Models.HubModel
 import TUI.TUIModel
 import TUI.Version
 
@@ -157,7 +158,7 @@ class UsersWdg(Tkinter.Frame):
     **kargs):
         Tkinter.Frame.__init__(self, master, **kargs)
         
-        hubModel = TUI.HubModel.getModel()
+        hubModel = TUI.Models.HubModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
         
         # entries are commanders (prog.user)

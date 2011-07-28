@@ -9,6 +9,7 @@ of ExposeStatusWdg there are, to avoid downloading duplicate images.
                     Removed unusable test code (found by pychecker).
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-07-21 ROwen    Renamed instModel to exposeModel for improved clarity.
+2011-07-27 ROwen    Updated for new location of HubModel.
 """
 __all__ = ['getModel']
 
@@ -22,8 +23,8 @@ import RO.DS9
 import RO.KeyVariable
 import RO.SeqUtil
 import RO.StringUtil
-import TUI.HubModel
 import TUI.TUIModel
+import TUI.Models.HubModel
 
 class FileGetter (object):
     def __init__(self, exposeModel):
@@ -31,7 +32,7 @@ class FileGetter (object):
         self.instName = self.exposeModel.instName
         self.ds9WinDict = {}
         
-        self.hubModel = TUI.HubModel.getModel()
+        self.hubModel = TUI.Models.HubModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
         
         # set of active downloads; each entry is an HTTPGet object

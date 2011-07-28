@@ -13,14 +13,15 @@
 2009-07-06 ROwen    Modified for updated TestData.
 2009-07-09 ROwen    Modified test code to look more like tuisdss.
 2011-04-08 ROwen    Modified to use updated PermsTableWdg (formerly PermsInputWdg).
-2011-06-17 ROwen    Added constants WindowName
+2011-06-17 ROwen    Added constants WindowName.
+2011-07-27 ROwen    Updated for new location of PermsModel.
 """
 import Tkinter
 import RO.KeyVariable
 import RO.Wdg
-import PermsModel
-import PermsTableWdg
 import TUI.TUIModel
+import TUI.Models.PermsModel
+import PermsTableWdg
 
 WindowName = "TUI.Permissions"
 
@@ -46,7 +47,7 @@ class PermsWdg(Tkinter.Frame):
 
         tuiModel = TUI.TUIModel.getModel()
 
-        self._permsModel = PermsModel.getModel()
+        self._permsModel = TUI.Models.PermsModel.getModel()
 
         self._statusBar = RO.Wdg.StatusBar(
             master = self,
