@@ -58,6 +58,7 @@ History:
                     Upgraded filters to use new LogEntry fields cmdInfo and isKeys.
                     Bug fix: "Commands and Replies" did not show other user's commands.
                     Tweaked help text for "My Commands and Replies" to match STUI.
+2011-07-28 ROwen    Bug fix: "Commands and Replies" filter was hiding CmdStarted and CmdDone messages.
 """
 import bisect
 import re
@@ -627,8 +628,7 @@ class TUILogWdg(Tkinter.Frame):
                 return (logEntry.cmdr and logEntry.cmdr[0] != ".") \
                     and not logEntry.cmdr.startswith("MN01") \
                     and (logEntry.severity > RO.Constants.sevDebug) \
-                    and not logEntry.isKeys \
-                    and not logEntry.cmdInfo
+                    and not logEntry.isKeys
             filterFunc.__doc__ = "most commands and replies"
             return filterFunc
 

@@ -62,6 +62,7 @@ class CmdInfo(object):
     def __str__(self):
         return "%s %d %s %s" % (self.cmdr, self.cmdID, self.actor, self.cmdStr)
 
+
 class LogEntry(object):
     """Data for one log entry
     
@@ -135,6 +136,8 @@ class LogSource(RO.AddCallback.BaseMixin):
 
         RO.AddCallback.BaseMixin.__init__(self)
         self.entryList = collections.deque()
+        # dictionary of hub unique command ID: CmdInfo
+        # used to keep track of running commands so I can turn cmds.CmdDone into real information
         self.cmdDict = {}
         self.lastEntry = None
         self.maxEntries = int(maxEntries)
