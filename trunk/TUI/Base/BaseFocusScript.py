@@ -128,6 +128,9 @@ History:
 2010-12-09 ROwen    PR 1211: if a focus sweep failed to converge, restored secondary focus by commanding
                     the TCC directly instead of calling waitSetFocus. This is bad for the focus script
                     that moves the NA2 guider focus, since it should never alter secondary focus.
+2011-07-29 ROwen    Made taking a final image more reliable. Formerly if the script was cancelled
+                    during the first exposure it would not take a final exposure.
+                    Reduced the minimum focus step size from 25um to 10um.
 """
 import inspect
 import math
@@ -266,7 +269,7 @@ class BaseFocusScript(object):
     WinSizeMult = 2.5 # window radius = centroid radius * WinSizeMult
     FocGraphMargin = 5 # margin on graph for x axis limits, in um
     MaxFocSigmaFac = 0.5 # maximum allowed sigma of best fit focus as a multiple of focus range
-    MinFocusIncr = 25 # minimum focus increment, in um
+    MinFocusIncr = 10 # minimum focus increment, in um
     def __init__(self,
         sr,
         gcamActor,
@@ -1007,6 +1010,7 @@ class BaseFocusScript(object):
         """
         centroidCmdStr = "centroid on=%0.1f,%0.1f cradius=%0.1f %s" % \
             (self.relStarPos[0], self.relStarPos[1], self.centroidRadPix, self.formatExposeArgs())
+        self.doTakeFinalImage = True
         yield self.sr.waitCmd(
            actor = self.gcamActor,
            cmdStr = centroidCmdStr,
@@ -1014,7 +1018,6 @@ class BaseFocusScript(object):
            checkFail = False,
         )
         cmdVar = self.sr.value
-        self.doTakeFinalImage = True
         if self.sr.debug:
             starData = makeStarData("c", self.relStarPos)
         else:
@@ -1048,6 +1051,7 @@ class BaseFocusScript(object):
         self.sr.showMsg("Exposing %s sec to find best star" % (self.expTime,))
         findStarCmdStr = "findstars " + self.formatExposeArgs(doWindow=False)
         
+        self.doTakeFinalImage = True
         yield self.sr.waitCmd(
            actor = self.gcamActor,
            cmdStr = findStarCmdStr,
@@ -1055,7 +1059,6 @@ class BaseFocusScript(object):
            checkFail = False,
         )
         cmdVar = self.sr.value
-        self.doTakeFinalImage = True
         if self.sr.debug:
             filePath = "debugFindFile"
         else:
@@ -1680,6 +1683,7 @@ class ImagerFocusScript(BaseFocusScript):
         
         findStarCmdStr = "findstars file=%s" % (filePath,)
         
+        self.doTakeFinalImage = True
         yield self.sr.waitCmd(
            actor = self.gcamActor,
            cmdStr = findStarCmdStr,
@@ -1687,7 +1691,6 @@ class ImagerFocusScript(BaseFocusScript):
            checkFail = False,
         )
         cmdVar = self.sr.value
-        self.doTakeFinalImage = True
         if self.sr.debug:
             starDataList = makeStarData("f", (50.0, 75.0))
         else:

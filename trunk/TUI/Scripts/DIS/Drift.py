@@ -14,6 +14,7 @@ History:
                     Added support for debug mode.
                     Improved handling of drift speed and range by eliminating
                     class attributes that matched the contents of widgets.
+2011-07-29 ROwen    Added support for drifting across slit.
 """
 import Tkinter
 import RO.Wdg
@@ -71,6 +72,18 @@ class ScriptClass(object):
         
         # add some controls to the exposure input widget
         
+        # drift direction; make sure True is along slit!
+        self.driftDirWdg = RO.Wdg.Checkbutton(
+            master = self.expWdg,
+            defValue = True,
+            onvalue = "Along Slit",
+            offvalue = "Across Slit",
+            showValue = True,
+            helpText = "Drift along slit or across it?",
+            helpURL = HelpURL,
+        )
+        self.expWdg.gridder.gridWdg("Drift Direction", self.driftDirWdg, colSpan=2)
+        
         # drift range
         self.driftSpeedWdg = RO.Wdg.FloatEntry (
             master = self.expWdg,
@@ -101,12 +114,22 @@ class ScriptClass(object):
             helpText = "Range of drift as % of slit length",
             helpURL = HelpURL,
         )
-        self.expWdg.gridder.gridWdg("=", self.driftRangePercentWdg, '%', sticky="w", row=-1, col=3)
+        self.driftPctWdgSet = self.expWdg.gridder.gridWdg("=", self.driftRangePercentWdg, '%', sticky="w", row=-1, col=3)
         
         self.expWdg.gridder.allGridded()
         
         self.driftSpeedWdg.addCallback(self.updateRange)
         self.expWdg.timeWdg.addCallback(self.updateRange, callNow=True)
+        self.driftDirWdg.addCallback(self.doDriftDir, callNow=True)
+    
+    def doDriftDir(self, dumWdg=None):
+        isAlongSlit = self.driftDirWdg.getBool()
+        if isAlongSlit:
+            for wdg in self.driftPctWdgSet:
+                wdg.grid()
+        else:
+            for wdg in self.driftPctWdgSet:
+                wdg.grid_remove()
 
     def updateRange(self, *args):
         """Compute new drift range.
@@ -127,7 +150,10 @@ class ScriptClass(object):
     
     def run(self, sr):
         """Take one or more exposures while moving the object
-        in the +X direction along the slit.
+        
+        Depending on drift direction, motion is:
+        - Along slit: +X
+        - Across slit: +Y
         """
         self.begBoreXY = [None, None]
         self.didMove = False
@@ -158,19 +184,29 @@ class ScriptClass(object):
         # time is in seconds
         # distance is in arcsec (AS suffix) or degrees (no suffix)
         expTime = self.expWdg.timeWdg.getNum()
+        
+        if self.driftDirWdg.getBool():
+            # along slit
+            driftAxis = 0
+        else:
+            driftAxis = 1
+        
         driftSpeedAS = self.driftSpeedWdg.getNumOrNone()
         if driftSpeedAS == None:
             raise sr.ScriptError("No drift speed")
         driftSpeed = driftSpeedAS / RO.PhysConst.ArcSecPerDeg
+        driftSpeedXY = [0.0, 0.0]
+        driftSpeedXY[driftAxis] = driftSpeed
 
         driftRangeAS = self.driftRangeWdg.getNumOrNone()
         if driftRangeAS == None:
             raise sr.ScriptError("Drift range unknown")
         driftRange = driftRangeAS / RO.PhysConst.ArcSecPerDeg
         
-        # compute starting position
-        startPosX = self.begBoreXY[0] - (driftRange / 2.0) - (driftSpeed * RampTime)
-        startPosY = self.begBoreXY[1]
+        # compute starting position and velocity
+        startOffset = - (driftRange / 2.0) - (driftSpeed * RampTime)
+        startPosXY = self.begBoreXY[:]
+        startPosXY[driftAxis] += startOffset
         
         # should probably check against axis limits
         # but for now let's assume the user has a clue...
@@ -184,7 +220,7 @@ class ScriptClass(object):
         sr.showMsg("Slewing to starting position")
     
         tccCmdStr = "offset boresight %.7f, %.7f/pabs/vabs/computed" % \
-            (startPosX, startPosY)
+            (startPosXY[0], startPosXY[1])
         #print "sending tcc command %r" % tccCmdStr
         self.didMove = True
         yield sr.waitCmd(
@@ -198,8 +234,8 @@ class ScriptClass(object):
                 
             # start drift
             sr.showMsg("%s: starting drift" % cycleStr)
-            tccCmdStr = "offset boresight %.7f, %.7f, %.7f, 0.0/pabs/vabs" % \
-                (startPosX, startPosY, driftSpeed)
+            tccCmdStr = "offset boresight %.7f, %.7f, %.7f, %.7f/pabs/vabs" % \
+                (startPosXY[0], startPosXY[1], driftSpeedXY[0], driftSpeedXY[1])
             #print "sending tcc command %r" % tccCmdStr
             yield sr.waitCmd(
                 actor = "tcc",
@@ -234,7 +270,7 @@ class ScriptClass(object):
                 sr.showMsg("%s: slewing to start pos. for next exposure" % cycleStr)
             
                 tccCmdStr = "offset boresight %.7f, %.7f/pabs/vabs/computed" % \
-                    (startPosX, startPosY)
+                    (startPosXY[0], startPosXY[1])
                 #print "sending tcc command %r" % tccCmdStr
                 self.didMove = True
                 yield sr.waitCmd(
