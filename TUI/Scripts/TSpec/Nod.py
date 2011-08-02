@@ -3,7 +3,9 @@
 History:
 2008-04-23 ROwen
 2008-07-24 ROwen    Fixed PR 852: end did not always restore the original boresight.
+2011-08-02 ROwen    Added variable offset and test for minimum offset.
 """
+import math
 import numpy
 import Tkinter
 import RO.Wdg
@@ -22,6 +24,8 @@ MaxCycles = 9999
  # Instrument scale in unbinned pixels/degree on the sky
 # as measured by APO 2008-03-21 but averaged x and y
 InstScale = (-14352, 14342)
+ABOffsetArcSec = tuple(ABOffsetPix[i] * 3600.0 / InstScale[i] for i in range(2))
+MinOffsetArcSec = 0.1 # minimum offset in arcsec
 HelpURL = "Scripts/BuiltInScripts/TSpecNod.html"
 
 class ScriptClass(object):  
@@ -68,6 +72,35 @@ class ScriptClass(object):
         row += 1
         
         # add some controls to the exposure input widget
+        
+        self.offsetEnableWdg = RO.Wdg.Checkbutton (
+            master = self.expWdg,
+            text = "Offset",
+            defValue = False,
+            indicatoron = False,
+            helpText = "Enable/disable manual control of offset",
+            helpURL = HelpURL,
+        )
+        self.offsetArcSecWdgSet = []
+        offsetFrame = Tkinter.Frame(self.expWdg)
+        for i, axis in enumerate(("x", "y")):
+            offsetWdg = RO.Wdg.FloatEntry(
+                master = offsetFrame,
+                callFunc = self._doOffsetWdg,
+                helpText = "Amount of %s offset in arcsec" % (axis,),
+                helpURL = HelpURL,
+            )
+            offsetWdg.pack(side="left")
+            self.offsetArcSecWdgSet.append(offsetWdg)
+        RO.Wdg.Label(master=offsetFrame, text="arcsec").pack(side="left")
+        self.offsetPixWdg = RO.Wdg.Label(
+            master = offsetFrame,
+            helpText = "Amount of x,y offset in pixels",
+            helpURL = HelpURL,
+        )
+        self.offsetPixWdg.pack(side="left")
+        self.expWdg.gridder.gridWdg(self.offsetEnableWdg, offsetFrame, colSpan=5)
+            
 
         # number of cycles
         self.numCyclesWdg = RO.Wdg.IntEntry (
@@ -89,6 +122,39 @@ class ScriptClass(object):
             self.expWdg.numExpWdg.set(2)
             self.expWdg.fileNameWdg.set("debug")
             self.numCyclesWdg.set(2)
+        
+        self.offsetEnableWdg.addCallback(self._doOffsetEnable, callNow=True)
+    
+    def _doOffsetEnable(self, wdg=None):
+        """Handle toggle of offsetEnableWdg
+        """
+        if self.offsetEnableWdg.getBool():
+            for wdg in self.offsetArcSecWdgSet:
+                wdg.setEnable(True)
+        else:
+            for i, wdg in enumerate(self.offsetArcSecWdgSet):
+                wdg.set(ABOffsetArcSec[i])
+                wdg.setEnable(False)
+    
+    def _doOffsetWdg(self, wdg=None):
+        """Handle changes in offset in arcsec by updating offset in pixels
+        """
+        if self.isOffsetOK():
+            offsetArcSec = self.getOffsetArcSec()
+            offsetPix = tuple(offsetArcSec[i] * InstScale[i] / 3600.0 for i in range(2))
+            self.offsetPixWdg.set("= %0.1f, %0.1f pix" % offsetPix, severity=RO.Constants.sevNormal)
+        else:
+            self.offsetPixWdg.set("offset too small", severity=RO.Constants.sevError)
+    
+    def getOffsetArcSec(self):
+        """Return current x,y offset in arcsec; 0 if field is empty
+        """
+        return [wdg.getNum() for wdg in self.offsetArcSecWdgSet]
+    
+    def isOffsetOK(self):
+        """Is offset acceptably large? The test right now is 0
+        """
+        return math.hypot(*self.getOffsetArcSec()) >= MinOffsetArcSec
 
     def end(self, sr):
         """If telescope offset, restore original position.
@@ -150,8 +216,11 @@ class ScriptClass(object):
         
         NodeOffsetDict = dict (
             A = numpy.zeros(2, dtype=float),
-            B = numpy.array(ABOffsetPix, dtype=float) / numpy.array(InstScale, dtype=float)
+            B = numpy.array(self.getOffsetArcSec(), dtype=float) / 3600.0,
         )
+        
+        if not self.isOffsetOK():
+            raise sr.ScriptError("offset too small")
         
         numExpTaken = 0
         for cycle in range(numCycles):
