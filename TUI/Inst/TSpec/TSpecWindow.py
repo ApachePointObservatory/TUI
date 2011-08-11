@@ -3,6 +3,7 @@
 
 History:
 2008-03-14 ROwen
+2011-08-11 ROwen    Modified to save state.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
@@ -29,6 +30,7 @@ def addWindow(tlSet):
         resizable = False,
         wdgFunc = StatusConfigWdg,
         visible = False,
+        doSaveState = True,
     )
 
 class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):

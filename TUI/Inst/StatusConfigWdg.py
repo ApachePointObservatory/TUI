@@ -7,6 +7,7 @@ History:
                     are handled by its slitviewer. This is a bit of a hack.
                     Read actor from statusConfigInputClass.Actor, if present.
 2008-03-25 ROwen    The instrument actor is now obtained from the exposure model.
+2011-08-11 ROwen    Added a state tracker.
 """
 import Tkinter
 import RO.ScriptRunner
@@ -49,13 +50,15 @@ class StatusConfigWdg (Tkinter.Frame):
         Tkinter.Frame.__init__(self, master)
 
         tuiModel = TUI.TUIModel.getModel()
+        
+        self._stateTracker = RO.Wdg.StateTracker(logFunc = tuiModel.logFunc)
 
         self.tlSet = tuiModel.tlSet
         self.configShowing = False
 
         row = 0
 
-        self.inputWdg = statusConfigInputClass(self, **kargs)
+        self.inputWdg = statusConfigInputClass(self, stateTracker = self._stateTracker, **kargs)
         if self.inputWdg.HelpPrefix:
             helpURL = self.inputWdg.HelpPrefix + "CmdButtons"
         else:
@@ -98,6 +101,7 @@ class StatusConfigWdg (Tkinter.Frame):
             helpURL = helpURL,
         )
         self.showConfigWdg.grid(row=0, column=bfCol)
+        self._stateTracker.trackCheckbutton("showConfig", self.showConfigWdg)
         buttonFrame.columnconfigure(bfCol, weight=1)
         bfCol += 1
 
@@ -200,6 +204,9 @@ class StatusConfigWdg (Tkinter.Frame):
     
     def getActorForCommand(self, cmdStr):
         return self.actor
+    
+    def getStateTracker(self):
+        return self._stateTracker
 
     def showExpose(self):
         """Show the instrument's expose window.

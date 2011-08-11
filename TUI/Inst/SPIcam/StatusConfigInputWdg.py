@@ -95,6 +95,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpURL = self.HelpPrefix + "ShowCCD",
         )
         gr.addShowHideControl(self.CCDCat, self.showCCDWdg)
+        self._stateTracker.trackCheckbutton("showCCD", self.showCCDWdg)
         gr.gridWdg (
             label = self.showCCDWdg,
         )

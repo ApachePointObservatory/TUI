@@ -46,6 +46,7 @@ History:
 2010-03-18 ROwen    Moved _getGeomFile to TUI.TUIPaths.getGeomFile.
 2010-06-29 ROwen    Added logSource field and MaxLogWindows global from STUI.
                     Removed one unused import.
+2011-08-11 ROwen    Added logFunc.
 """
 import platform
 import sys
@@ -104,6 +105,9 @@ class _Model (object):
             def logToStdOut(logSource):
                 print logSource.lastEntry.getStr(),
             self.logSource.addCallback(logToStdOut)
+        
+        # function to log a message
+        self.logFunc = self.logSource.logMsg
     
         # TUI preferences
         self.prefs = prefs = TUI.TUIPrefs.TUIPrefs()

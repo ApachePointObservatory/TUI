@@ -8,6 +8,7 @@ History:
 2008-02-11 ROwen    Modified to use new TUI.Inst.StatusConfigWdg.
 2008-03-13 ROwen    Modified to use InstName for creating the main toplevel.
                     Simplified the test code (copying that for NICFPS).
+2011-08-11 ROwen    Modified to save state.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
@@ -34,6 +35,7 @@ def addWindow(tlSet):
         resizable = False,
         wdgFunc = StatusConfigWdg,
         visible = False,
+        doSaveState = True,
     )
 
 class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):

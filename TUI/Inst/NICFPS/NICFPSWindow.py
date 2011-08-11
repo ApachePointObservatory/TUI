@@ -5,6 +5,7 @@ History:
 2004-10-19 ROwen
 2008-02-11 ROwen    Modified to use new TUI.Inst.StatusConfigWdg.
 2008-02-12 ROwen    Misfeature fix: was using instName=Expose for the expose window.
+2011-08-11 ROwen    Modified to save state.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
@@ -31,6 +32,7 @@ def addWindow(tlSet):
         resizable = False,
         wdgFunc = StatusConfigWdg,
         visible = False,
+        doSaveState = True,
     )
 
 class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):

@@ -17,7 +17,6 @@ History:
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
-import TUI.Inst.StatusConfigWdg
 import StatusConfigInputWdg
 import AgileModel
 import AgileFilterWdg
@@ -32,6 +31,7 @@ def addWindow(tlSet):
         resizable = False,
         wdgFunc = AgileExposeWindow,
         visible = False,
+        doSaveState = True,
     )
 
 class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
@@ -74,6 +74,7 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
         )
         gr.gridWdg(False, self.statusConfigWdg, colSpan=10, sticky="w")
         self.configWdg.pack_forget()
+        self._stateTracker.trackCheckbutton("showEnviron", self.statusConfigWdg.environShowHideWdg)
         
         self.connSensitiveWdgSet = (self.startWdg, self.stopWdg, self.abortWdg)
         self.agileModel = AgileModel.getModel()
@@ -88,7 +89,7 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
             return
         cmdStr += " gain=%s readrate=%s" % (self.gainWdg.getString().lower(), self.readRateWdg.getString().lower())
         return cmdStr
-
+    
     def doStop(self, wdg):
         """Handles the Stop and Abort buttons (and Pause and Resume if agile supported those).
         

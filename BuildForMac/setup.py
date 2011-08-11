@@ -49,6 +49,8 @@ History:
 2009-10-22 ROwen    Removed installation of snack (now that TUI uses pygame to play sounds).
 2009-11-09 ROwen    Modified to get application name from TUI.Version.
 2010-07-02 ROwen    Removed email.Utils from required modules (it causes trouble for modern builds).
+2011-08-11 ROwen    Removed  obsolete LSPrefersPPC from property list.
+                    Removed obsolete constant UniversalBinaryOK.
 """
 import os
 import platform
@@ -57,10 +59,6 @@ import shutil
 import subprocess
 import sys
 from setuptools import setup
-
-# If True a universal binary is built; if False a PPC-only version is built
-# Only set true if all extensions are universal binaries and Aqua Tcl/Tk is sufficiently reliable
-UniversalBinaryOK = True
 
 # add tuiRoot to sys.path before importing RO or TUI
 tuiRoot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -77,8 +75,7 @@ fullVersStr = TUI.Version.VersionStr
 shortVersStr = fullVersStr.split(None, 1)[0]
 
 inclModules = (
-#    "email.Utils", # needed for Python 2.5
-    "FileDialog",
+#    "FileDialog",
 )
 # packages to include recursively
 inclPackages = (
@@ -92,7 +89,6 @@ plist = Plist(
     CFBundleShortVersionString  = shortVersStr,
     CFBundleGetInfoString       = "%s %s" % (appName, fullVersStr),
     CFBundleExecutable          = appName,
-    LSPrefersPPC                = not UniversalBinaryOK,
 )
 
 setup(
@@ -112,13 +108,13 @@ setup(
 tclFrameworkDir = os.path.join(contentsDir, "Frameworks", "Tcl.framework")
 tclDocDir = os.path.join(tclFrameworkDir, "Resources", "English.lproj", "ActiveTcl-8.4")
 if os.path.isdir(tclFrameworkDir):
-    "*** Tcl/Tk Framework IS part of the application package ***"
+    print "*** Tcl/Tk Framework is part of the application package ***"
     if os.path.isdir(tclDocDir):
         # Delete extraneous files
         print "*** Removing Tcl/Tk help from the application package ***"
         shutil.rmtree(tclDocDir)
 else:
-    print "*** Tcl/Tk Framework is NOT part of the application package ***"
+    print "*** WARNING: Tcl/Tk Framework is NOT part of the application package ***"
 
 print "*** Creating disk image ***"
 appName = "%s_%s_Mac" % (appName, shortVersStr)
@@ -126,7 +122,4 @@ destFile = os.path.join("dist", appName)
 args=("hdiutil", "create", "-srcdir", appPath, destFile)
 retCode = subprocess.call(args=args)
 
-if UniversalBinaryOK:
-    print "*** Built %s as a universal binary ***" % (appName,)
-else:
-    print "*** Built %s as a PPC binary ***" % (appName,)
+print "*** Done building %s ***" % (appName,)
