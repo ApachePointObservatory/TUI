@@ -33,6 +33,7 @@ History:
 2010-03-05 ROwen    Changed to use gridder instead of packer.
 2010-09-20 ROwen    Added actor argument to doCmd method.
 2010-09-21 ROwen    Modified for 2010-09-21 changes to ExposeModel.
+2011-08-11 ROwen    Added getStateTracker method and _stateTracker attribute.
 """
 import Tkinter
 import RO.Alg
@@ -109,6 +110,9 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         )
         self.expInputWdg.grid(row=row, column=0, sticky="ew")
         row += 1
+        
+        self._stateTracker = self.expInputWdg.getStateTracker()
+        self.getStateTracker = self.expInputWdg.getStateTracker
 
         self.statusBar = RO.Wdg.StatusBar(self,
             dispatcher = self.tuiModel.dispatcher,

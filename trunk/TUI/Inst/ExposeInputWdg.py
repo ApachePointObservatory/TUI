@@ -91,6 +91,7 @@ class ExposeInputWdg (Tkinter.Frame):
         self.currUnbWindow = [0, 0, 0, 0]
         self.updatingBin = False
         self.binsMatch = True
+        self._stateTracker = RO.Wdg.StateTracker(logFunc = self.expModel.tuiModel.logFunc)
         
         gr = RO.Wdg.Gridder(master=self, sticky="w")
         self.gridder = gr
@@ -247,6 +248,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 helpText = "show/hide image size controls",
                 helpURL = helpURL,
             )
+            self._stateTracker.trackCheckbutton("showWindow", self.showWindowBtn)
             self.imageSizeWdg = RO.Wdg.StrLabel(
                 master = self,
                 helpText = "image size: x (+overscan) by y (+overscan) (binned pixels)",
@@ -330,6 +332,11 @@ class ExposeInputWdg (Tkinter.Frame):
     
     def getExpType(self):
         return self.typeWdgSet.getString()
+    
+    def getStateTracker(self):
+        """Get RO.Wdg.StateTracker object
+        """
+        return self._stateTracker
 
     def getString(self, numExp=None, startNum=None, totNum=None):
         """Return the current exposure command, or None on error.

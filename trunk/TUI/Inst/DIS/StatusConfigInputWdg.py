@@ -52,6 +52,7 @@ History:
 2006-04-27 ROwen    Removed use of ignored clearMenu and defMenu in StatusConfigGridder.
 2006-10-20 ROwen    Modified to use new RO.Wdg.OptionMenu index method to avoid tk misfeature.
 2008-02-11 ROwen    Modified to be compatible with the new TUI.Inst.StatusConfigWdg.
+2011-08-11 ROwen    Modified to save state.
 """
 import Tkinter
 import RO.Constants
@@ -59,12 +60,13 @@ import RO.MathUtil
 import RO.Wdg
 import RO.KeyVariable
 import DISModel
+import TUI.TUIModel
 
 _MaxDataWidth = 5
 
 _ColWidth = 6   # width of data columns for red/blue or x/y data
 
-class StatusConfigInputWdg (RO.Wdg.InputContFrame):
+class StatusConfigInputWdg(RO.Wdg.InputContFrame):
     InstName = "DIS"
     HelpPrefix = 'Instruments/%s/%sWin.html#' % (InstName, InstName)
 
@@ -227,6 +229,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpText = "show/hide engineering details",
             helpURL = self.HelpPrefix + "ShowMore",
         )
+        self._stateTracker.trackCheckbutton("showDetail", self.showDetailWdg)
         gr.addShowHideControl(self.DetailCat, self.showDetailWdg)
 
         colorLabelDict = {}
@@ -455,6 +458,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpURL = self.HelpPrefix + "ShowCCD",
         )
         gr.addShowHideControl(self.CCDCat, self.showCCDWdg)
+        self._stateTracker.trackCheckbutton("showCCD", self.showCCDWdg)
         gr.gridWdg (
             label = self.showCCDWdg,
         )

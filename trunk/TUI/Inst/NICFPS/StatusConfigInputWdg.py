@@ -53,6 +53,7 @@ History:
                     Fixed some layout glitches (by using StatusConfigGridder's new numStatusCols argument).
 2008-02-11 ROwen    Modified to be compatible with the new TUI.Inst.StatusConfigWdg.
 2008-04-24 ROwen    Fixed bug in test code (found by pychecker).
+2011-08-11 ROwen    Modified to save state.
 """
 import Tkinter
 import RO.Constants
@@ -369,6 +370,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpURL = self.HelpPrefix + "ShowDetector",
         )
         gr.addShowHideControl(self.DetectCat, self.showDetectWdg)
+        self._stateTracker.trackCheckbutton("showDetector", self.showDetectWdg)
         gr.gridWdg (
             label = self.showDetectWdg,
         )
@@ -507,6 +509,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpText = "Show/hide pressure and temps",
             helpURL = self.HelpPrefix + "Environment",
         )
+        self._stateTracker.trackCheckbutton("showEnvironment", self.environShowHideWdg)
         
         self.environStatusWdg = RO.Wdg.StrLabel(
             master = self,

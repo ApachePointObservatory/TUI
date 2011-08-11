@@ -118,6 +118,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpText = "Show/hide tip-tilt controls",
             helpURL = self.HelpPrefix + "TipTilt",
         )
+        self._stateTracker.trackCheckbutton("showTipTilt", self.tipTiltShowHideWdg)
 
         ttModeNames = ("ClosedLoop", None, "OpenLoop", "Offline")
         maxTTModeNameLen = max([len(m) for m in ttModeNames if m])
@@ -195,6 +196,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpText = "Show/hide pressure and temps",
             helpURL = self.HelpPrefix + "Environment",
         )
+        self._stateTracker.trackCheckbutton("showEnviron", self.environShowHideWdg)
         
         self.environStatusWdg = RO.Wdg.StrLabel(
             master = self,
