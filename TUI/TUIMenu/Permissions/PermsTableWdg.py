@@ -34,7 +34,9 @@ and because the transition has to occur somewhere.
 2011-04-08 ROwen    Renamed from PermsInputWdg to PermsTableWdg and made self-contained
                     (no need to create external frames for the header and scrolled table).
 2011-07-27 ROwen    Modified to find PermsModel in TUI.Models.
+2011-08-12 ROwen    Modified to highlight actor and program when the mouse is over a permission control.
 """
+import weakref
 import Tkinter
 import RO.Constants
 import RO.Alg
@@ -49,11 +51,15 @@ _ProgramWidth = 7 # width of program control buttons (need room for "Lockout")
 _NewActorDelayMS = 1000 # display disable delay (ms) while adding or removing actorList
 
 class ActorList(object):
-    """A list of actorList in category order"""
+    """A list of actorList in category order
+
+    Also keeps track of the title widgets, for highlighting the current one
+    """
     def __init__(self, startCol=1):
         self._startCol = int(startCol)
         self._actorSet = set()
         self._colActorList = []
+        self._titleWdgDict = {}
     
     def setActors(self, actors):
         """Set the actors
@@ -74,6 +80,21 @@ class ActorList(object):
                 col += 1
             self._colActorList.append((col, actor))
             col += 1
+    
+    def getTitleWdg(self, actor):
+        """Return the title widget for this actor, or None if not found
+        """
+        return self._titleWdgDict.get(actor)
+    
+    def setTitleWdg(self, actor, wdg):
+        """Set the title widget for an actor
+        """
+        self._titleWdgDict[actor] = wdg
+    
+    def clearAllTitleWdg(self):
+        """Clear all title widgets
+        """
+        self._titleWdgDict.clear()
     
     def getColActorList(self):
         """Return a list of (col, actor)
@@ -193,6 +214,7 @@ class PermsTableWdg(Tkinter.Frame):
     def sort(self):
         """Sort existing programs and redisplay all data.
         """
+        self._actorList.clearAllTitleWdg()
         for wdg in self._titleWdgSet:
             wdg.destroy()
         currCat = 1
@@ -201,7 +223,8 @@ class PermsTableWdg(Tkinter.Frame):
                 # insert dividor
                 self._addTitle("  ", col)
             else:
-                self._addTitle(actor, col)
+                titleLabel = self._addTitle(actor, col)
+                self._actorList.setTitleWdg(actor, titleLabel)
         
         self._lockoutWdg.display(row=self._lockoutRow)
         
@@ -239,6 +262,8 @@ class PermsTableWdg(Tkinter.Frame):
         Inputs:
         - text  text for title
         - col   column for title
+        
+        Returns the title label
         """
 #         print "_addTitle(%r, %r)" % (text, col)
         strWdg = RO.Wdg.StrLabel(
@@ -267,6 +292,7 @@ class PermsTableWdg(Tkinter.Frame):
             if mainSpacer.winfo_width() > titleSpacer.winfo_width():
                 titleSpacer["width"] = mainSpacer.winfo_width()     
         mainSpacer.bind("<Configure>", domain)
+        return strWdg
     
     def __connStateCallback(self, conn):
         """If the connection closes, clear all programs from the list.
@@ -417,6 +443,7 @@ class _BasePerms(object):
         self._statusBar = statusBar
         self._prog = prog
         self._helpURL = _HelpPrefix + helpSuffix
+        self._testWdg = Tkinter.Label(self._master) # to determine current bg color
 
         self._createNameWdg()
 
@@ -484,7 +511,7 @@ class _BasePerms(object):
             if actor in self._actorWdgDict:
                 raise ValueError("%r: actor %r already exists" % (self, actor))
             
-            self._actorWdgDict[actor] = _ActorWdg (
+            wdg = _ActorWdg (
                 master = self._master,
                 prog = self._prog,
                 actor = actor,
@@ -492,7 +519,32 @@ class _BasePerms(object):
                 command = self._actorCommand,
                 helpURL = self._helpURL,
             )
+            self._actorWdgDict[actor] = wdg
+            
+            def hl(evt, actor=actor):
+                self._doHighlight(evt, actor)
+            
+            def unHl(evt, actor=actor):
+                self._unHighlight(evt, actor)
+            
+            wdg.bind("<Enter>", hl)
+            wdg.bind("<Leave>", unHl)
         self.display(self._row)
+    
+    def _doHighlight(self, evt, actor):
+        titleWdg = self._actorList.getTitleWdg(actor)
+        if titleWdg:
+            titleWdg["background"] = "yellow"
+        self._nameWdg["background"] = "yellow"
+        evt.widget["background"] = "yellow"
+        
+    def _unHighlight(self, evt, actor):
+        titleWdg = self._actorList.getTitleWdg(actor)
+        normalBackground = self._testWdg["background"]
+        if titleWdg:
+            titleWdg["background"] = normalBackground
+        self._nameWdg["background"] = normalBackground
+        evt.widget["background"] = normalBackground
     
     def setCurrActors(self, currActors):
         """Sets the list of actorList that should be checked (authorized).
