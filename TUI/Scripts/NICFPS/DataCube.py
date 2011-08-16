@@ -26,6 +26,7 @@ History:
                     if required exposure parameters were blank.
                     Added debug support.
 2006-12-28 ROwen    Modified to abort the exposure if the script is aborted.
+2011-08-16 ROwen    Commented out a diagnostic print statement.
 """
 import RO.Wdg
 import TUI.TCC.TCCModel
@@ -216,7 +217,7 @@ class ScriptClass(object):
         if not expCmdPrefix:
             raise sr.ScriptError("missing inputs")
         
-        print "got here; errStr =", self.errStr
+#         print "got here; errStr =", self.errStr
         
         if self.errStr:
             raise sr.ScriptError(self.errStr)

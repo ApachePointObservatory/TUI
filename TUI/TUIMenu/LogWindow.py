@@ -60,6 +60,8 @@ History:
                     Tweaked help text for "My Commands and Replies" to match STUI.
 2011-07-28 ROwen    Bug fix: "Commands and Replies" filter was hiding CmdStarted and CmdDone messages.
 2011-08-09 ROwen    Restored default filter to Normal.
+2011-08-11 ROwen    Added a state tracker to track filter information.
+2011-08-16 ROwen    Set noneDisplay in some OptionMenus to avoid problems when "" is a valid value.
 """
 import bisect
 import re
@@ -215,6 +217,7 @@ class TUILogWdg(Tkinter.Frame):
             items = filterItems,
             defValue = "",
             callFunc = self.doFilter,
+            noneDisplay = "?", # "" can cause trouble when "" is a valid value
             helpText = "additional messages to show",
             helpURL = HelpURL,
         )
@@ -229,6 +232,7 @@ class TUILogWdg(Tkinter.Frame):
             items = ("",),
             defValue = "",
             callFunc = self.applyFilter,
+            noneDisplay = "?", # "" can cause trouble when "" is a valid value
             helpText = "show commands and replies for this actor",
             helpURL = HelpURL,
         )
