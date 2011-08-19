@@ -32,7 +32,18 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
 
+<h3>1.9.1 2011-08-19</h3>
+
+<p>Warning to unix users and others running from source: if you are using a Python older than 2.6 then you must install the simplejson module.
+
+<p>Internal changes:
+<ul>
+    <li>Improved compatibility with versions of Python older than 2.6 (thanks to Leigh Koven).
+</ul>
+
 <h3>1.9.0 2011-08-16</h3>
+
+<p>This version requires Python 2.6 or later (due to use of the json module; you can also install simplejson as json).
 
 <p>Visible changes:
 <ul>

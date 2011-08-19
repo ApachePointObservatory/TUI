@@ -206,9 +206,6 @@ class TUILogWdg(Tkinter.Frame):
         self.severityMenu.grid(row=0, column=filtCol)
         filtCol += 1
     
-#       RO.Wdg.StrLabel(self.filterFrame, text="and").grid(row=0, column=filtCol)
-#       filtCol += 1
-        
         self.filterCats = ("Actor", "Actors", "Text", "Commands", "Commands and Replies", "My Commands and Replies", "Custom")
         filterItems = [""] + [FilterMenuPrefix + fc for fc in self.filterCats]
         self.filterMenu = RO.Wdg.OptionMenu(

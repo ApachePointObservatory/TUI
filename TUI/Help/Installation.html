@@ -10,7 +10,7 @@
 
 <ul>
 	<li> <a href="#Introduction">Introduction</a>
-	<li> <a href="#Mac">Installing on Mac OS X</a>
+	<li> <a href="#Mac">Installing on MacOS X</a>
 	<li> <a href="#Unix">Installing on Unix</a>
 	<li> <a href="#Windows">Installing on Windows</a>
 	<li> <a href="#History">History</a>
@@ -18,13 +18,13 @@
 
 <h2><a name="Introduction"></a>Introduction</h2>
 
-<p><a href="index.html">TUI</a> is the user interface for the <a href="http://www.apo.nmsu.edu/">APO</a> 3.5m telescope. It is written in <a href="http://python.org/">Python</a> (a free cross-platform language) and runs on unix, Mac OS X and Windows. This document describes how to install TUI on your computer.
+<p><a href="index.html">TUI</a> is the user interface for the <a href="http://www.apo.nmsu.edu/">APO</a> 3.5m telescope. It is written in <a href="http://python.org/">Python</a> (a free cross-platform language) and runs on unix, MacOS X and Windows. This document describes how to install TUI on your computer.
 
-<h2><a name="Mac"></a>Installing on Mac OS X</h2>
+<h2><a name="Mac"></a>Installing on MacOS X</h2>
 
 <ul>
 	<li>Download <a href="http://www.apo.nmsu.edu/35m_operations/TUI-images/">TUI for Mac</a>: TUI_<i>vers</i>_Mac.dmg. Double click the file to mount the disk image and drag TUI to your Applications folder.
-	<li>Download and install <a href="http://hea-www.harvard.edu/RD/ds9/">SAOImage DS9 and XPA for Mac OS X</a> (this is <a href="#ds9option">optional</a> but highly recommended).
+	<li>Download and install <a href="http://hea-www.harvard.edu/RD/ds9/">SAOImage DS9 and XPA for MacOS X</a> (this is <a href="#ds9option">optional</a> but highly recommended).
 	<ul>
 		<li>Install SAOImage DS9 by dragging it to your Applications folder (it must be in /Applications or ~/Applications for TUI to find it).
 		<li>Install XPA unpacking the downloaded zip archive and copying or moving the contained unix executables into /usr/local/bin. You will need admin privileges.
@@ -33,14 +33,14 @@
 
 <p>That's it; you are done. However, if you want to build from source then read on...
 
-<h3><a name="MacBuild"></a>Building From Source for Mac OS X</h3>
+<h3><a name="MacBuild"></a>Building From Source for MacOS X</h3>
 
-<p>If you prefer, you may install TUI from source and even build your own double-clickable version. See <a href="InstallationOnMac.html">Building TUI from Source On Mac OS X</a> for details.
+<p>If you prefer, you may install TUI from source and even build your own double-clickable version. See <a href="InstallationOnMac.html">Building TUI from Source On MacOS X</a> for details.
 
-<a name="MacX11"></a><p>You can also build an X11-based version of TUI on Mac OS X by following the <a href="#Unix">unix installation instructions</a> with these caveats:
+<a name="MacX11"></a><p>You can also build an X11-based version of TUI on MacOS X by following the <a href="#Unix">unix installation instructions</a> with these caveats:
 <ul>
 	<li>Whenver you build anything involving X11 Tcl/Tk, first disable Aqua Tcl/Tk (if present) by dragging  Tcl.Framework and Tk.Framework out of /Library/Frameworks. Drag them back when you are finished building.
-	<li>You must have installed Apple's X11 application. X11 is included with Mac OS X but is <b>not</b> installed by default. If it is not already installed, you can install it from the installer disk.
+	<li>You must have installed Apple's X11 application. X11 is included with MacOS X but is <b>not</b> installed by default. If it is not already installed, you can install it from the installer disk.
 	<li>You must have installed Apple's XCode developer tools, including the X11 SDK. An installer disk is supplied with many Macintoshes, but is probably outdated. I suggest you download the latest version of XCode from <a href="http://www.apple.com">Apple</a>. You may have to register as a developer, but that is free.
 </ul>
 
@@ -51,20 +51,21 @@
 <p>Requirements:
 
 <ul>
-	<li>Python 2.5 or later, with Tkinter support; 2.6.x is recommended and 2.7.x is likely to work (but as of 2010-07-21 I had not tested it). Note: STUI is <b>not</b> compatible with Python 3.0 (which is intentionally not backward compatible with Python 2.x).
-	<li>tcl/tk 8.3.x or later. 8.4.x is recommended. 8.5 may work (requires Python 2.6 or later) but as of 2010-07-21 I had not tested it.
+	<li>Python 2.5 or later, with Tkinter support; 2.7 is recommended. Note: TUI is <b>not</b> compatible with Python 3.x (which is intentionally not backward compatible with Python 2.x).
+	<li>tcl/tk 8.4 or later. 8.5 will probably work (requires Python 2.6 or later) but as of 2010-07-21 I had not tested it.
 	<li>The following python packages:
 	<ul>
-		<li>numpy
-		<li>Python Image Library (PIL)
-		<li>matplotlib
-		<li>pyfits 1.1 or later
-		<li>pygame.mixer (optional but highly recommended because it is used to play sound cues)
+		<li><a href="http://numpy.scipy.org/">numpy</a>
+		<li><a href="http://www.pythonware.com/products/pil/">Python Image Library</a> (PIL)
+		<li><a href="http://matplotlib.sourceforge.net/">matplotlib</a>
+		<li><a href="http://www.stsci.edu/resources/software_hardware/pyfits">pyfits</a> 1.1 or later
+		<li>If you are using a version of Python older than 2.6 then you must install <a href="http://pypi.python.org/pypi/simplejson/">simplejson</a>.
+		<li><a href="http://www.pygame.org/">pygame</a>.mixer (optional but highly recommended because it is used to play sound cues)
 	</ul>
 	<li><a name="ds9option"></a>The following are optional, but highly recommended. Both are needed if you want to automatically display science images (via the View Image preference) and are also handy for taking a detailed look at guider images (via the DS9 button on guider windows).
 	<ul>
-		<li>ds9, an image viewer
-		<li>xpa, a communication interface for ds9
+		<li>SAOImage <a href="http://hea-www.harvard.edu/RD/ds9/">ds9</a>, an image viewer
+		<li>xpa, a communication interface for ds9 (available at the <a href="http://hea-www.harvard.edu/RD/ds9/">ds9</a> site)
 	</ul>
 </ul>
 
@@ -187,6 +188,7 @@ python <i>path_to_runtui</i>/runtui.py # the path depends on where you unpacked 
 
 <h2><a name="History"></a>History</h2>
 <ul>
+    <li>2011-08-17 Noted the need for json in Python versions older than 2.6. Cleaned up a few things.
     <li>2010-10-07 Updated and simplified the Mac installation instructions.
     <li>2009-10-22 Modified for snack -> pygame.
     <li>2009-06-29 Added a reference to Building TUI from Source On Windows.
@@ -199,18 +201,18 @@ python <i>path_to_runtui</i>/runtui.py # the path depends on where you unpacked 
 	<li>2006-02-28 Noted that the Mac version is not compatible with intel-based Macs.
 	<li>2005-10-12 Windows: xpa can now be installed in the default directory. Mac: the standard Mac installation of ds9 is all you need (though the darwin version works fine).
 	<li>2005-10-05 Improved Windows installation, including: better recommendation for unzip software, added a note about MFC71.DLL, added detailed instructions for installing snack.
-	<li>2005-09-30 Fixed the installation instructions for ds9 and xpa on Mac OS X and Windows.
+	<li>2005-09-30 Fixed the installation instructions for ds9 and xpa on MacOS X and Windows.
 	<li>2005-09-23 Increased the urgency of ds9 and xpa. Noted that a Windows installer is in the works.
 	<li>2005-06-22 Added ds9 and xpa to the optional packages.
 	<li>2005-03-15 Added numarray and PIL to the required packages. Expanded the unix installation instructions to discuss environment variables LD_LIBRARY_PATH and TCLLIBPATH.
 	<li>2004-10-06 Corrected the windows installation instructions.
-	<li>2004-09-03 Added Windows installation instructions based on information kindly supplied by Jack Dembicky. Improved the Mac OS X installation instructions.
-	<li>2004-03-03 Modified unix notes for the new, simpler way to run TUI. Updated the Mac X11 notes because an X11 installer is now available for Mac OS X 10.3 and is no longer available for 10.2.
-	<li>2004-02-05 Modified Notes for Mac OS X to include one additional common Aqua Tk bug (menus showing up in the wrong place) and removed the note about incorporating TUI additions (since that is done in a more standard fashion in TUI 0.83).
-	<li>2004-01-23 Modified to the Mac OS X binary. Added a link to the TUI downloads (thanks for the reminder, Nicole Silvestri).
-	<li>2003-12-23 Modified the unix info to suggest an executable script tui instead of environment mods. Updates the Mac info for Panther (Mac OS X 10.3).
+	<li>2004-09-03 Added Windows installation instructions based on information kindly supplied by Jack Dembicky. Improved the MacOS X installation instructions.
+	<li>2004-03-03 Modified unix notes for the new, simpler way to run TUI. Updated the Mac X11 notes because an X11 installer is now available for MacOS X 10.3 and is no longer available for 10.2.
+	<li>2004-02-05 Modified Notes for MacOS X to include one additional common Aqua Tk bug (menus showing up in the wrong place) and removed the note about incorporating TUI additions (since that is done in a more standard fashion in TUI 0.83).
+	<li>2004-01-23 Modified to the MacOS X binary. Added a link to the TUI downloads (thanks for the reminder, Nicole Silvestri).
+	<li>2003-12-23 Modified the unix info to suggest an executable script tui instead of environment mods. Updates the Mac info for Panther (MacOS X 10.3).
 	<li>2003-11-17 Added snack installation.
-	<li>2003-08-28 Added a note about the need for X11 on unix and corrected a test (root = Tk() -&gt; root = Tkinter.Tk()). Thanks to Bill Ketzeback. Overhauled the Mac OS X installation instructions.
+	<li>2003-08-28 Added a note about the need for X11 on unix and corrected a test (root = Tk() -&gt; root = Tkinter.Tk()). Thanks to Bill Ketzeback. Overhauled the MacOS X installation instructions.
 </ul>
 
 </body>
