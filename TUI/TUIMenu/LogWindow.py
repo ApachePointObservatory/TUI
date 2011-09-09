@@ -61,6 +61,7 @@ History:
 2011-07-28 ROwen    Bug fix: "Commands and Replies" filter was hiding CmdStarted and CmdDone messages.
 2011-08-09 ROwen    Restored default filter to Normal.
 2011-08-11 ROwen    Added a state tracker to track filter information.
+2011-08-30 ROwen    Bug fix: Actor and Actors filters did not show commands sent to the actors.                    
 """
 import bisect
 import re
@@ -592,7 +593,8 @@ class TUILogWdg(Tkinter.Frame):
             if not actor:
                 return nullFunc
             def filterFunc(logEntry, actor=actor):
-                return logEntry.actor == actor
+                return (logEntry.actor == actor) \
+                    or (logEntry.cmdInfo and (logEntry.cmdInfo.actor == actor))
             filterFunc.__doc__ = "actor=%s" % (actor,)
             return filterFunc
 
@@ -600,11 +602,12 @@ class TUILogWdg(Tkinter.Frame):
             regExpList = self.filterActorsWdg.getString().split()
             if not regExpList:
                 return nullFunc
-            actorList = self.getActors(regExpList)
+            actorSet = set(self.getActors(regExpList))
 
-            def filterFunc(logEntry, actorList=actorList):
-                return logEntry.actor in actorList
-            filterFunc.__doc__ = "actor in %s" % (actorList,)
+            def filterFunc(logEntry, actorSet=actorSet):
+                return (logEntry.actor in actorSet) \
+                    or (logEntry.cmdInfo and (logEntry.cmdInfo.actor in actorSet))
+            filterFunc.__doc__ = "actor in %s" % (actorSet,)
             return filterFunc
 
         elif filterCat == "Text":
