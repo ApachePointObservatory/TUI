@@ -35,12 +35,14 @@ and because the transition has to occur somewhere.
                     (no need to create external frames for the header and scrolled table).
 2011-07-27 ROwen    Modified to find PermsModel in TUI.Models.
 2011-08-12 ROwen    Modified to highlight actor and program when the mouse is over a permission control.
+2011-09-12 ROwen    Improved alignment, especially on unix.
 """
 import weakref
 import Tkinter
 import RO.Constants
 import RO.Alg
 import RO.KeyVariable
+import RO.TkUtil
 import RO.Wdg
 import TUI.TUIModel
 import TUI.Models.PermsModel
@@ -156,18 +158,28 @@ class PermsTableWdg(Tkinter.Frame):
 
         self._titleWdgSet = []
 
-        self._titleFrame = Tkinter.Frame(self, borderwidth=2, relief="sunken")
-        self._titleFrame.grid(row=0, column=0, sticky="ew")
+        self._titleBorder = Tkinter.Frame(self, borderwidth=2, relief="sunken")
+        self._titleBorder.grid(row=0, column=0, sticky="ew")
+        self._titleBorder.grid_columnconfigure(1, weight=1)
         
-        scrollFrame = Tkinter.Frame(self, borderwidth=2, relief="sunken")
+        # I don't know why this extra width is needed
+        if RO.TkUtil.getWindowingSystem() == RO.TkUtil.WSysAqua:
+            bdw = 3
+        else:
+            bdw = 2
+        self._titleFrame = Tkinter.Frame(self._titleBorder, borderwidth=bdw, relief="flat")
+        self._titleFrame.grid(row=0, column=0, sticky="w")
+        
         self._scrollWdg = RO.Wdg.ScrolledWdg(
-            master = scrollFrame,
+            master = self,
             hscroll = False,
             vscroll = True,
+            borderwidth = 2,
+            relief = "sunken",
         )
-        scrollFrame.grid(row=1, column=0, sticky="nsew")
-        self._scrollWdg.grid(row=1, column=0, sticky="ns")
-        self._tableFrame = Tkinter.Frame(self._scrollWdg.getWdgParent())
+        self._scrollWdg.grid(row=1, column=0, sticky="nsew")
+        self._scrollWdg.grid_rowconfigure(1, weight=1)
+        self._tableFrame = Tkinter.Frame(self._scrollWdg.getWdgParent(), borderwidth=0)
         self._vertMeasWdg = Tkinter.Frame(self._tableFrame)
         self._vertMeasWdg.grid(row=0, column=0, sticky="wns")
         self._scrollWdg.setWdg(
@@ -175,7 +187,6 @@ class PermsTableWdg(Tkinter.Frame):
             vincr = self._vertMeasWdg,
         )
         self.grid_rowconfigure(1, weight=1)
-        scrollFrame.grid_rowconfigure(1, weight=1)
         
         self._nextRow = 0
         self._readOnly = True
@@ -445,6 +456,12 @@ class _BasePerms(object):
         self._helpURL = _HelpPrefix + helpSuffix
         self._testWdg = Tkinter.Label(self._master) # to determine current bg color
 
+        self._nameSpacerWdg = Tkinter.Label(
+            master,
+            text = "",
+            width = _ProgramWidth,
+        )
+        self._nameSpacerWdg.grid(row=row, column=0)
         self._createNameWdg()
 
         # dictionary of actor: auth checkbutton entries
@@ -484,7 +501,7 @@ class _BasePerms(object):
         
         self._row = row
         self._nameWdg.grid_forget()
-        self._nameWdg.grid(row=self._row, column=0, sticky="")
+        self._nameWdg.grid(row=self._row, column=0, sticky="ew")
     
         for col, actor in self._actorList.getColActorList():
             if actor:
@@ -655,7 +672,7 @@ class _LockoutPerms(_BasePerms):
         self._nameWdg = RO.Wdg.StrLabel (
             master = self._master,
             text = "Lockout",
-            width = _ProgramWidth,
+#            width = _ProgramWidth,
             anchor = "center",
             helpText = "lock out non-APO users",
             helpURL = self._helpURL,
@@ -731,7 +748,7 @@ class _ProgPerms(_BasePerms):
             prog = self._prog,
             command = self._progCommand,
             readOnly = self._readOnly,
-            width = _ProgramWidth,
+#            width = _ProgramWidth,
             helpText = "Press to delete program %r" % (self._prog),
             helpURL = self._helpURL,
         )
