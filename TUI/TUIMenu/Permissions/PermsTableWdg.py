@@ -42,7 +42,6 @@ import Tkinter
 import RO.Constants
 import RO.Alg
 import RO.KeyVariable
-import RO.TkUtil
 import RO.Wdg
 import TUI.TUIModel
 import TUI.Models.PermsModel
@@ -162,12 +161,7 @@ class PermsTableWdg(Tkinter.Frame):
         self._titleBorder.grid(row=0, column=0, sticky="ew")
         self._titleBorder.grid_columnconfigure(1, weight=1)
         
-        # I don't know why this extra width is needed
-        if RO.TkUtil.getWindowingSystem() == RO.TkUtil.WSysAqua:
-            bdw = 3
-        else:
-            bdw = 2
-        self._titleFrame = Tkinter.Frame(self._titleBorder, borderwidth=bdw, relief="flat")
+        self._titleFrame = Tkinter.Frame(self._titleBorder, borderwidth=0)
         self._titleFrame.grid(row=0, column=0, sticky="w")
         
         self._scrollWdg = RO.Wdg.ScrolledWdg(
