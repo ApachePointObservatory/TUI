@@ -35,7 +35,8 @@ and because the transition has to occur somewhere.
                     (no need to create external frames for the header and scrolled table).
 2011-07-27 ROwen    Modified to find PermsModel in TUI.Models.
 2011-08-12 ROwen    Modified to highlight actor and program when the mouse is over a permission control.
-2011-09-12 ROwen    Improved alignment, especially on unix.
+2011-09-12 ROwen    Bug fix: resizing was somewhat messed up.
+                    Improved alignment, especially on unix.
 """
 import weakref
 import Tkinter
@@ -172,7 +173,6 @@ class PermsTableWdg(Tkinter.Frame):
             relief = "sunken",
         )
         self._scrollWdg.grid(row=1, column=0, sticky="nsew")
-        self._scrollWdg.grid_rowconfigure(1, weight=1)
         self._tableFrame = Tkinter.Frame(self._scrollWdg.getWdgParent(), borderwidth=0)
         self._vertMeasWdg = Tkinter.Frame(self._tableFrame)
         self._vertMeasWdg.grid(row=0, column=0, sticky="wns")
