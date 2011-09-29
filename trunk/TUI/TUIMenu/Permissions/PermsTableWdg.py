@@ -37,6 +37,8 @@ and because the transition has to occur somewhere.
 2011-08-12 ROwen    Modified to highlight actor and program when the mouse is over a permission control.
 2011-09-12 ROwen    Bug fix: resizing was somewhat messed up.
                     Improved alignment, especially on unix.
+2011-09-28 ROwen    Bug fix: sorting and purging caused display errors
+                    because _nameSpacerWdg was not reliably ungridded and regridded.
 """
 import weakref
 import Tkinter
@@ -465,7 +467,10 @@ class _BasePerms(object):
     def delete(self):
         """Cleanup
         """
-        wdgSet = self._actorWdgDict.values()
+        wdgSet = self._actorWdgDict.values() # all widgets to destroy
+        if self._nameSpacerWdg != None:
+            wdgSet.append(self._nameSpacerWdg)
+        self._nameSpacerWdg = None
         if self._nameWdg != None:
             wdgSet.append(self._nameWdg)
         self._nameWdg = None
@@ -494,7 +499,9 @@ class _BasePerms(object):
                 (self, listActors, dictActors))
         
         self._row = row
+        self._nameSpacerWdg.grid_forget()
         self._nameWdg.grid_forget()
+        self._nameSpacerWdg.grid(row=self._row, column=0, sticky="ew")
         self._nameWdg.grid(row=self._row, column=0, sticky="ew")
     
         for col, actor in self._actorList.getColActorList():
