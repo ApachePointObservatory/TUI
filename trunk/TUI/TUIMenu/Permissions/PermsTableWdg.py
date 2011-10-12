@@ -39,6 +39,7 @@ and because the transition has to occur somewhere.
                     Improved alignment, especially on unix.
 2011-09-28 ROwen    Bug fix: sorting and purging caused display errors
                     because _nameSpacerWdg was not reliably ungridded and regridded.
+2011-10-12 ROwen    Bug fix: the row 2 permissions had a line across it after sorting (the width measuring frame).
 """
 import weakref
 import Tkinter
@@ -279,9 +280,9 @@ class PermsTableWdg(Tkinter.Frame):
         )
         strWdg.grid(row=0, column=col)
         titleSpacer = Tkinter.Frame(self._titleFrame)
-        titleSpacer.grid(row=1, column=col, sticky="ew")
+        titleSpacer.grid(row=1, column=col, sticky="new")
         mainSpacer = Tkinter.Frame(self._tableFrame)
-        mainSpacer.grid(row=2, column=col, sticky="ew")
+        mainSpacer.grid(row=0, column=col, sticky="new")
         self._titleWdgSet += [strWdg, titleSpacer, mainSpacer]
         
         def dotitle(evt):
