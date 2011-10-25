@@ -3,13 +3,14 @@
 History:
 2008-03-25 ROwen    First version
 2008-04-03 ROwen    Changed doWindow to True because the TripleSpec slitviewer can now window
+2011-10-25 ROwen    Set final bin factor = 2 (a hack).
 """
 import TUI.Base.BaseFocusScript
 # make script reload also reload BaseFocusScript
 reload(TUI.Base.BaseFocusScript)
 SlitviewerFocusScript = TUI.Base.BaseFocusScript.SlitviewerFocusScript
 
-Debug = False # run in debug-only mode (which doesn't DO anything, it just pretends)?
+Debug = True # run in debug-only mode (which doesn't DO anything, it just pretends)?
 HelpURL = "Scripts/BuiltInScripts/InstFocus.html"
 
 class ScriptClass(SlitviewerFocusScript):
@@ -24,6 +25,7 @@ class ScriptClass(SlitviewerFocusScript):
             imageViewerTLName = "Guide.TSpec Slitviewer",
             defBoreXY = [None, -5.0],
             doWindow = True,
+            finalBinFactor = 2,
             helpURL = HelpURL,
             debug = Debug,
         )

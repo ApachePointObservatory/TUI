@@ -32,6 +32,17 @@ rm -rf ~/.matplotlib*.cache
 
 <p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
 
+<h3>1.9.4a1 2011-10-25</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Focus script enhancements:
+    <ul>
+        <li>Instrument focus scripts restore original bin factor at the end (if the instrument supports binning).
+        <li>TSpec Focus script restore 2x2 binning at the end. (There is no robust way to restore the original bin factor until guiders report bin factor as a keyword).
+    </ul>
+</ul>
+
 <h3>1.9.3 2011-10-12</h3>
 
 <p>Bug fixes:

@@ -131,6 +131,10 @@ History:
 2011-07-29 ROwen    Made taking a final image more reliable. Formerly if the script was cancelled
                     during the first exposure it would not take a final exposure.
                     Reduced the minimum focus step size from 25um to 10um.
+2011-10-25 ROwen    Added getBinFactor and isFinalExposureWanted methods.
+                    Added isFinal argument to various methods.
+                    Added finalBinFactor argument as an ugly hack until guide actors report bin factor.
+                    Modified ImagerFocusScript to record initial bin factor, if it is adjustable.
 """
 import inspect
 import math
@@ -235,25 +239,6 @@ class BaseFocusScript(object):
     This is a virtual base class. The inheritor must:
     - Provide widgets
     - Provide a "run" method
-    
-    Inputs:
-    - gcamActor: name of guide camera actor (e.g. "dcam")
-    - instName: name of instrument (e.g. "DIS"); must be a name known to TUI.Inst.ExposeModel.
-    - tccInstPrefix: instrument name as known by the TCC; defaults to instName;
-        if the instrument has multiple names in the TCC then supply the common prefix
-    - imageViewerTLName: name of image viewer toplevel (e.g. "Guide.DIS Slitviewer")
-    - defRadius: default centroid radius, in arcsec
-    - defBinFactor: default bin factor; if None then bin factor cannot be set
-    - canSetStarPos: if True the user can set the star position;
-        if False then the Star Pos entries and Find button are not shown.
-    - maxFindAmpl: maximum star amplitude for finding stars (peak - sky in ADUs);
-        if None then star finding is disabled.
-    - doWindow: if True, subframe images during focus sequence
-    - windowOrigin: index of left or lower pixel for window (0 or 1 unless very wierd);
-        this is not use for star positions, which all have the same convention
-    - windowIsInclusive: is the upper-right window coord included in the image?
-    - helpURL: URL of help file
-    - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
     """
     cmd_Find = "find"
     cmd_Measure = "measure"
@@ -278,6 +263,7 @@ class BaseFocusScript(object):
         imageViewerTLName = None,
         defRadius = 5.0,
         defBinFactor = 1,
+        finalBinFactor = None,
         canSetStarPos = True,
         maxFindAmpl = None,
         doWindow = True,
@@ -288,6 +274,30 @@ class BaseFocusScript(object):
     ):
         """The setup script; run once when the script runner
         window is created.
+    
+        Inputs:
+        - gcamActor: name of guide camera actor (e.g. "dcam")
+        - instName: name of instrument (e.g. "DIS"); must be a name known to TUI.Inst.ExposeModel.
+        - tccInstPrefix: instrument name as known by the TCC; defaults to instName;
+            if the instrument has multiple names in the TCC then supply the common prefix
+        - imageViewerTLName: name of image viewer toplevel (e.g. "Guide.DIS Slitviewer")
+        - defRadius: default centroid radius, in arcsec
+        - defBinFactor: default bin factor; if None then bin factor cannot be set
+        - finalBinFactor: the final bin factor; this is an ugly hack that works around the problem
+            that guiders do not provide a bin factor keyword so there's no way to tell what
+            bin factor the guider started out with.
+            None means: if you can tell what the starting bin factor is then restore that; otherwise
+            leave the bin factor as the it was set by this script.
+        - canSetStarPos: if True the user can set the star position;
+            if False then the Star Pos entries and Find button are not shown.
+        - maxFindAmpl: maximum star amplitude for finding stars (peak - sky in ADUs);
+            if None then star finding is disabled.
+        - doWindow: if True, subframe images during focus sequence
+        - windowOrigin: index of left or lower pixel for window (0 or 1 unless very wierd);
+            this is not use for star positions, which all have the same convention
+        - windowIsInclusive: is the upper-right window coord included in the image?
+        - helpURL: URL of help file
+        - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
         """
         self.sr = sr
         self.sr.debug = bool(debug)
@@ -303,6 +313,7 @@ class BaseFocusScript(object):
             self.defBinFactor = int(defBinFactor)
             self.binFactor = self.defBinFactor
             self.dispBinFactor = self.defBinFactor
+        self.finalBinFactor = finalBinFactor
         self.defRadius = defRadius
         self.helpURL = helpURL
         self.canSetStarPos = canSetStarPos
@@ -589,33 +600,39 @@ class BaseFocusScript(object):
             doAskWait = True
             self.moveBoresight(self.begBoreXYDeg)
 
-        if self.doTakeFinalImage and (self.doWindow or doRestoreBoresight):
-            self.logWdg.addMsg("Taking a final exposure")
-            exposeCmdDict = self.getExposeCmdDict(doWindow=False)
+        if self.isFinalExposureWanted():
+            self.doTakeFinalImage = False
             doAskWait = True
+            exposeCmdDict = self.getExposeCmdDict(isFinal=True)
+            self.logWdg.addMsg("Taking a final exposure")
             self.sr.startCmd(**exposeCmdDict)
 
         if doAskWait:
             self.logWdg.addMsg("Wait for these tasks to finish before running again", severity=RO.Constants.sevWarning)
         
 
-    def formatBinFactorArg(self):
-        """Return bin factor argument for expose/centroid/findstars command"""
+    def formatBinFactorArg(self, isFinal):
+        """Return bin factor argument for expose/centroid/findstars command
+        
+        Inputs:
+        - isFinal: if True then return parameters for final exposure
+        """
         #print "defBinFactor=%r, binFactor=%r" % (self.defBinFactor, self.binFactor)
-        # if defBinFactor None then bin factor cannot be set
-        if self.defBinFactor == None:
+        binFactor = self.getBinFactor(isFinal=isFinal)
+        if binFactor == None:
             return ""
-        return "bin=%d" % (self.binFactor,)
+        return "bin=%d" % (binFactor,)
     
-    def formatExposeArgs(self, doWindow=True):
+    def formatExposeArgs(self, doWindow=True, isFinal=False):
         """Format arguments for exposure command.
         
         Inputs:
         - doWindow: if true, window the exposure (if permitted)
+        - isFinal: if True then return parameters for final exposure
         """
         argList = [
             "time=%s" % (self.expTime,),
-            self.formatBinFactorArg(),
+            self.formatBinFactorArg(isFinal=isFinal),
             self.formatWindowArg(doWindow),
         ]
         argList = [arg for arg in argList if arg]
@@ -636,6 +653,19 @@ class BaseFocusScript(object):
         windowLL = [self.window[ii] + self.windowOrigin for ii in range(2)]
         windowUR = [self.window[ii+2] + urOffset for ii in range(2)]
         return "window=%d,%d,%d,%d" % (windowLL[0], windowLL[1], windowUR[0], windowUR[1])
+    
+    def getBinFactor(self, isFinal):
+        """Get bin factor (as a single int), or None if not relevant
+        
+        Inputs:
+        - isFinal: if True then return parameters for final exposure
+        """
+        if self.defBinFactor == None:
+            return None
+
+        if isFinal and self.finalBinFactor != None:
+            return self.finalBinFactor
+        return self.binFactor
 
     def getInstInfo(self):
         """Obtains instrument data.
@@ -677,14 +707,18 @@ class BaseFocusScript(object):
             return numVal
         raise self.sr.ScriptError(wdg.label + " not specified")
 
-    def getExposeCmdDict(self, doWindow=True):
+    def getExposeCmdDict(self, doWindow=True, isFinal=False):
         """Get basic command arument dict for an expose command
         
         This includes actor, cmdStr, abortCmdStr
+
+        Inputs:
+        - doWindow: if true, window the exposure (if permitted)
+        - isFinal: if True then return parameters for final exposure
         """
         return dict(
             actor = self.gcamActor,
-            cmdStr = "expose " + self.formatExposeArgs(doWindow),
+            cmdStr = "expose " + self.formatExposeArgs(doWindow, isFinal=isFinal),
             abortCmdStr = "abort",
         )
     
@@ -735,6 +769,11 @@ class BaseFocusScript(object):
         self.window = None # LL pixel is 0, UL pixel is included
 
         self.enableCmdBtns(False)
+    
+    def isFinalExposureWanted(self):
+        """Return True if a final exposure is wanted, else False
+        """
+        return self.doTakeFinalImage and (self.doWindow or doRestoreBoresight or self.finalBinFactor != None)
     
     def logFitFWHM(self, name, focPos, fwhm):
         """Log a fit value of FWHM or FWHM error.
@@ -1264,11 +1303,11 @@ class BaseFocusScript(object):
             self.currBoreXYDeg = self.begBoreXYDeg
             self.logWdg.addMsg("Restoring boresight to %0.7f, %0.7f deg" % (self.begBoreXYDeg[0], self.begBoreXYDeg[1]))
             yield self.sr.waitCmdVars(self.moveBoresight(self.begBoreXYDeg, msgStr="Restoring original boresight position"))
-        
-        if self.doTakeFinalImage and (self.doWindow or doRestoreBoresight):
+
+        if self.isFinalExposureWanted():
             self.doTakeFinalImage = False
+            exposeCmdDict = self.getExposeCmdDict(isFinal=True)
             self.logWdg.addMsg("Taking a final exposure")
-            exposeCmdDict = self.getExposeCmdDict(doWindow=False)
             yield self.sr.waitCmd(**exposeCmdDict)
         
         if scriptException:
@@ -1307,22 +1346,6 @@ class BaseFocusScript(object):
 
 class SlitviewerFocusScript(BaseFocusScript):
     """Focus script for slitviewers
-    
-    Inputs:
-    - gcamActor: name of guide camera actor (e.g. "dcam")
-    - instName: name of instrument (e.g. "DIS"); must be a name known to TUI.Inst.ExposeModel.
-    - imageViewerTLName: name of image viewer toplevel (e.g. "Guide.DIS Slitviewer")
-    - defBoreXY: default boresight position in [x, y] arcsec;
-        If an entry is None then no offset widget is shown for that axis
-        and 0 is used.
-    - defRadius: default centroid radius, in arcsec
-    - defBinFactor: default bin factor; if None then bin factor cannot be set
-    - doWindow: if True, subframe images during focus sequence
-    - windowOrigin: index of left or lower pixel for window (0 or 1 unless very wierd);
-        this is not use for star positions, which all have the same convention
-    - windowIsInclusive: is the upper-right window coord included in the image?
-    - helpURL: URL of help file
-    - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
     """
     def __init__(self,
         sr,
@@ -1332,6 +1355,7 @@ class SlitviewerFocusScript(BaseFocusScript):
         defBoreXY,
         defRadius = 5.0,
         defBinFactor = 1,
+        finalBinFactor = None,
         doWindow = True,
         windowOrigin = 0,
         windowIsInclusive = True,
@@ -1340,6 +1364,27 @@ class SlitviewerFocusScript(BaseFocusScript):
     ):
         """The setup script; run once when the script runner
         window is created.
+
+        Inputs:
+        - gcamActor: name of guide camera actor (e.g. "dcam")
+        - instName: name of instrument (e.g. "DIS"); must be a name known to TUI.Inst.ExposeModel.
+        - imageViewerTLName: name of image viewer toplevel (e.g. "Guide.DIS Slitviewer")
+        - defBoreXY: default boresight position in [x, y] arcsec;
+            If an entry is None then no offset widget is shown for that axis
+            and 0 is used.
+        - defRadius: default centroid radius, in arcsec
+        - defBinFactor: default bin factor; if None then bin factor cannot be set
+        - finalBinFactor: the final bin factor; this is an ugly hack that works around the problem
+            that guiders do not provide a bin factor keyword so there's no way to tell what
+            bin factor the guider started out with.
+            None means: if you can tell what the starting bin factor is then restore that; otherwise
+            leave the bin factor as the it was set by this script.
+        - doWindow: if True, subframe images during focus sequence
+        - windowOrigin: index of left or lower pixel for window (0 or 1 unless very wierd);
+            this is not use for star positions, which all have the same convention
+        - windowIsInclusive: is the upper-right window coord included in the image?
+        - helpURL: URL of help file
+        - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
         """
         if len(defBoreXY) != 2:
             raise ValueError("defBoreXY=%s must be a pair of values" % defBoreXY)
@@ -1352,6 +1397,7 @@ class SlitviewerFocusScript(BaseFocusScript):
             imageViewerTLName = imageViewerTLName,
             defRadius = defRadius,
             defBinFactor = defBinFactor,
+            finalBinFactor = finalBinFactor,
             canSetStarPos = False,
             maxFindAmpl = None,
             doWindow = doWindow,
@@ -1435,24 +1481,6 @@ class SlitviewerFocusScript(BaseFocusScript):
 
 class OffsetGuiderFocusScript(BaseFocusScript):
     """Focus script for offset guiders
-    
-    Inputs:
-    - gcamActor: name of guide camera actor (e.g. "dcam")
-    - instPos: name of instrument position (e.g. "NA2"); case doesn't matter
-    - imageViewerTLName: name of image viewer toplevel (e.g. "Guide.DIS Slitviewer")
-    - defBoreXY: default boresight position in [x, y] arcsec;
-        If an entry is None then no offset widget is shown for that axis
-        and 0 is used.
-    - defRadius: default centroid radius, in arcsec
-    - defBinFactor: default bin factor; if None then bin factor cannot be set
-    - maxFindAmpl: maximum star amplitude for finding stars (peak - sky in ADUs);
-        if None then star finding is disabled.
-    - doWindow: if True, subframe images during focus sequence
-    - windowOrigin: index of left or lower pixel for window (0 or 1 unless very wierd);
-        this is not use for star positions, which all have the same convention
-    - windowIsInclusive: is the upper-right window coord included in the image?
-    - helpURL: URL of help file
-    - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
     """
     def __init__(self,
         sr,
@@ -1461,6 +1489,7 @@ class OffsetGuiderFocusScript(BaseFocusScript):
         imageViewerTLName,
         defRadius = 5.0,
         defBinFactor = 1,
+        finalBinFactor = None,
         maxFindAmpl = None,
         doWindow = True,
         windowOrigin = 0,
@@ -1470,6 +1499,29 @@ class OffsetGuiderFocusScript(BaseFocusScript):
     ):
         """The setup script; run once when the script runner
         window is created.
+    
+        Inputs:
+        - gcamActor: name of guide camera actor (e.g. "dcam")
+        - instPos: name of instrument position (e.g. "NA2"); case doesn't matter
+        - imageViewerTLName: name of image viewer toplevel (e.g. "Guide.DIS Slitviewer")
+        - defBoreXY: default boresight position in [x, y] arcsec;
+            If an entry is None then no offset widget is shown for that axis
+            and 0 is used.
+        - defRadius: default centroid radius, in arcsec
+        - defBinFactor: default bin factor; if None then bin factor cannot be set
+        - finalBinFactor: the final bin factor; this is an ugly hack that works around the problem
+            that guiders do not provide a bin factor keyword so there's no way to tell what
+            bin factor the guider started out with.
+            None means: if you can tell what the starting bin factor is then restore that; otherwise
+            leave the bin factor as the it was set by this script.
+        - maxFindAmpl: maximum star amplitude for finding stars (peak - sky in ADUs);
+            if None then star finding is disabled.
+        - doWindow: if True, subframe images during focus sequence
+        - windowOrigin: index of left or lower pixel for window (0 or 1 unless very wierd);
+            this is not use for star positions, which all have the same convention
+        - windowIsInclusive: is the upper-right window coord included in the image?
+        - helpURL: URL of help file
+        - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
         """
         BaseFocusScript.__init__(self,
             sr = sr,
@@ -1478,6 +1530,7 @@ class OffsetGuiderFocusScript(BaseFocusScript):
             imageViewerTLName = imageViewerTLName,
             defRadius = defRadius,
             defBinFactor = defBinFactor,
+            finalBinFactor = finalBinFactor,
             maxFindAmpl = maxFindAmpl,
             doWindow = doWindow,
             windowOrigin = windowOrigin,
@@ -1531,21 +1584,6 @@ class ImagerFocusScript(BaseFocusScript):
     As a result the default value of doWindow is false.
     However, if the exposure command gets arguments for windowing
     then this will all change.
-    
-    Inputs:
-    - instName: name of instrument (e.g. "DIS"); must be a name known to TUI.Inst.ExposeModel.
-    - imageViewerTLName: name of image viewer toplevel (e.g. "Guide.DIS Slitviewer")
-    - defRadius: default centroid radius, in arcsec
-    - defBinFactor: default bin factor; if None then bin factor cannot be set
-    - maxFindAmpl: maximum star amplitude for finding stars (peak - sky in ADUs);
-        if None then star finding is disabled.
-    - doWindow: if True, subframe images during focus sequence
-    - windowOrigin: index of left or lower pixel for window (0 or 1 unless very wierd);
-        this is not use for star positions, which all have the same convention
-    - windowIsInclusive: is the upper-right window coord included in the image?
-    - doZeroOverscan: if True then set overscan to zero
-    - helpURL: URL of help file
-    - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
     """
     def __init__(self,
         sr,
@@ -1563,6 +1601,21 @@ class ImagerFocusScript(BaseFocusScript):
     ):
         """The setup script; run once when the script runner
         window is created.
+    
+        Inputs:
+        - instName: name of instrument (e.g. "DIS"); must be a name known to TUI.Inst.ExposeModel.
+        - imageViewerTLName: name of image viewer toplevel (e.g. "Guide.DIS Slitviewer")
+        - defRadius: default centroid radius, in arcsec
+        - defBinFactor: default bin factor; if None then bin factor cannot be set
+        - maxFindAmpl: maximum star amplitude for finding stars (peak - sky in ADUs);
+            if None then star finding is disabled.
+        - doWindow: if True, subframe images during focus sequence
+        - windowOrigin: index of left or lower pixel for window (0 or 1 unless very wierd);
+            this is not use for star positions, which all have the same convention
+        - windowIsInclusive: is the upper-right window coord included in the image?
+        - doZeroOverscan: if True then set overscan to zero
+        - helpURL: URL of help file
+        - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
         """
         # this is a hack for now
         gcamActor = {
@@ -1587,19 +1640,22 @@ class ImagerFocusScript(BaseFocusScript):
         self.doZeroOverscan = bool(doZeroOverscan)
 
     def formatBinFactorArg(self):
-        """Return bin factor argument for expose/centroid/findstars command"""
-        if self.defBinFactor == None:
+        """Return bin factor argument for expose/centroid/findstars command
+        """
+        binFactor = self.getBinFactor(isFinal=isFinal)
+        if binFactor == None:
             return ""
-        return "bin=%d,%d" % (self.binFactor, self.binFactor)
+        return "bin=%d,%d" % (binFactor, binFactor)
 
-    def formatExposeArgs(self, doWindow=True):
+    def formatExposeArgs(self, doWindow=True, isFinal=False):
         """Format arguments for exposure command.
         
         Inputs:
         - doWindow: if true, window the exposure (if permitted)
+        - isFinal: if True then return parameters for final exposure
         """
         try:
-            retStr = BaseFocusScript.formatExposeArgs(self, doWindow)
+            retStr = BaseFocusScript.formatExposeArgs(self, doWindow=doWindow, isFinal=isFinal)
         except TypeError:
             # try to shed light on an intermittent bug
             print "Focus script bug diagnostic information"
@@ -1611,6 +1667,13 @@ class ImagerFocusScript(BaseFocusScript):
         if self.doZeroOverscan:
             retStr += " overscan=0,0"
         return retStr
+    
+    def initAll(self):
+        """Override the default initAll to record initial bin factor, if relevant
+        """
+        BaseFocusScript.initAll(self)
+        if self.exposeModel.instInfo.numBin > 0:
+            self.finalBinFactor = self.exposeModel.bin.getInd(0)[0]
     
     def waitCentroid(self):
         """Take an exposure and centroid using 1x1 binning.
@@ -1639,17 +1702,21 @@ class ImagerFocusScript(BaseFocusScript):
         else:
             self.sr.value = StarMeas()
     
-    def getExposeCmdDict(self, doWindow=True):
+    def getExposeCmdDict(self, doWindow=True, isFinal=False):
         """Get basic command arument dict for an expose command
         
         This includes actor, cmdStr, abortCmdStr
+        
+        Inputs:
+        - doWindow: if true, window the exposure (if permitted)
+        - isFinal: if True then return parameters for final exposure
         """
         return dict(
             actor = self.exposeModel.actor,
-            cmdStr = "object " + self.formatExposeArgs(doWindow),
+            cmdStr = "object " + self.formatExposeArgs(doWindow, isFinal=isFinal),
             abortCmdStr = "abort",
         )
-
+    
     def waitExpose(self, doWindow=True):
         """Take an exposure.
         Return the file path of the exposure in self.sr.value.
