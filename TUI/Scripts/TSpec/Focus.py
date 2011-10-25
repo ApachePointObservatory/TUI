@@ -10,7 +10,7 @@ import TUI.Base.BaseFocusScript
 reload(TUI.Base.BaseFocusScript)
 SlitviewerFocusScript = TUI.Base.BaseFocusScript.SlitviewerFocusScript
 
-Debug = True # run in debug-only mode (which doesn't DO anything, it just pretends)?
+Debug = False # run in debug-only mode (which doesn't DO anything, it just pretends)?
 HelpURL = "Scripts/BuiltInScripts/InstFocus.html"
 
 class ScriptClass(SlitviewerFocusScript):
