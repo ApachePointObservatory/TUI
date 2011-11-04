@@ -302,7 +302,7 @@ class BaseFocusScript(object):
         - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
         """
         self.sr = sr
-        self.sr.debug = bool(debug) or True
+        self.sr.debug = bool(debug)
         self.gcamActor = gcamActor
         self.instName = instName
         self.tccInstPrefix = tccInstPrefix or self.instName
