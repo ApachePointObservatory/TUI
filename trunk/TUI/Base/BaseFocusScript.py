@@ -135,6 +135,8 @@ History:
                     Added isFinal argument to various methods.
                     Added finalBinFactor argument as an ugly hack until guide actors report bin factor.
                     Modified ImagerFocusScript to record initial bin factor, if it is adjustable.
+2011-11-04 ROwen    Bug fix: SlitviewerFocusScript and OffsetGuiderFocusScript final exposure not full frame.
+                    Bug fix: ImagerFocusScript did not set exposeModel soon enough for spicam.
 """
 import inspect
 import math
@@ -300,7 +302,7 @@ class BaseFocusScript(object):
         - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
         """
         self.sr = sr
-        self.sr.debug = bool(debug)
+        self.sr.debug = bool(debug) or True
         self.gcamActor = gcamActor
         self.instName = instName
         self.tccInstPrefix = tccInstPrefix or self.instName
@@ -603,7 +605,7 @@ class BaseFocusScript(object):
         if self.isFinalExposureWanted():
             self.doTakeFinalImage = False
             doAskWait = True
-            exposeCmdDict = self.getExposeCmdDict(isFinal=True)
+            exposeCmdDict = self.getExposeCmdDict(doWindow=False, isFinal=True)
             self.logWdg.addMsg("Taking a final exposure")
             self.sr.startCmd(**exposeCmdDict)
 
@@ -1306,7 +1308,7 @@ class BaseFocusScript(object):
 
         if self.isFinalExposureWanted():
             self.doTakeFinalImage = False
-            exposeCmdDict = self.getExposeCmdDict(isFinal=True)
+            exposeCmdDict = self.getExposeCmdDict(doWindow=False, isFinal=True)
             self.logWdg.addMsg("Taking a final exposure")
             yield self.sr.waitCmd(**exposeCmdDict)
         
@@ -1622,6 +1624,7 @@ class ImagerFocusScript(BaseFocusScript):
             "nicfps": "nfocus",
             "spicam": "sfocus",
         }[instName.lower()]
+        self.exposeModel = TUI.Inst.ExposeModel.getModel(instName)
         BaseFocusScript.__init__(self,
             sr = sr,
             gcamActor = gcamActor,
@@ -1636,11 +1639,13 @@ class ImagerFocusScript(BaseFocusScript):
             helpURL = helpURL,
             debug = debug,
         )
-        self.exposeModel = TUI.Inst.ExposeModel.getModel(instName)
         self.doZeroOverscan = bool(doZeroOverscan)
 
-    def formatBinFactorArg(self):
+    def formatBinFactorArg(self, isFinal):
         """Return bin factor argument for expose/centroid/findstars command
+
+        Inputs:
+        - isFinal: if True then return parameters for final exposure
         """
         binFactor = self.getBinFactor(isFinal=isFinal)
         if binFactor == None:
