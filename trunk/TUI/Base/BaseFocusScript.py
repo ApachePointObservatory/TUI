@@ -139,6 +139,8 @@ History:
                     Bug fix: ImagerFocusScript did not set exposeModel soon enough for spicam.
 """
 import inspect
+import traceback
+import sys
 import math
 import random # for debug
 import numpy
@@ -340,9 +342,11 @@ class BaseFocusScript(object):
         self.createStdWdg()
         
         self.initAll()
-        # try to get focus away from graph (but it doesn't work; why?)
+        # try to get GUI's focus away from graph widget (but it doesn't work; why?)
         self.expTimeWdg.focus_set()
         self.setCurrFocus()
+        sys.stderr.write("Finished initializing: ")
+        self._printDiagnostics()
     
     def createSpecialWdg(self):
         """Create script-specific widgets.
@@ -584,34 +588,38 @@ class BaseFocusScript(object):
     def end(self, sr):
         """Run when script exits (normally or due to error)
         """
-        self.enableCmdBtns(False)
-        
-        doAskWait = False
-
-        if self.focPosToRestore != None:
-            tccCmdStr = "set focus=%0.0f" % (self.focPosToRestore,)
-            self.logWdg.addMsg("Setting focus to %0.0f %s" % (self.focPosToRestore, MicronStr))
-            doAskWait = True
-            self.focPosToRestore = None
-            self.sr.startCmd(actor="tcc", cmdStr=tccCmdStr)
-
-        doRestoreBoresight = self.begBoreXYDeg != self.currBoreXYDeg
-        if doRestoreBoresight:
-            self.currBoreXYDeg = self.begBoreXYDeg
-            self.logWdg.addMsg("Restoring boresight to %0.7f, %0.7f deg" % (self.begBoreXYDeg[0], self.begBoreXYDeg[1]))
-            doAskWait = True
-            self.moveBoresight(self.begBoreXYDeg)
-
-        if self.isFinalExposureWanted():
-            self.doTakeFinalImage = False
-            doAskWait = True
-            exposeCmdDict = self.getExposeCmdDict(doWindow=False, isFinal=True)
-            self.logWdg.addMsg("Taking a final exposure")
-            self.sr.startCmd(**exposeCmdDict)
-
-        if doAskWait:
-            self.logWdg.addMsg("Wait for these tasks to finish before running again", severity=RO.Constants.sevWarning)
-        
+        try:
+            self.enableCmdBtns(False)
+            
+            doAskWait = False
+    
+            if self.focPosToRestore != None:
+                tccCmdStr = "set focus=%0.0f" % (self.focPosToRestore,)
+                self.logWdg.addMsg("Setting focus to %0.0f %s" % (self.focPosToRestore, MicronStr))
+                doAskWait = True
+                self.focPosToRestore = None
+                self.sr.startCmd(actor="tcc", cmdStr=tccCmdStr)
+    
+            doRestoreBoresight = self.begBoreXYDeg != self.currBoreXYDeg
+            if doRestoreBoresight:
+                self.currBoreXYDeg = self.begBoreXYDeg
+                self.logWdg.addMsg("Restoring boresight to %0.7f, %0.7f deg" % (self.begBoreXYDeg[0], self.begBoreXYDeg[1]))
+                doAskWait = True
+                self.moveBoresight(self.begBoreXYDeg)
+    
+            if self.isFinalExposureWanted():
+                self.doTakeFinalImage = False
+                doAskWait = True
+                exposeCmdDict = self.getExposeCmdDict(doWindow=False, isFinal=True)
+                self.logWdg.addMsg("Taking a final exposure")
+                self.sr.startCmd(**exposeCmdDict)
+    
+            if doAskWait:
+                self.logWdg.addMsg("Wait for these tasks to finish before running again", severity=RO.Constants.sevWarning)
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
+            self._printDiagnostics()
+            raise
 
     def formatBinFactorArg(self, isFinal):
         """Return bin factor argument for expose/centroid/findstars command
@@ -872,95 +880,100 @@ class BaseFocusScript(object):
     def run(self, sr):
         """Run the focus script.
         """
-        self.initAll()
+        try:
+            self.initAll()
         
-        # fake data for debug mode
-        # iteration #, FWHM
-        self.debugIterFWHM = (1, 2.0)
-
-        self.getInstInfo()
-        yield self.waitExtraSetup()
-
-        # open image viewer window, if any
-        if self.imageViewerTLName:
-            self.tuiModel.tlSet.makeVisible(self.imageViewerTLName)
-        self.sr.master.winfo_toplevel().lift()
-
-        focPosFWHMList = []
-        extremeFocPos = Extremes()
-        extremeFWHM = Extremes()
-        
-        # check that the gcam actor is alive. This is important because
-        # centroid commands can fail due to no actor or no star
-        # so we want to halt in the former case
-        yield self.sr.waitCmd(
-           actor = self.gcamActor,
-           cmdStr = "ping",
-        )
-        
-        # command loop; repeat until error or user explicitly presses Stop
-        if self.maxFindAmpl == None:
-            btnStr = "Measure or Sweep"
-        else:
-            btnStr = "Find, Measure or Sweep"
-        waitMsg = "Press %s to continue" % (btnStr,)
-        testNum = 0
-        while True:
-
-            # wait for user to press the Expose or Sweep button
-            # note: the only time they should be enabled is during this wait
-            self.enableCmdBtns(True)
-            self.sr.showMsg(waitMsg, RO.Constants.sevWarning)
-            yield self.sr.waitUser()
-            self.enableCmdBtns(False)
-            
-            if self.cmdMode == self.cmd_Sweep:
-                break
-             
-            if testNum == 0:
-                self.clearGraph()
-                if self.maxFindAmpl == None:
-                    self.logWdg.addMsg("===== Measure =====")
-                else:
-                    self.logWdg.addMsg("===== Find/Measure =====")
-               
-            testNum += 1
-            focPos = float(self.centerFocPosWdg.get())
-            if focPos == None:
-                raise self.sr.ScriptError("must specify center focus")
-            yield self.waitSetFocus(focPos, False)
-
-            if self.cmdMode == self.cmd_Measure:
-                cmdName = "Meas"
-                self.recordUserParams(doStarPos=True)
-                yield self.waitCentroid()
-            elif self.cmdMode == self.cmd_Find:
-                cmdName = "Find"
-                self.recordUserParams(doStarPos=False)
-                yield self.waitFindStar()
-                starData = self.sr.value
-                if starData.xyPos != None:
-                    self.sr.showMsg("Found star at %0.1f, %0.1f" % tuple(starData.xyPos))
-                    self.setStarPos(starData.xyPos)
-            else:
-                raise RuntimeError("Unknown command mode: %r" % (self.cmdMode,))
-
-            starMeas = self.sr.value
-            self.logStarMeas("%s %d" % (cmdName, testNum,), focPos, starMeas)
-            fwhm = starMeas.fwhm
-            if fwhm == None:
-                waitMsg = "No star found! Fix and then press %s" % (btnStr,)
-                self.setGraphRange(extremeFocPos=extremeFocPos)
-            else:
-                extremeFocPos.addVal(focPos)
-                extremeFWHM.addVal(starMeas.fwhm)
-                focPosFWHMList.append((focPos, fwhm))
-                self.graphFocusMeas(focPosFWHMList, extremeFocPos, extremeFWHM)
-                waitMsg = "%s done; press %s to continue" % (cmdName, btnStr,)
-
-        self.recordUserParams(doStarPos=True)
-        yield self.waitFocusSweep()
+            # fake data for debug mode
+            # iteration #, FWHM
+            self.debugIterFWHM = (1, 2.0)
     
+            self.getInstInfo()
+            yield self.waitExtraSetup()
+    
+            # open image viewer window, if any
+            if self.imageViewerTLName:
+                self.tuiModel.tlSet.makeVisible(self.imageViewerTLName)
+            self.sr.master.winfo_toplevel().lift()
+    
+            focPosFWHMList = []
+            extremeFocPos = Extremes()
+            extremeFWHM = Extremes()
+            
+            # check that the gcam actor is alive. This is important because
+            # centroid commands can fail due to no actor or no star
+            # so we want to halt in the former case
+            yield self.sr.waitCmd(
+               actor = self.gcamActor,
+               cmdStr = "ping",
+            )
+            
+            # command loop; repeat until error or user explicitly presses Stop
+            if self.maxFindAmpl == None:
+                btnStr = "Measure or Sweep"
+            else:
+                btnStr = "Find, Measure or Sweep"
+            waitMsg = "Press %s to continue" % (btnStr,)
+            testNum = 0
+            while True:
+    
+                # wait for user to press the Expose or Sweep button
+                # note: the only time they should be enabled is during this wait
+                self.enableCmdBtns(True)
+                self.sr.showMsg(waitMsg, RO.Constants.sevWarning)
+                yield self.sr.waitUser()
+                self.enableCmdBtns(False)
+                
+                if self.cmdMode == self.cmd_Sweep:
+                    break
+                 
+                if testNum == 0:
+                    self.clearGraph()
+                    if self.maxFindAmpl == None:
+                        self.logWdg.addMsg("===== Measure =====")
+                    else:
+                        self.logWdg.addMsg("===== Find/Measure =====")
+                   
+                testNum += 1
+                focPos = float(self.centerFocPosWdg.get())
+                if focPos == None:
+                    raise self.sr.ScriptError("must specify center focus")
+                yield self.waitSetFocus(focPos, False)
+    
+                if self.cmdMode == self.cmd_Measure:
+                    cmdName = "Meas"
+                    self.recordUserParams(doStarPos=True)
+                    yield self.waitCentroid()
+                elif self.cmdMode == self.cmd_Find:
+                    cmdName = "Find"
+                    self.recordUserParams(doStarPos=False)
+                    yield self.waitFindStar()
+                    starData = self.sr.value
+                    if starData.xyPos != None:
+                        self.sr.showMsg("Found star at %0.1f, %0.1f" % tuple(starData.xyPos))
+                        self.setStarPos(starData.xyPos)
+                else:
+                    raise RuntimeError("Unknown command mode: %r" % (self.cmdMode,))
+    
+                starMeas = self.sr.value
+                self.logStarMeas("%s %d" % (cmdName, testNum,), focPos, starMeas)
+                fwhm = starMeas.fwhm
+                if fwhm == None:
+                    waitMsg = "No star found! Fix and then press %s" % (btnStr,)
+                    self.setGraphRange(extremeFocPos=extremeFocPos)
+                else:
+                    extremeFocPos.addVal(focPos)
+                    extremeFWHM.addVal(starMeas.fwhm)
+                    focPosFWHMList.append((focPos, fwhm))
+                    self.graphFocusMeas(focPosFWHMList, extremeFocPos, extremeFWHM)
+                    waitMsg = "%s done; press %s to continue" % (cmdName, btnStr,)
+    
+            self.recordUserParams(doStarPos=True)
+            yield self.waitFocusSweep()
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
+            self._printDiagnostics()
+            raise
+        
     def setCurrFocus(self, *args):
         """Set center focus to current focus.
         """
@@ -1345,6 +1358,11 @@ class BaseFocusScript(object):
         )
         yield self.sr.waitMS(self.FocusWaitMS)
 
+    def _printDiagnostics(self):
+        """Print diagnostics to stderr in an attempt to diagnose a rare problem
+        """
+        sys.stderr.write("self=%r; class hierarchy=%s\n" % (self, inspect.getclasstree([type(self)])))
+
 
 class SlitviewerFocusScript(BaseFocusScript):
     """Focus script for slitviewers
@@ -1659,14 +1677,7 @@ class ImagerFocusScript(BaseFocusScript):
         - doWindow: if true, window the exposure (if permitted)
         - isFinal: if True then return parameters for final exposure
         """
-        try:
-            retStr = BaseFocusScript.formatExposeArgs(self, doWindow=doWindow, isFinal=isFinal)
-        except TypeError:
-            # try to shed light on an intermittent bug
-            print "Focus script bug diagnostic information"
-            print "self.__class__ =", self.__class__
-            print "inheritance tree =", inspect.getclasstree([self.__class__]) 
-            raise
+        retStr = BaseFocusScript.formatExposeArgs(self, doWindow=doWindow, isFinal=isFinal)
         
         retStr += " name=%s_focus" % (self.exposeModel.instInfo.instActor,)
         if self.doZeroOverscan:
