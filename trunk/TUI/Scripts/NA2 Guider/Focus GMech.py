@@ -16,8 +16,6 @@ History:
 import TUI.Base.BaseFocusScript
 import RO.Constants
 import TUI.Guide.GMechModel
-# make script reload also reload BaseFocusScript
-reload(TUI.Base.BaseFocusScript)
 OffsetGuiderFocusScript = TUI.Base.BaseFocusScript.OffsetGuiderFocusScript
 
 MicronStr = TUI.Base.BaseFocusScript.MicronStr

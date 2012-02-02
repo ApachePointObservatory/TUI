@@ -1,5 +1,5 @@
-VersionName = "1.9.5a1"
-VersionDate = "2012-01-26"
+VersionName = "1.9.5b1"
+VersionDate = "2012-02-01"
 ApplicationName = "TUI"
 
 VersionStr = " ".join((VersionName, VersionDate))

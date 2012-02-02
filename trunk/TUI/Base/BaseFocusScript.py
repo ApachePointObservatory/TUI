@@ -138,6 +138,7 @@ History:
 2011-11-04 ROwen    Bug fix: SlitviewerFocusScript and OffsetGuiderFocusScript final exposure not full frame.
                     Bug fix: ImagerFocusScript did not set exposeModel soon enough for spicam.
 """
+print "Loading the BaseFocusScript module"
 import inspect
 import traceback
 import sys
