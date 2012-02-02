@@ -138,7 +138,6 @@ History:
 2011-11-04 ROwen    Bug fix: SlitviewerFocusScript and OffsetGuiderFocusScript final exposure not full frame.
                     Bug fix: ImagerFocusScript did not set exposeModel soon enough for spicam.
 """
-print "Loading the BaseFocusScript module"
 import inspect
 import traceback
 import sys
@@ -346,8 +345,6 @@ class BaseFocusScript(object):
         # try to get GUI's focus away from graph widget (but it doesn't work; why?)
         self.expTimeWdg.focus_set()
         self.setCurrFocus()
-        sys.stderr.write("Finished initializing: ")
-        self._printDiagnostics()
     
     def createSpecialWdg(self):
         """Create script-specific widgets.
