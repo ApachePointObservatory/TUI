@@ -11,8 +11,6 @@ History:
 2008-03-17 ROwen    Re-enabled windowing now that PR 739 and 740 are fixed.
 """
 import TUI.Base.BaseFocusScript
-# make script reload also reload BaseFocusScript
-reload(TUI.Base.BaseFocusScript)
 OffsetGuiderFocusScript = TUI.Base.BaseFocusScript.OffsetGuiderFocusScript
 
 Debug = False # run in debug-only mode (which doesn't DO anything, it just pretends)?

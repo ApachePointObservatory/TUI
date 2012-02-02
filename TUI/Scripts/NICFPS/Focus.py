@@ -40,8 +40,6 @@ History:
 2007-07-26 ROwen    Added default bin factor.
 """
 import TUI.Base.BaseFocusScript
-# make script reload also reload BaseFocusScript
-reload(TUI.Base.BaseFocusScript)
 ImagerFocusScript = TUI.Base.BaseFocusScript.ImagerFocusScript
 
 Debug = False # run in debug-only mode (which doesn't DO anything, it just pretends)?

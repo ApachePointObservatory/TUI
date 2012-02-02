@@ -10,8 +10,6 @@ History:
                     (recommended by Russet); SPIcam saturates at 59k and saturation is not very nasty.
 """
 import TUI.Base.BaseFocusScript
-# make script reload also reload BaseFocusScript
-reload(TUI.Base.BaseFocusScript)
 ImagerFocusScript = TUI.Base.BaseFocusScript.ImagerFocusScript
 
 Debug = False # run in debug-only mode (which doesn't DO anything, it just pretends)?

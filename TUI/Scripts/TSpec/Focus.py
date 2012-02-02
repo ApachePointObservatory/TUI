@@ -6,8 +6,6 @@ History:
 2011-10-25 ROwen    Set final bin factor = 2 (a hack).
 """
 import TUI.Base.BaseFocusScript
-# make script reload also reload BaseFocusScript
-reload(TUI.Base.BaseFocusScript)
 SlitviewerFocusScript = TUI.Base.BaseFocusScript.SlitviewerFocusScript
 
 Debug = False # run in debug-only mode (which doesn't DO anything, it just pretends)?
