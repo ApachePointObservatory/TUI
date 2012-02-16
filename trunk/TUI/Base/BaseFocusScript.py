@@ -137,6 +137,9 @@ History:
                     Modified ImagerFocusScript to record initial bin factor, if it is adjustable.
 2011-11-04 ROwen    Bug fix: SlitviewerFocusScript and OffsetGuiderFocusScript final exposure not full frame.
                     Bug fix: ImagerFocusScript did not set exposeModel soon enough for spicam.
+2012-02-16 ROwen    Bug fix: BaseFocusScript.isFinalExposureWanted used undefined variable doRestoreBoresight;
+                    fixed by adding a method doRestoreBoresight.
+                    Changed to not log diagnostic information when sr.ScriptError is raised.
 """
 import inspect
 import traceback
@@ -598,8 +601,7 @@ class BaseFocusScript(object):
                 self.focPosToRestore = None
                 self.sr.startCmd(actor="tcc", cmdStr=tccCmdStr)
     
-            doRestoreBoresight = self.begBoreXYDeg != self.currBoreXYDeg
-            if doRestoreBoresight:
+            if self.doRestoreBoresight():
                 self.currBoreXYDeg = self.begBoreXYDeg
                 self.logWdg.addMsg("Restoring boresight to %0.7f, %0.7f deg" % (self.begBoreXYDeg[0], self.begBoreXYDeg[1]))
                 doAskWait = True
@@ -614,6 +616,8 @@ class BaseFocusScript(object):
     
             if doAskWait:
                 self.logWdg.addMsg("Wait for these tasks to finish before running again", severity=RO.Constants.sevWarning)
+        except sr.ScriptError:
+            raise # no diagnostics needed
         except Exception:
             traceback.print_exc(file=sys.stderr)
             self._printDiagnostics()
@@ -781,7 +785,7 @@ class BaseFocusScript(object):
     def isFinalExposureWanted(self):
         """Return True if a final exposure is wanted, else False
         """
-        return self.doTakeFinalImage and (self.doWindow or doRestoreBoresight or self.finalBinFactor != None)
+        return self.doTakeFinalImage and (self.doWindow or self.doRestoreBoresight() or self.finalBinFactor != None)
     
     def logFitFWHM(self, name, focPos, fwhm):
         """Log a fit value of FWHM or FWHM error.
@@ -967,6 +971,8 @@ class BaseFocusScript(object):
     
             self.recordUserParams(doStarPos=True)
             yield self.waitFocusSweep()
+        except sr.ScriptError:
+            raise # no diagnostics needed
         except Exception:
             traceback.print_exc(file=sys.stderr)
             self._printDiagnostics()
@@ -1311,8 +1317,7 @@ class BaseFocusScript(object):
             self.logWdg.addMsg("Setting focus to %0.0f %s" % (focPosToRestore, MicronStr))
             yield self.waitSetFocus(focPosToRestore)
 
-        doRestoreBoresight = self.currBoreXYDeg != self.begBoreXYDeg
-        if doRestoreBoresight:
+        if self.doRestoreBoresight():
             self.currBoreXYDeg = self.begBoreXYDeg
             self.logWdg.addMsg("Restoring boresight to %0.7f, %0.7f deg" % (self.begBoreXYDeg[0], self.begBoreXYDeg[1]))
             yield self.sr.waitCmdVars(self.moveBoresight(self.begBoreXYDeg, msgStr="Restoring original boresight position"))
@@ -1325,6 +1330,11 @@ class BaseFocusScript(object):
         
         if scriptException:
             raise scriptException
+    
+    def doRestoreBoresight(self):
+        """Has the boresight changed?
+        """
+        return self.currBoreXYDeg != self.begBoreXYDeg
     
     def waitSetFocus(self, focPos, doBacklashComp=False):
         """Adjust focus.
