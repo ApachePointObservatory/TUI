@@ -10,47 +10,17 @@
 <h3>Compatibility</h3>
 
 <ul>
-	<li>Mac: works with Mac OS X 10.6, 10.5 and 10.4 and is a universal binary.
+	<li>Mac: works with Mac OS X 10.6, 10.5 and 10.4 and is a universal binary. It is not well tested on Mac OS X 10.7. Mac OS X 10.4 compatibility will end in Summer of 2012.
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>Known Issues</h3>
-
-<h4>Memory Leak</h4>
-
-<p>TUI has a known memory leak due to a <a href="https://sourceforge.net/tracker/?func=detail&amp;atid=560720&amp;aid=3124990&amp;group_id=80706#">bug in matplotlib</a> that is triggered by the Guide Monitor window. Please do not leave TUI running for days on end.
-
-<p>Matplotlib 1.0.1 dramatically reduces the leak rate. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
-
-<h4>Quit At Startup</h4>
-
-<p>Matplotlib 1.0.0 has a bug that can make TUI quit at startup. If TUI quits while starting up then issue the following command:<pre>
-cd ~/.matplotlib
-rm -rf ~/.matplotlib*.cache
-</pre>
-
-<p>Matplotlib 1.0.1 fixes the problem; if you are running from source I recommend you upgrade. Matplotlib 1.0.1 was first included in Mac version 1.8.6 and Windows version 1.8.5.
-
-<h3>1.9.5b2 2012-02-16</h3>
-
-<p>Bug fixes:
-<ul>
-    <li>The ECam focus script would fail to take a final exposure, due to undefined name 'doRestoreBoresight'.
-</ul>
-
-<h3>1.9.5b1 2012-02-01</h3>
+<h3>1.9.5 2012-03-09</h3>
 
 <p>Bug fixes:
 <ul>
     <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1306">PR 1306</a> Focus loop fails. The problem was that each focus script reloaded a shared module (BaseFocusScript) which caused the id of shared classes to change. Thanks to Arnaud Delobelle for identifying the cause.
-</ul>
-
-<h3>1.9.5a1 2012-01-26</h3>
-
-<p>Internal changes:
-<ul>
-    <li>Added additional diagnostic output for PR 1306: Focus loop fails. Please check TUI's log file next time you see the problem and report what you find. Note that one line of diagnostic information is logged every time you load a focus script.
+    <li>The ECam focus script would fail to take a final exposure, due to undefined name 'doRestoreBoresight'.
 </ul>
 
 <h3>1.9.4 2011-12-20</h3>
