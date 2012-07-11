@@ -21,10 +21,12 @@ To do:
                     Added WindowName.
 2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
 2011-07-27 ROwen    Updated for new location of HubModel.
+2012-07-10 ROwen    Modified to use RO.TkUtil.Timer.
 """
 import time
 import Tkinter
 import RO.Wdg
+from RO.TkUtil import Timer
 import TUI.Models.HubModel
 import TUI.TUIModel
 import TUI.Version
@@ -171,7 +173,7 @@ class UsersWdg(Tkinter.Frame):
         # dictionary of user name: User object
         self.userDict = dict()
         
-        self.updateTimerID = None
+        self._updateTimer = Timer()
                 
         self.yscroll = Tkinter.Scrollbar (
             master = self,
@@ -203,22 +205,15 @@ class UsersWdg(Tkinter.Frame):
         hubModel.user.addCallback(self.updUser, callNow=False)
         hubModel.users.addCallback(self.updUsers)
 
-    def cancelUpdate(self):
-        """Cancel update timer
-        """
-        if self.updateTimerID:
-            self.updateTimerID = self.after_cancel(self.updateTimerID)
-        
-    def scheduleUpdate(self, afterMS=1000):
+    def scheduleUpdate(self, afterSec=1.0):
         """Schedule a new update
         """
-        self.cancelUpdate()
-        self.updateTimerID = self.after(afterMS, self.updDisplay)
+        self._updateTimer.start(afterSec, self.updDisplay)
 
     def updDisplay(self):
         """Display current data.
         """
-        self.cancelUpdate()
+        self._updateTimer.cancel()
         
         myCmdr = self.tuiModel.getCmdr()
         maxDisplayTime = time.time() - self._retainSec
@@ -305,7 +300,6 @@ if __name__ == "__main__":
         {"Users": ("CL01.CPL","TU01.me")},
     )
 
-    delayMS = 1000
     dataIter = iter(dataDicts)
     def dispatchNext():
         try:
@@ -315,7 +309,7 @@ if __name__ == "__main__":
         
         msgDict = {"cmdr":".hub", "cmdID":11, "actor":"hub", "msgType":"i", "data":newDataDict}
         kd.dispatch(msgDict)
-        root.after(delayMS, dispatchNext)
+        Timer(1.0, dispatchNext)
     dispatchNext() 
 
     root.mainloop()

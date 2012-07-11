@@ -5,10 +5,12 @@ History:
 2010-09-24
 2010-09-29 ROwen    modified to use RO.Alg.RandomWalk
 2010-10-18 ROwen    Added guide offset information.
+2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 """
 import math
 import random
 import RO.Alg.RandomWalk
+from RO.TkUtil import Timer
 import TUI.Base.TestDispatcher
 
 testDispatcher = TUI.Base.TestDispatcher.TestDispatcher("tcc")
@@ -112,20 +114,20 @@ def _nextGuideOffset(guideOffInfo, delaySec):
     guideOffInfo.update()
     keyVarStr = guideOffInfo.getKeyVarStr()
     testDispatcher.dispatch(keyVarStr, actor="tcc")
-    tuiModel.tkRoot.after(int(delaySec * 1000), _nextGuideOffset, guideOffInfo, delaySec)
+    Timer(delaySec, _nextGuideOffset, guideOffInfo, delaySec)
 
 def _nextStar(starInfo, delaySec):
     starInfo.update()
     keyVarStr = starInfo.getKeyVarStr()
     testDispatcher.dispatch(keyVarStr, actor="gcam")
-    tuiModel.tkRoot.after(int(delaySec * 1000), _nextStar, starInfo, delaySec)
+    Timer(delaySec, _nextStar, starInfo, delaySec)
 
 def _nextSecFocus(secFocus, delaySec):
     keyVarStr = "SecFocus=%0.1f" % (secFocus.next(),)
     testDispatcher.dispatch(keyVarStr, actor="tcc")
-    tuiModel.tkRoot.after(int(delaySec * 1000), _nextSecFocus, secFocus, delaySec)
+    Timer(delaySec, _nextSecFocus, secFocus, delaySec)
 
 def _nextSecPiston(secPiston, delaySec):
     keyVarStr = "SecOrient=%0.1f, 0, 0, 0, 0" % (secPiston.next(),)
     testDispatcher.dispatch(keyVarStr, actor="tcc")
-    tuiModel.tkRoot.after(int(delaySec * 1000), _nextSecPiston, secPiston, delaySec)
+    Timer(delaySec, _nextSecPiston, secPiston, delaySec)

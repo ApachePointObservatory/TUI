@@ -15,6 +15,7 @@
 2011-04-08 ROwen    Modified to use updated PermsTableWdg (formerly PermsInputWdg).
 2011-06-17 ROwen    Added constants WindowName.
 2011-07-27 ROwen    Updated for new location of PermsModel.
+2012-07-10 ROwen    Removed use of update_idletasks.
 """
 import Tkinter
 import RO.KeyVariable
@@ -37,7 +38,6 @@ def addWindow(tlSet):
         resizable = (False, True),
         wdgFunc = PermsWdg,
     )
-    Tkinter.Label().update_idletasks()
 
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
 

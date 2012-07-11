@@ -26,6 +26,7 @@ History:
 2010-11-04 ROwen    Tweaked help URLs.
 2010-11-05 ROwen    Show UTC date as well as time.
 2011-02-16 ROwen    Made the display expand to the right of the displayed data.
+2012-07-10 ROwen    Modified to use RO.TkUtil.Timer
 """
 import time
 import Tkinter
@@ -34,6 +35,7 @@ import RO.Astro.Sph
 import RO.Constants
 import RO.PhysConst
 import RO.StringUtil
+from RO.TkUtil import Timer
 import RO.Wdg
 import TUI.PlaySound
 import TUI.TCC.TelConst
@@ -55,6 +57,8 @@ class MiscWdg (Tkinter.Frame):
         Tkinter.Frame.__init__(self, master=master, **kargs)
         self.tccModel = TUI.TCC.TCCModel.getModel()
         self.gmechModel = TUI.Guide.GMechModel.getModel()
+        
+        self._clockTimer = Timer()
         
         gr = RO.Wdg.Gridder(self, sticky="e")
 
@@ -231,7 +235,7 @@ class MiscWdg (Tkinter.Frame):
         self.lmstWdg.set(currLMST)
         
         # schedule the next event
-        self.after (1000, self.updateClock)
+        self._clockTimer.start(1.0, self.updateClock)
     
     def setAxePos(self, axePos, isCurrent=True, keyVar=None):
         """Updates ha, dec, zenith distance and airmass

@@ -27,11 +27,9 @@ History:
 2008-07-02 ROwen	Updated for changes to TUI.Base.FocusWdg.
 					Changed format from %.1f to %.0f.
 2010-01-19 ROwen    Bug fix: some help strings said Echelle instead of NA2.
+2012-07-09 ROwen    Removed some unused imports.
 """
 import Tkinter
-import RO.InputCont
-import RO.ScriptRunner
-import RO.StringUtil
 import TUI.Base.FocusWdg
 import TUI.Guide.GMechModel
 import RO.Wdg

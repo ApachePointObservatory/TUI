@@ -23,6 +23,7 @@ History:
                     Also, if statusBar omitted, messages are printed to stderr.
 2005-01-05 ROwen    Changed level to severity.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
+2012-07-10 ROwen    Removed use of update_idletasks.
 """
 import os
 import sys
@@ -140,7 +141,6 @@ class CatalogMenuWdg(Tkinter.Frame):
         # parse the catalog file
         # print "loading catalog %r" % (catFile,)
         self.showMsg("Loading file %s" % (catFile,))
-        self.update_idletasks()
         try:
             objCat, errList = self._catParser.parseCat(catFile)
         except Exception, e:

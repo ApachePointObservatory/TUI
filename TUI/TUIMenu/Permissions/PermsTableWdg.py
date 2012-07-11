@@ -40,12 +40,14 @@ and because the transition has to occur somewhere.
 2011-09-28 ROwen    Bug fix: sorting and purging caused display errors
                     because _nameSpacerWdg was not reliably ungridded and regridded.
 2011-10-12 ROwen    Bug fix: the row 2 permissions had a line across it after sorting (the width measuring frame).
+2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 """
 import weakref
 import Tkinter
 import RO.Constants
 import RO.Alg
 import RO.KeyVariable
+from RO.TkUtil import Timer
 import RO.Wdg
 import TUI.TUIModel
 import TUI.Models.PermsModel
@@ -53,7 +55,7 @@ import TUI.Models.PermsModel
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
 
 _ProgramWidth = 7 # width of program control buttons (need room for "Lockout")
-_NewActorDelayMS = 1000 # display disable delay (ms) while adding or removing actorList
+_NewActorDelay = 1.0 # display disable delay (sec) while adding or removing actorList
 
 class ActorList(object):
     """A list of actorList in category order
@@ -187,7 +189,7 @@ class PermsTableWdg(Tkinter.Frame):
         
         self._nextRow = 0
         self._readOnly = True
-        self._updActorTimer = None
+        self._updActorTimer = Timer()
         
         self.permsModel = TUI.Models.PermsModel.getModel()
         
@@ -321,11 +323,9 @@ class PermsTableWdg(Tkinter.Frame):
             return
         
         if not self._readOnly and self._actorList:
-            self._statusBar.setMsg("Updating actors", severity=RO.Constants.sevWarning, isTemp = True, duration=_NewActorDelayMS)
-            if self._updActorTimer:
-                self.after_cancel(self._updActorTimer)
+            self._statusBar.setMsg("Updating actors", severity=RO.Constants.sevWarning, isTemp = True, duration=_NewActorDelay * 1000.0)
             self._setReadOnly(True)
-            self._updActorTimer = self.after(_NewActorDelayMS, self._setReadOnly, False)
+            self._updActorTimer.start(_NewActorDelay, self._setReadOnly, False)
 
         self._actorList.setActors(actors)
 

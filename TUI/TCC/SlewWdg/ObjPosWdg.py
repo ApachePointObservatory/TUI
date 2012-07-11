@@ -37,12 +37,14 @@ History:
 2005-06-06 ROwen    Modified to set az/alt limit for mount coords
                     from tcc-reported limits instead of hard-coded values.
                     Fixed test code (which was broken by a change to a model).
+2012-07-10 ROwen    Modified to use RO.TkUtil.Timer.
 """
 import Tkinter
 import RO.CoordSys
 import RO.Constants
 import RO.InputCont
 import RO.StringUtil
+from RO.TkUtil import Timer
 import RO.Wdg
 import TUI.TCC.UserModel
 import TUI.TCC.TCCModel
@@ -51,7 +53,7 @@ import RotWdg
 
 _HelpPrefix = "Telescope/SlewWin/index.html#"
 
-_AzAltRefreshDelayMS = 500
+_AzAltRefreshDelay = 0.5 # time between Az/Alt display updates (sec)
 
 class ObjPosWdg(RO.Wdg.InputContFrame):
     """A widget for specifying object positions
@@ -74,7 +76,7 @@ class ObjPosWdg(RO.Wdg.InputContFrame):
         # and the formatting functions have had their test run
         self.checkObjPos = 0
         
-        self._azAltRefreshID = None 
+        self._azAltRefreshTimer = Timer()
         
         self.objNameWdg = RO.Wdg.StrEntry(self,
             helpText = "Object name (optional)",
@@ -305,8 +307,7 @@ class ObjPosWdg(RO.Wdg.InputContFrame):
     
     def setAzAltAirmass(self, *args, **kargs):
 #       print "ObjPosWdg.setAzAltAirmass"
-        if self._azAltRefreshID:
-            self.after_cancel(self._azAltRefreshID)
+        self._azAltRefreshTimer.cancel()
 
         target = self.userModel.potentialTarget.get()
         if target == None:
@@ -334,7 +335,7 @@ class ObjPosWdg(RO.Wdg.InputContFrame):
         self.azWdg.set(az)
         self.altWdg.set(alt, severity = altSeverity)
         self.airmassWdg.set(airmass)
-        self._azAltRefreshID = self.after(_AzAltRefreshDelayMS, self.setAzAltAirmass)
+        self._azAltRefreshTimer.start(_AzAltRefreshDelay, self.setAzAltAirmass)
 
 if __name__ == "__main__":
     root = RO.Wdg.PythonTk()

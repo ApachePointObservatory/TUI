@@ -13,11 +13,13 @@ History:
                     Log messages when the cmds actor reports commands starting and ending.
 2011-07-27 ROwen    Added cmdInfo and isKeys fields to LogEntry.
                     Generate new LogEntry messages when cmds keywords CmdQueued and CmdDone are seen.
+2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 """
 import time
 import collections
 import RO.AddCallback
 import RO.Constants
+from RO.TkUtil import Timer
 import TUI.Models.CmdsModel
 import TUI.Version
 
@@ -149,7 +151,7 @@ class LogSource(RO.AddCallback.BaseMixin):
     def __init__(self, *args, **kargs):
         # if I set the model in __new__ it doesn't work
         # if I set the model here immediately I get infinite recursion
-        self.dispatcher.tkWdg.after(1, self._doRegister)
+        Timer(0.001, self._doRegister)
     
     def _doRegister(self):
         if not self.cmdsModel:

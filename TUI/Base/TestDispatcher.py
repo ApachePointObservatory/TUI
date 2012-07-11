@@ -10,9 +10,11 @@ History:
                     was changed to does this itself.
 2010-03-05 ROwen    Modified the dispatch method to accept a single keyword string or a collection.
 2010-11-01 ROwen    Bug fix: dispatch argument keywords changed to dataList.
+2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 """
-import TUI.TUIModel
 import RO.SeqUtil
+from RO.TkUtil import Timer
+import TUI.TUIModel
 
 class GaussRandomValue(object):
     def __init__(self, minValue, maxValue, homeValue, sigma):
@@ -127,8 +129,7 @@ class TestDispatcher(object):
             print "Test finished"
             return
         self.dispatch(**dataDict)
-        delayMS = int(delay * 1000 + 0.5)
-        self.tuiModel.tkRoot.after(delayMS, self._dispatchIter, dataDictIter)
+        Timer(delay, self._dispatchIter, dataDictIter)
 
 
 if __name__ == "__main__":

@@ -41,6 +41,7 @@ History:
 2005-06-08 ROwen    Changed AzAltTarget to a new-style class.
 2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
                     Added constant WindowName.
+2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 """
 import math
 import Tkinter
@@ -48,6 +49,7 @@ import RO.CanvasUtil
 import RO.CnvUtil
 import RO.MathUtil
 import RO.ScriptRunner
+from RO.TkUtil import Timer
 import RO.Wdg
 import TUI.TUIModel
 import TUI.TCC.TCCModel
@@ -62,12 +64,13 @@ def addWindow(tlSet):
         name = WindowName,
         defGeom = "201x201+434+22",
         wdgFunc = SkyWdg,
+        defVisible = True,
     )
 
 _HelpURL = "Telescope/SkyWin.html"
 
 # constants regarding redraw of catalog objects
-_CatRedrawDelayMS = 5000
+_CatRedrawDelay = 5.0
 
 def xyDegFromAzAlt (azAlt):
     """converts a point from az,alt degrees (0 south, 90 east)
@@ -129,8 +132,7 @@ class SkyWdg (Tkinter.Frame):
         # scale: scale of canvas, in pixels per deg
         self.currCatObjID = None
 
-        self._catAnimID = None
-        self._telPotentialAnimID = None
+        self._telPotentialAnimTimer = Timer()
         
         self.eastLabelPos = AzAltTarget(azAlt=(90, 0))
         self.northLabelPos = AzAltTarget(azAlt=(180, 0))
@@ -176,7 +178,7 @@ class SkyWdg (Tkinter.Frame):
         # note: if a catalog is deleted, it is removed from catDict
         # and catPixPosObjDict, but not necessarily the others
         self.catDict = {}   # key=catalog name, value = catalog
-        self.catAfterIDDict = {}    # key=catalog name, value = tk after id
+        self.catRedrawTimerDict = {}    # key=catalog name, value = tk after id
         self.catColorDict = {}  # key=catalog name, value = color
         self.catPixPosObjDict = {}  # key=catalog name, value = list of (pix pos, obj) pairs
         self.catSRDict = {} # key=catalog name, value = scriptrunner script to redisplay catalog
@@ -348,7 +350,7 @@ class SkyWdg (Tkinter.Frame):
         
         self.catDict[catName] = catalog
         self.catPixPosObjDict[catName] = []
-        self.catAfterIDDict[catName] = None
+        self.catRedrawTimerDict[catName] = Timer()
         self.catColorDict[catName] = catalog.getDispColor()
         
         def updateCat(sr, self=self, catalog=catalog):
@@ -391,11 +393,9 @@ class SkyWdg (Tkinter.Frame):
                 )
             self.catPixPosObjDict[catName] = pixPosObjList
             
-            afterID = self.after(_CatRedrawDelayMS, self._drawCatalog, catalog)
-            self.catAfterIDDict[catName] = afterID
+            self.catRedrawTimerDict[catName].start(_CatRedrawDelay, self._drawCatalog, catalog)
         
         sr = RO.ScriptRunner.ScriptRunner(
-            master = self,
             runFunc = updateCat,
             name = "updateCatalog",
         )
@@ -426,11 +426,10 @@ class SkyWdg (Tkinter.Frame):
         
         # cancel pending wakeup and delete entry
         try:
-            afterID = self.catAfterIDDict.pop(catName)
-            if afterID:
-                self.after_cancel(afterID)
+            timer = self.catRedrawTimerDict.pop(catName)
         except KeyError:
             pass
+        timer.cancel()
         
         # delete entry in other catalog dictionaries
         for catDict in self.catPixPosObjDict, self.catColorDict:
@@ -544,9 +543,7 @@ class SkyWdg (Tkinter.Frame):
             sr.cancel()
 
         # cancel scheduled wakeup, if any
-        afterID = self.catAfterIDDict.get(catName)
-        if afterID:
-            self.after_cancel(afterID)
+        self.catRedrawTimerDict.get(catName).cancel()
         
 #       print "_drawCatalog starting update script for catalog %r" % catName
         sr.start()
@@ -644,9 +641,7 @@ class SkyWdg (Tkinter.Frame):
             tag=tag,
         )
         
-        if self._telPotentialAnimID:
-            self.after_cancel(self._telPotentialAnimID)
-        self._telPotentialAnimID = self.after(_CatRedrawDelayMS, self._drawTelPotential)
+        self._telPotentialAnimTimer.start(_CatRedrawDelay, self._drawTelPotential)
 
 
 def _UpdateCatalog(objList, center, azAltScale):

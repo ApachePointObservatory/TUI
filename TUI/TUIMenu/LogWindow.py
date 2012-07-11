@@ -62,6 +62,7 @@ History:
 2011-08-09 ROwen    Restored default filter to Normal.
 2011-08-11 ROwen    Added a state tracker to track filter information.
 2011-08-30 ROwen    Bug fix: Actor and Actors filters did not show commands sent to the actors.                    
+2012-07-10 ROwen    Removed use of update_idletasks.
 """
 import bisect
 import re
@@ -486,7 +487,6 @@ class TUILogWdg(Tkinter.Frame):
         outStr = logEntry.getStr()
         self.logWdg.addOutput(outStr, tags=logEntry.tags, severity=logEntry.severity)
         self.highlightLastFunc()
-        self.update_idletasks()
 
     def applyFilter(self, wdg=None):
         """Apply current filter settings.
