@@ -34,6 +34,7 @@ History:
 2005-06-08 ROwen    Changed Axis to a new style class.
 2011-06-17 ROwen    Added WindowName constant.
                     Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+2012-07-10 ROwen    Removed use of update_idletasks in test code.
 """
 import Tkinter
 import tkFont
@@ -481,7 +482,6 @@ if __name__ ==  '__main__':
 
         msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
         kd.dispatch(msgDict)
-        root.update_idletasks()
 
         root.after(200, animFunc, ang1, ang2)
 

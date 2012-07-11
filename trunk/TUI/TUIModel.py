@@ -47,6 +47,7 @@ History:
 2010-06-29 ROwen    Added logSource field and MaxLogWindows global from STUI.
                     Removed one unused import.
 2011-08-11 ROwen    Added logFunc.
+2012-07-09 ROwen    Updated for changes to RO.KeyDispatcher.
 """
 import platform
 import sys
@@ -95,7 +96,6 @@ class _Model (object):
 
         # keyword dispatcher
         self.dispatcher = RO.KeyDispatcher.KeyDispatcher(
-            tkWdg = self.tkRoot,
             connection = connection,
         )
 

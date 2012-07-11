@@ -3,10 +3,12 @@
 
 History:
 2009-03-05 ROwen
+2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 """
 import os
 import random
 import Tkinter
+from RO.TkUtil import Timer
 import RO.Wdg
 import TUI.TUIModel
 import TUI.TCC.TCCModel
@@ -104,7 +106,7 @@ class TestGuiderWdg(Tkinter.Frame):
         random.seed(0)
    
         self.tuiModel = self.testDispatcher.tuiModel
-        self.pollTimer = None
+        self.pollTimer = Timer()
         self.oldPendingCmd = None
         self.fileNum = 0
 
@@ -307,15 +309,14 @@ class TestGuiderWdg(Tkinter.Frame):
     def pollPendingCmd(self):
         """Poll to see if there's a new pending command and respond accordingly
         """
-        if self.pollTimer:
-            self.after_cancel(self.pollTimer)
+        self.pollTimer.cancel()
 
         if self.guideWdg.pendingCmd != self.oldPendingCmd:
             self.oldPendingCmd = self.guideWdg.pendingCmd
             if not self.oldPendingCmd.isDone():
                 self.replyToCommand()
 
-        self.pollTimer = self.after(1000, self.pollPendingCmd)
+        self.pollTimer.start(1.0, self.pollPendingCmd)
 
     def replyToCommand(self):
         """Issue the appropriate replly to a pending command

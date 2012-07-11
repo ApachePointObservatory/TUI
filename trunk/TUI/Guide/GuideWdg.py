@@ -234,6 +234,8 @@ History:
 2011-07-25 ROwen    Bug fix: enableCmdButtons was not being reliably called after ctrl-click.
                     Modified to disallow ctrl-click while executing a command.
                     Thus Center Sel should always be enabled after ctrl-click.
+2012-07-10 ROwen    Modified to use RO.TkUtil.Timer.
+                    Removed use of update_idletasks.
 """
 import atexit
 import os
@@ -249,6 +251,7 @@ import RO.KeyVariable
 import RO.OS
 import RO.Prefs
 import RO.StringUtil
+from RO.TkUtil import Timer
 import RO.Wdg
 import RO.Wdg.GrayImageDispWdg as GImDisp
 import TUI.TUIModel
@@ -324,7 +327,7 @@ class CurrCmds(object):
     def __init__(self, timeLim=60):
         self.timeLim = timeLim
         self.currCmds = dict() # dict of (cmdr, cmdID): CmdInfo
-        self.tkObj = Tkinter.Label()
+        self._cmdTimer = Timer()
     
     def addCmd(self, cmdr, cmdID, cmdChar, imObj, isNewImage):
         cmdInfo = CmdInfo(
@@ -335,7 +338,7 @@ class CurrCmds(object):
             isNewImage = isNewImage
         )
         self.currCmds[(cmdr, cmdID)] = cmdInfo
-        self.tkObj.after(self.timeLim * 1000, self.delCmdInfo, cmdInfo.cmdr, cmdInfo.cmdID)
+        self._cmdTimer.start(self.timeLim, self.delCmdInfo, cmdInfo.cmdr, cmdInfo.cmdID)
     
     def getCmdInfo(self, cmdr, cmdID):
         """Return cmdInfo, or None if no such command."""
@@ -1513,9 +1516,11 @@ class GuideWdg(Tkinter.Frame):
     def doMap(self, dumEvt=None):
         """Window has been mapped"""
         if self.dispImObj:
-            # give the guide frame a chance to be redrawn so zoom can be set correctly
-            self.update_idletasks()
-            self.showImage(self.dispImObj)
+            # give the guide frame a chance to be redrawn so zoom can be set correctly.
+            # formerly this was done using update_idletasks followed by calling showImage directly;
+            # I'm not sure how to reproduce the problem so I'm not sure any workaround
+            # is still needed and if this particular one does the job.
+            Timer(0.001, self.showImage, self.dispImObj)
     
     def doNextIm(self, wdg=None):
         """Show next image from history list"""
