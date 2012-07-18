@@ -25,6 +25,7 @@
 2008-02-13 ROwen    Modified to enable/disable the command buttons appropriately.
 2010-03-10 ROwen    Added WindowName
 """
+import time
 import Tkinter
 import RO.Comm
 import RO.Constants
@@ -144,6 +145,7 @@ class ConnectWdg(Tkinter.Frame):
         username = self.usernameEntry.get()
         progID = self.progIDEntry.get()
         password = self.pwdEntry.get()
+        self.startTime = time.time()
         self.tuiModel.dispatcher.connection.connect(
             username = username,
             port = port,
@@ -180,6 +182,8 @@ class ConnectWdg(Tkinter.Frame):
         self.statusBar.setMsg(text)
 
         if self.tuiModel.dispatcher.connection.isConnected():
+            elapsedTime = time.time() - self.startTime
+            print "Connect took %s seconds" % (elapsedTime,)
             self.winfo_toplevel().wm_withdraw()
     
     def updateUsernamePref(self, newValue, usernamePref):

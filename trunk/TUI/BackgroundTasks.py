@@ -24,6 +24,7 @@ History:
 2010-10-27 ROwen    Fixed "no data seen" message to report correct time interval.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+2012-07-18 ROwen    Modified to user RO.Comm.Generic.Timer.
 """
 import sys
 import time
@@ -32,6 +33,7 @@ import RO.Constants
 import RO.PhysConst
 import RO.Astro.Tm
 import RO.KeyVariable
+from RO.Comm.Generic import Timer
 import RO.TkUtil
 import TUI.PlaySound
 import TUI.TUIModel
@@ -64,7 +66,7 @@ class BackgroundKwds(object):
         self.connection = self.tuiModel.getConnection()
         self.dispatcher = self.tuiModel.dispatcher
         self.didSetUTCMinusTAI = False
-        self.checkConnTimer = RO.TkUtil.Timer()
+        self.checkConnTimer = Timer()
 
         self.tccModel.utcMinusTAI.addCallback(self.setUTCMinusTAI, callNow=False)
         self.tccModel.tai.addCallback(self.checkTAI, callNow=False)
