@@ -51,8 +51,7 @@ This is the main routine that calls everything else.
                     a problem in matplotlib 0.91.1: "use" can't be called after "import matplotlib.backends".
 2009-04-17 ROwen    Updated for new Status window name: None.Status->TUI.Status.
 2010-09-24 ROwen    Moved matplotlib.use call before any import of TUI code.
-2012-07-16 ROwen    Added optional Twisted framework support. As part of this, modified to use
-                    new HubConnection, which requires calling RO.Comm.Generic.setFramework.
+2012-07-18 ROwen    Modified to use RO 3.0 including the option to communicate using Twisted framework.
 """
 import os
 import sys
