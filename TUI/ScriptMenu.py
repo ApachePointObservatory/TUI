@@ -21,7 +21,7 @@ History:
                     Modified to prebuild the menu at startup.
                     Modified test code to show a standard pull-down menu.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
-2012-07-10 ROwen    Removed use of update_idletasks and an ugly Mac workaround that is no longer required.
+2012-07-18 ROwen    Removed use of update_idletasks and an ugly Mac workaround that is no longer required.
 """
 import os
 import sys
@@ -31,6 +31,7 @@ import tkMessageBox
 import RO.Alg
 import RO.OS
 import RO.Wdg
+import RO.TkUtil
 import TUI.TUIPaths
 import TUI.TUIModel
 
@@ -239,7 +240,6 @@ class _LoadScript:
 
 
 if __name__ == "__main__":
-    import RO.TkUtil
     root = Tkinter.Tk()
     
     newTl = RO.Wdg.Toplevel(root, title="Other")
