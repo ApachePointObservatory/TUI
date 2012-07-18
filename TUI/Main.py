@@ -51,6 +51,8 @@ This is the main routine that calls everything else.
                     a problem in matplotlib 0.91.1: "use" can't be called after "import matplotlib.backends".
 2009-04-17 ROwen    Updated for new Status window name: None.Status->TUI.Status.
 2010-09-24 ROwen    Moved matplotlib.use call before any import of TUI code.
+2012-07-16 ROwen    Added optional Twisted framework support. As part of this, modified to use
+                    new HubConnection, which requires calling RO.Comm.Generic.setFramework.
 """
 import os
 import sys
@@ -66,6 +68,14 @@ try:
     matplotlib.rc("legend", fontsize="medium") # default is large, which is too big
 except ImportError:
     pass
+
+import RO.Comm.Generic
+
+UseTwisted = False
+if UseTwisted:
+    RO.Comm.Generic.setFramework("twisted")
+else:
+    RO.Comm.Generic.setFramework("tk")
 
 import TUI.BackgroundTasks
 import TUI.LoadStdModules
@@ -89,9 +99,19 @@ def runTUI():
         root.tk.call("console", "hide")
     except Tkinter.TclError:
         pass
+
+
+    if UseTwisted:
+        import twisted.internet.tksupport
+        twisted.internet.tksupport.install(root)
+        import twisted.internet
+        reactor = twisted.internet.reactor
     
     # create and obtain the TUI model
     tuiModel = TUI.TUIModel.getModel()
+    
+    if UseTwisted:
+        tuiModel.reactor = reactor
     
     # set up background tasks
     backgroundHandler = TUI.BackgroundTasks.BackgroundKwds()
@@ -118,8 +138,11 @@ def runTUI():
     
     # add the main menu
     TUI.MenuBar.MenuBar()
-    
-    root.mainloop()
+
+    if UseTwisted:
+        reactor.run()
+    else:
+        root.mainloop()
 
 if __name__ == "__main__":
     runTUI()

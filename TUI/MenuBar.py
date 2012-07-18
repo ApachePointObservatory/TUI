@@ -230,10 +230,13 @@ class MenuBar(object):
         try:
             self.doDisconnect()
         finally:
-            self.tuiModel.tkRoot.quit()
-            if RO.OS.PlatformName == "win":
-                # avoid "improper exit" complaints
-                self.tuiModel.tkRoot.destroy()
+            if hasattr(self.tuiModel, "reactor"):
+                self.tuiModel.reactor.stop()
+            else:
+                self.tuiModel.tkRoot.quit()
+                if RO.OS.PlatformName == "win":
+                    # avoid "improper exit" complaints
+                    self.tuiModel.tkRoot.destroy()
     
     def doRefresh(self):
         """Refresh all automatic variables.

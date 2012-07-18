@@ -46,7 +46,8 @@ History:
 2010-07-02 ROwen    Added "Keep Guide Images" preference.
 2011-01-31 ROwen    Added "Exposure Failed" sound preference.
 2011-06-28 ROwen    Added " and ctrl-click" to help string for Centroid Color.
-2012-07-10 ROwen    Added "Menu Font" preference.
+2012-07-10 ROwen    Added "Menu Font" preference. This fixes an issue in aqua Tcl/Tk 8.5
+                    where menu items showed up in the "Misc Font"..
 """
 #import pychecker.checker
 import os
