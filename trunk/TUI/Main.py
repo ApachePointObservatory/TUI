@@ -99,7 +99,6 @@ def runTUI():
     except Tkinter.TclError:
         pass
 
-
     if UseTwisted:
         import twisted.internet.tksupport
         twisted.internet.tksupport.install(root)
