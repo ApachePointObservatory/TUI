@@ -13,6 +13,7 @@ History:
 2011-01-31 ROwen    Scale Calibration and Guide offsets are now on the sky (scaled by 1/cos(alt)).
                     Use RO.StringUtil.strFromException when formatting command failure messages.
 2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+2012-07-19 ROwen    Removed Calibration offsets at Russet's sensible request.
 """
 import Tkinter
 import RO.Constants
@@ -59,8 +60,6 @@ _OffsetInfoList = (
     OffsetInfo("Object Arc", None, "arc", "object arc offset"),
     OffsetInfo("Object Arc XY", ("X", "Y"), "arc", "object arc offset in inst. x,y"),
     OffsetInfo("Boresight", ("X", "Y"), "boresight", "boresight offset"),
-    OffsetInfo("Calibration", ("Az", "Alt"), "calib", "calibration offset"),
-    OffsetInfo("Calibration XY", ("X", "Y"), "calib", "calib offset in inst. x,y"),
     OffsetInfo("Guide", ("Az", "Alt"), "guide", "guide offset"),
     OffsetInfo("Guide XY", ("X", "Y"), "guide", "guide offset in inst. x,y"),
 )
@@ -280,14 +279,14 @@ class NudgerWdg (Tkinter.Frame):
         
         try:
             # if necessary, rotate offset appropriately
-            if offType in ("Guide XY", "Calibration XY"):
+            if offType == "Guide XY":
                 offDeg = self.azAltFromInst(offDeg)
             elif offType == "Object Arc XY":
                 offDeg = self.objFromInst(offDeg)
         
             # if necessary, scale from on-sky to axis offset
             # options: use cos(alt) or spherical trig; the latter is more accurate near the pole
-            if offType.split()[0] in ("Guide", "Calibration"):
+            if offType.split()[0] == "Guide":
                 offDeg = list(offDeg)
                 currAlt = self.tccModel.tccPos.getInd(1)[0]
                 if currAlt == None:
