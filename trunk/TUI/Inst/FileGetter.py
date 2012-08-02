@@ -10,6 +10,7 @@ of ExposeStatusWdg there are, to avoid downloading duplicate images.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-07-21 ROwen    Renamed instModel to exposeModel for improved clarity.
 2011-07-27 ROwen    Updated for new location of HubModel.
+2012-08-01 ROwen    Updated for RO.Comm.HTTPGet 3.0.
 """
 __all__ = ['getModel']
 
@@ -63,7 +64,7 @@ class FileGetter (object):
         
         # display image if display wanted and camera name known and download succeeded
 #         print "viewImageVarCont=%r" % (self.exposeModel.viewImageVarCont.get())
-        if self.exposeModel.viewImageVarCont.get() and (camName != None) and (httpGet.getState() == httpGet.Done):
+        if self.exposeModel.viewImageVarCont.get() and (camName != None) and (httpGet.state == httpGet.Done):
             ds9Win = self.ds9WinDict.get(camName)
             try:
                 if not ds9Win:
@@ -173,7 +174,7 @@ class FileGetter (object):
         if self.activeDownloads:
             # make sure these are all truly active; this should never happen,
             # but the consequences are severe so be paranoid
-            trulyActiveDownloads = [dl for dl in self.activeDownloads if not dl.isDone()]
+            trulyActiveDownloads = [dl for dl in self.activeDownloads if not dl.isDone]
             if len(trulyActiveDownloads) != len(self.activeDownloads):
 #                 print "warning: purging activeDownloads of %d completed downloads" % \
 #                     (len(self.activeDownloads) - len(trulyActiveDownloads))
@@ -203,7 +204,7 @@ class FileGetter (object):
 
         for argDict in argList:
             httpGet = self.downloadWdg.getFile(**argDict)
-            if not httpGet.isDone():
+            if not httpGet.isDone:
                 try:
                     self.activeDownloads.add(httpGet)
                 except Exception:

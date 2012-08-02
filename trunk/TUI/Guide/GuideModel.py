@@ -56,6 +56,7 @@ Warning: the config stuff will probably be modified.
 2010-03-18 ROwen    Added "afocus" actor.
 2010-10-20 ROwen    Modified to not auto-refresh expState keyvar for focus actors; expState isn't
                     output by focus actors, but it's more consistent to leave it in with a null value.
+2012-08-01 ROwen    Updated for RO.Comm.TCPConnection 3.0.
 """
 __all__ = ['getModel']
 
@@ -367,7 +368,7 @@ additional fields may be used for components of star quality
     
     def _updGuideState(self, guideState, isCurrent, **kargs):
         if not isCurrent:
-            if not self.tuiModel.dispatcher.connection.isConnected():
+            if not self.tuiModel.dispatcher.connection.isConnected:
                 self._isGuiding = None
             return
         
