@@ -41,6 +41,7 @@ and because the transition has to occur somewhere.
                     because _nameSpacerWdg was not reliably ungridded and regridded.
 2011-10-12 ROwen    Bug fix: the row 2 permissions had a line across it after sorting (the width measuring frame).
 2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
+2012-08-01 ROwen    Updated for RO.Comm.TCPConnection 3.0.
 """
 import weakref
 import Tkinter
@@ -307,7 +308,7 @@ class PermsTableWdg(Tkinter.Frame):
     def __connStateCallback(self, conn):
         """If the connection closes, clear all programs from the list.
         """
-        if self._progDict and not conn.isConnected():
+        if self._progDict and not conn.isConnected:
             for prog, progPerms in self._progDict.items():
                 progPerms.delete()
                 del(self._progDict[prog])

@@ -15,6 +15,7 @@ History:
                     Ditched currGuideMode and defGuideMode because they were not being used.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-07-27 ROwen    Updated for new location of HubModel.
+2012-08-01 ROwen    Updated for RO.Comm 3.0.
 """
 import os
 import pyfits
@@ -176,7 +177,7 @@ class BasicImage(object):
     def _fetchDoneFunc(self, httpGet):
         """Called when image download ends.
         """
-        if httpGet.getState() == httpGet.Done:
+        if httpGet.state == httpGet.Done:
             self._setState(self.Downloaded)
         else:
             self._setState(self.DownloadFailed, httpGet.getErrMsg())
