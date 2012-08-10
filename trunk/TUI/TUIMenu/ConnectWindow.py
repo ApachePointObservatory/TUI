@@ -24,7 +24,7 @@
 2007-11-16 ROwen    Modified to allow a port as part of Host address.
 2008-02-13 ROwen    Modified to enable/disable the command buttons appropriately.
 2010-03-10 ROwen    Added WindowName
-2012-08-01 ROwen    Updated for RO.Comm.TCPConnection 3.0.
+2012-08-10 ROwen    Updated for RO.Comm 3.0.
 """
 import time
 import Tkinter

@@ -10,7 +10,7 @@ of ExposeStatusWdg there are, to avoid downloading duplicate images.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-07-21 ROwen    Renamed instModel to exposeModel for improved clarity.
 2011-07-27 ROwen    Updated for new location of HubModel.
-2012-08-01 ROwen    Updated for RO.Comm.HTTPGet 3.0.
+2012-08-10 ROwen    Updated for RO.Comm 3.0.
 """
 __all__ = ['getModel']
 

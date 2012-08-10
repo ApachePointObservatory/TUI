@@ -39,7 +39,7 @@ History:
 2010-07-20 ROwen    Bug fix: doRefresh was broken due to sending an obsolete keyword to refreshAllVar.
 2012-06-11 ROwen    To avoid duplicate application menus on Mac OS X, Tcl/Tk 8.5 requires that the
                     application menu have all entries added before setting the menu property of the toplevel.
-2012-08-01 ROwen    Updated for RO.Comm.TCPConnection 3.0.
+2012-08-10 ROwen    Updated for RO.Comm 3.0.
 """
 import Tkinter
 import RO.Alg
