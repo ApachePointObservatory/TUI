@@ -25,7 +25,7 @@ History:
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
 2012-07-18 ROwen    Modified to user RO.Comm.Generic.Timer.
-2012-08-01 ROwen    Updated for RO.Comm.TCPConnection 3.0.
+2012-08-10 ROwen    Updated for RO.Comm 3.0.
 """
 import sys
 import time
