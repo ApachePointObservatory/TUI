@@ -236,6 +236,7 @@ History:
                     Thus Center Sel should always be enabled after ctrl-click.
 2012-07-10 ROwen    Modified to use RO.TkUtil.Timer.
                     Removed use of update_idletasks.
+2012-08-29 ROwen    Removed use of deprecated dict.has_key method.
 """
 import atexit
 import os
@@ -2527,13 +2528,13 @@ class GuideWdg(Tkinter.Frame):
                 # ignore "c" star data for guide images,
                 # at least until the hub stops sending it as duplicates of "g" star data
                 return
-            if imObj.starDataDict.has_key(typeChar):
+            if typeChar in imObj.starDataDict:
                 imObj.starDataDict[typeChar].append(starData)
             else:
                 imObj.starDataDict[typeChar] = [starData]
         else:
             if sawStarData:
-                if imObj.starDataDict.has_key(typeChar):
+                if typeChar in imObj.starDataDict:
                     imObj.starDataDict[typeChar].append(starData)
                 else:
                     imObj.starDataDict[typeChar] = [starData]
