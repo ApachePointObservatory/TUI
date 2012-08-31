@@ -19,6 +19,7 @@ History:
 2005-08-22 ROwen    Commented out a diagnostic print statement from last time.
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
+2012-08-29 ROwen    Removed use of deprecated dict.has_key method.
 """
 import os.path
 import re
@@ -199,7 +200,7 @@ class CatalogParser(object):
         newDict = self._keyMatcher.matchKeys(newDict)
         # if newDict has csys, erase date in defDict, etc.
         for key1, key2 in (("CSys", "Date"), ("RotType", "RotAngle")):
-            if newDict.has_key(key1):
+            if key1 in newDict:
                 try:
                     del defDict[key2]
                 except KeyError:
