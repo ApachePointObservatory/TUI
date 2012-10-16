@@ -15,7 +15,7 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>1.9.5+ 2012-10-03</h3>
+<h3>1.9.6b1 2012-10-16</h3>
 
 <p>Visible changes:
 <ul>
@@ -31,6 +31,13 @@
     <li>Removed use of update_idletasks to eliminate a source of subtle bugs.
     <li>Most timers now use RO.TkUtil.Timer; this simplifies the code a bit and eliminates the need for some Tk widgets.
     <li>Removed use of deprecated dict method has_key.
+    <li>Changed line endings of html files from the old Mac standard to the new Mac/unix standard.
+</ul>
+
+<p>Bug fixes:
+<ul>
+    <li>The units for proper motion in RA/longitude were incorrectly listed as seconds/century; they really are arcsec/century. I fixed this in the proper motion entry widget in the Slew window, and in various help pages.
+    <li>The proper motion entry boxes had no help and the labels were incomplete (because a callback function was not being called when the coordinate system changed).
 </ul>
 
 <h3>1.9.5 2012-03-09</h3>

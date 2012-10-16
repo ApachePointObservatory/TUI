@@ -46,7 +46,7 @@ MainDataSet = (
     ("places", (4,)),
     ("path", ("/export/images",)),
     ("basename", ("/export/images/dtest030319.0001",)),
-    ("ccdTemps", (-113.8,-106.7,)),
+    ("ccdTemps", (13.8,25.7,)),
     ("ccdHeaters", (0.0,0.0,)),
 )
 MainDataSet = RO.Alg.OrderedDict(MainDataSet)
