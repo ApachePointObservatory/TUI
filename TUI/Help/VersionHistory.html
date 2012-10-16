@@ -15,16 +15,17 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>1.9.5+ 2012-08-29</h3>
+<h3>1.9.5+ 2012-10-03</h3>
 
 <p>Visible changes:
 <ul>
     <li>Nudger window: removed Calibration offsets. This reduces the danger of accidentally applying sticky offsets.
+    <li>DIS now reports CCD temperature in K, not C; TUI's display updated accordingly.
 </ul>
 
 <p>Internal changes:
 <ul>
-    <li>Modified to use RO 3.0.0b1.
+    <li>Modified to use RO 3.0.
     <li>Now has the ability to use Twisted framework for communications, though this is off by default. Change a flag in Main.py to use Twisted.
     <li>Improved compatibility with Tcl/Tk 8.5 on Mac OS X by eliminating a cause of duplicate application menus.
     <li>Removed use of update_idletasks to eliminate a source of subtle bugs.
