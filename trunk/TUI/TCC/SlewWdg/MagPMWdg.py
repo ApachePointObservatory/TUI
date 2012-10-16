@@ -20,6 +20,9 @@ History:
 2005-08-15 ROwen    Fixed PR 240: Distance was ignored (because it was not in self.inputCont).
 2007-08-09 ROwen    Moved coordsys-based enable/disable to a parent widget.
 2008-04-28 ROwen    Strip "+" symbols from values since the TCC can't handle them.
+2012-10-16 ROwen    Bug fixes:
+                    - The units for PM RA/Long were shown as sec/cent instead of "/cent
+                    - _coordSysChanged was not being called so PM help was missing and labels were wrong
 """
 import Tkinter
 import RO.CoordSys
@@ -94,7 +97,7 @@ class MagPMWdg(RO.Wdg.InputContFrame):
                 width = _EntryWidth,
                 helpURL = _HelpPrefix + "PM1",
             ),
-            units = 's/cent',
+            units = '"/cent',
             cat = "mean",
         )
         self.pm2Wdg = self.gr.gridWdg (
@@ -202,10 +205,13 @@ class MagPMWdg(RO.Wdg.InputContFrame):
             row = expandRow + 1,
             cat = ("mean", "geo"),
         )
+        
+        userModel.coordSysName.addCallback(self._coordSysChanged)
     
     def _coordSysChanged (self, coordSys):
         """Update the display when the coordinate system is changed.
         """
+#        print "_coordSysChanged(coordSys=%r)" % (coordSys,)
         coordSysConst = RO.CoordSys.getSysConst(coordSys)
         
         if coordSysConst.isMean():
@@ -218,7 +224,7 @@ class MagPMWdg(RO.Wdg.InputContFrame):
                     wdg.helpText = _DateHelpNoEquinox
             posLabels = coordSysConst.posLabels()
             self.pm1Wdg.labelWdg["text"] = "PM %s" % posLabels[0]
-            self.pm1Wdg.dataWdg.helpText = "Proper motion in %s (d%s/dt, i.e. larger near the pole)" % (posLabels[0], posLabels[0])
+            self.pm1Wdg.dataWdg.helpText = "Proper motion in %s (d%s/dt, i.e. large near the pole)" % (posLabels[0], posLabels[0])
             self.pm2Wdg.labelWdg["text"] = "PM %s" % posLabels[1]
             self.pm2Wdg.dataWdg.helpText = "Proper motion in %s" % posLabels[1]
         elif coordSysConst.name() == RO.CoordSys.Geocentric:

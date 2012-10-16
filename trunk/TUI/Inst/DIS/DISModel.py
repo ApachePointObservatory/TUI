@@ -45,6 +45,7 @@ they appear in dis status output.
 2004-09-23 ROwen    Modified to allow callNow as the default for keyVars.
 2005-01-05 ROwen    Corrected turretName to be None instead of ""
                     if turret position is None or unknown.
+2012-10-03 ROwen    Units of ccdTemp changed from C to K.
 """
 import RO.CnvUtil
 import RO.Wdg
@@ -261,7 +262,7 @@ class _Model (object):
             keyword="ccdTemps",
             nval=2,
             converters=RO.CnvUtil.asFloatOrNone,
-            description="temperature (C) of blue, red CCD",
+            description="temperature (K) of blue, red CCD",
         )
         
         self.ccdHeaters = keyVarFact(

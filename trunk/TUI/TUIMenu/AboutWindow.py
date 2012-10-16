@@ -16,18 +16,21 @@
                     Removed Wingware from the acknowledgements.
 2010-04-23 ROwen    Stopped using Exception.message to make Python 2.6 happier.
 2011-02-18 ROwen    Acknowledge Joseph Huehnerhoff for the Windows builds.
+2012-10-15 ROwen    Assume matplotlib is installed. Report pygame version, if installed.
 """
 import os.path
 import sys
 import Image
-try:
-    import matplotlib
-except ImportError:
-    pass 
+import matplotlib
 import numpy
 import pyfits
+try:
+    import pygame
+    pygameVersion = pygame.__version__
+except ImportError:
+    pygameVersion = "not installed"
 import RO.Wdg
-import RO.StringUtil
+from RO.StringUtil import strFromException
 import TUI.TUIModel
 import TUI.TUIPaths
 import TUI.Version
@@ -43,19 +46,18 @@ def addWindow(tlSet):
     )
 
 def getInfoDict():
+    global pygameVersion
     tuiModel = TUI.TUIModel.getModel()
     res = {}
     res["tui"] = TUI.Version.VersionStr
     res["python"] = sys.version.split()[0]
     res["tcltk"] = tuiModel.tkRoot.call("info", "patchlevel")
-    try:
-        res["matplotlib"] = matplotlib.__version__
-    except NameError:
-        res["matplotlib"] = "not installed"
+    res["matplotlib"] = matplotlib.__version__
     res["numpy"] = numpy.__version__
     # Image presently uses VERSION but may change to the standard so...
     res["pil"] = getattr(Image, "VERSION", getattr(Image, "__version__", "unknown"))
     res["pyfits"] = pyfits.__version__
+    res["pygame"] = pygameVersion
     res["specialFiles"] = getSpecialFileStr()
     return res
 
@@ -76,7 +78,7 @@ def getSpecialFileStr():
             filePath = func()
             pathStr = strFromPath(filePath)
         except Exception, e:
-            pathStr = "?: %s" % (RO.StringUtil.strFromException(e),)
+            pathStr = "?: %s" % (strFromException(e),)
         outStrList.append("%s: %s" % (name, pathStr))
 
     tuiAdditionsDirs = TUI.TUIPaths.getAddPaths(ifExists=False)
@@ -109,6 +111,7 @@ matplotlib: %(matplotlib)s
 numpy: %(numpy)s
 PIL: %(pil)s
 pyfits: %(pyfits)s
+pygame: %(pygame)s
 
 With special thanks to:
 - Joseph Huehnerhoff for the Windows builds

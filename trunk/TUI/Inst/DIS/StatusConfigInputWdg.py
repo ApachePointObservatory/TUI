@@ -53,6 +53,7 @@ History:
 2006-10-20 ROwen    Modified to use new RO.Wdg.OptionMenu index method to avoid tk misfeature.
 2008-02-11 ROwen    Modified to be compatible with the new TUI.Inst.StatusConfigWdg.
 2011-08-11 ROwen    Modified to save state.
+2012-10-03 ROwen    Units of ccdTemp changed from C to K.
 """
 import Tkinter
 import RO.Constants
@@ -417,7 +418,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         gr.gridWdg(
             label = "Temp",
             dataWdg = ccdTempsCurrWdgSet,
-            units = "C",
+            units = "K",
             cat = self.DetailCat,
         )
 
