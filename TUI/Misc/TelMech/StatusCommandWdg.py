@@ -26,9 +26,15 @@ History:
 2008-07-02 ROwen	Commented out a diagnostic print statement.
 2008-07-17 ROwen    Added tertiary rotation Restore button.
 2010-11-05 ROwen    Eyelids now have status summary and Open All and Close All buttons.
+2012-10-26 ROwen    Modified to use separate checkbuttons to toggle state and labels to display state;
+                    this works around a bug in Tk (indicatoron is ignored on MacOS X)
+                    and may slightly clarify the interface because command and state are separate.
 """
 import numpy
 import Tkinter
+if __name__ == '__main__':
+    import RO.Comm.Generic
+    RO.Comm.Generic.setFramework("tk")
 import RO.Alg
 import RO.Constants
 import RO.Wdg
@@ -397,6 +403,8 @@ class StatusCommandWdg (Tkinter.Frame):
         wdgList = []
 
         for devName, keyVar in catInfo.devDict.iteritems():
+            colInd = self.col
+
             devLabel = devName.replace("_", " ")
             labelWdg = RO.Wdg.StrLabel(
                 master = self,
@@ -406,38 +414,51 @@ class StatusCommandWdg (Tkinter.Frame):
                 helpURL = _HelpURL,
             )
             wdgList.append(labelWdg)
-            
-            ctrlWdg = RO.Wdg.Checkbutton(
-                master = self,
-                onvalue = catInfo.stateNames[1],
-                offvalue = catInfo.stateNames[0],
-                width = stateWidth,
-                autoIsCurrent = True,
-                showValue = True,
-                indicatoron = False,
-                helpText = "Toggle %s %s" % (devLabel, catInfo.catNameSingular.lower()),
-                helpURL = _HelpURL,
-            )
-            wdgList.append(ctrlWdg)
-            ctrlWdg["disabledforeground"] = ctrlWdg["foreground"]
-            if catInfo.readOnly:
-                ctrlWdg.setEnable(False)
-                ctrlWdg.helpText = "State of %s %s (read only)" % (devName, catInfo.catNameSingular.lower())
-            else:
-                ctrlWdg["command"] = RO.Alg.GenericCallback(self._doCmd, catInfo, devName, ctrlWdg)
-            keyVar.addROWdg(ctrlWdg, setDefault=True)
-            keyVar.addROWdg(ctrlWdg)
-            
-            colInd = self.col
             labelWdg.grid(row = self.row, column = colInd, sticky="e")
             colInd += 1
-            ctrlWdg.grid(row = self.row, column = colInd, sticky="w")
+            
+            ctrlStateFrame = Tkinter.Frame(self)
+
+            if not catInfo.readOnly:
+                ctrlWdg = RO.Wdg.Checkbutton(
+                    master = ctrlStateFrame,
+                    onvalue = catInfo.stateNames[1],
+                    offvalue = catInfo.stateNames[0],
+                    autoIsCurrent = True,
+                    helpText = "Toggle %s %s" % (devLabel, catInfo.catNameSingular.lower()),
+                    helpURL = _HelpURL,
+                )
+                ctrlWdg["command"] = RO.Alg.GenericCallback(self._doCmd, catInfo, devName, ctrlWdg)
+                wdgList.append(ctrlWdg)
+                keyVar.addROWdg(ctrlWdg, setDefault=True)
+                keyVar.addROWdg(ctrlWdg)
+                ctrlWdg.pack(side="left")
+
+            stateWdg = RO.Wdg.Label(
+                master = ctrlStateFrame,
+                width = stateWidth,
+                anchor = "w",
+                helpText = "State of %s %s" % (devLabel, catInfo.catNameSingular.lower()),
+                helpURL = _HelpURL,
+            )
+            stateWdg.pack(side="left")
+            
+            ctrlStateFrame.grid(row = self.row, column = colInd, sticky="w")
             colInd += 1
             self.row += 1
             
+            def updateWdg(value, isCurrent, keyVar=keyVar, stateWdg=stateWdg, stateNames=catInfo.stateNames):
+                if value is None:
+                    str = "?"
+                else:
+                    ind = 1 if value else 0
+                    str = stateNames[ind]
+                stateWdg.set(str, isCurrent=isCurrent)
+            keyVar.addIndexedCallback(updateWdg)
+            
             if doHide:
-                labelWdg.grid_remove()
-                ctrlWdg.grid_remove()
+                for wdg in wdgList:
+                    wdg.grid_remove()
 
         self.detailWdgDict[catInfo.catName] = wdgList
     
@@ -604,7 +625,6 @@ class StatusCommandWdg (Tkinter.Frame):
 
         boolVal = ctrlWdg.getBool()
         stateStr = catInfo.getStateStr(boolVal)
-        ctrlWdg["text"] = stateStr
 
         # execute the command
         verbStr = catInfo.getVerbStr(boolVal)

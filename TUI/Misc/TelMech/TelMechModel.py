@@ -28,6 +28,7 @@ information about that category of device.
 2007-09-17 ROwen    Put the tertiary position names in order of increasing tertiary rotation angle.
 2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
 2009-10-09 ROwen    Implement CR 1060: Change order of tertiary ports.
+2012-10-25 ROwen    Remove BC2 eyelid; it no longer exists.
 """
 __all__ = ["getModel"]
 
@@ -223,7 +224,6 @@ class _Model (object):
                 "TR2",
                 "NA2",
                 "TR3",
-                "BC2",
                 "TR4",
             ),
             isOpenShut = True,
