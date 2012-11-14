@@ -237,6 +237,7 @@ History:
 2012-07-10 ROwen    Modified to use RO.TkUtil.Timer.
                     Removed use of update_idletasks.
 2012-08-29 ROwen    Removed use of deprecated dict.has_key method.
+2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 """
 import atexit
 import os
@@ -505,7 +506,6 @@ class GuideWdg(Tkinter.Frame):
             #offvalue = "Show",
             #showValue = True,
             #width = 4,
-            indicatoron = False,
             defValue = True,
             callFunc = self.doShowHideImage,
             helpText = "Show or hide image",

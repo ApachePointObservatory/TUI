@@ -61,6 +61,7 @@ History:
                     by packing them into a frame and gridding that, instead of gridding them separately.
 2009-07-10 ROwen    Removed an inline conditional statement to be Python 2.4 compatible.
 2010-03-01 ROwen    Made master argument explicit for all RO Widgets.
+2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 """
 import Tkinter
 import RO.InputCont
@@ -244,7 +245,6 @@ class ExposeInputWdg (Tkinter.Frame):
             self.showWindowBtn = RO.Wdg.Checkbutton(
                 master = self,
                 text = "Image Size",
-                indicatoron = False,
                 helpText = "show/hide image size controls",
                 helpURL = helpURL,
             )

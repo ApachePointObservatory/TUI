@@ -123,7 +123,7 @@ class StatusCommandWdg (Tkinter.Frame):
             master = self,
             onvalue = "On",
             offvalue = "Off",
-            indicatoron = False,
+#            indicatoron = False,
             autoIsCurrent = True,
             callFunc = RO.Alg.GenericCallback(self._doCmd, rowInd, lampName),
             helpText = "Toggle %s lamp" % (lampName,),

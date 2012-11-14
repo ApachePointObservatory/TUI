@@ -54,6 +54,7 @@ History:
 2008-02-11 ROwen    Modified to be compatible with the new TUI.Inst.StatusConfigWdg.
 2008-04-24 ROwen    Fixed bug in test code (found by pychecker).
 2011-08-11 ROwen    Modified to save state.
+2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 """
 import Tkinter
 import RO.Constants
@@ -505,7 +506,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.environShowHideWdg = RO.Wdg.Checkbutton(
             master = self,
             text = "Environment",
-            indicatoron = False,
             helpText = "Show/hide pressure and temps",
             helpURL = self.HelpPrefix + "Environment",
         )

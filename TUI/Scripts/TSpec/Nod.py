@@ -4,6 +4,7 @@ History:
 2008-04-23 ROwen
 2008-07-24 ROwen    Fixed PR 852: end did not always restore the original boresight.
 2011-08-02 ROwen    Added variable offset and test for minimum offset.
+2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 """
 import math
 import numpy
@@ -77,7 +78,6 @@ class ScriptClass(object):
             master = self.expWdg,
             text = "Offset",
             defValue = False,
-            indicatoron = False,
             helpText = "Enable/disable manual control of offset",
             helpURL = HelpURL,
         )

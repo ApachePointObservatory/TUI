@@ -8,6 +8,7 @@ History:
 2008-07-24 ROwen    Fixed CR 854: removed Array Power display and control.
 2008-11-17 ROwen    Fixed PR 905: temperature alarms not properly reported.
 2008-11-18 ROwen    Fixed an error in yesterday's fix.
+2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 """
 import math
 import Tkinter
@@ -114,7 +115,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.tipTiltShowHideWdg = RO.Wdg.Checkbutton(
             master = self,
             text = "Tip-Tilt Mode",
-            indicatoron = False,
             helpText = "Show/hide tip-tilt controls",
             helpURL = self.HelpPrefix + "TipTilt",
         )
@@ -192,7 +192,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.environShowHideWdg = RO.Wdg.Checkbutton(
             master = self,
             text = "Environment",
-            indicatoron = False,
             helpText = "Show/hide pressure and temps",
             helpURL = self.HelpPrefix + "Environment",
         )

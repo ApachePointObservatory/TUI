@@ -52,6 +52,7 @@ This is the main routine that calls everything else.
 2009-04-17 ROwen    Updated for new Status window name: None.Status->TUI.Status.
 2010-09-24 ROwen    Moved matplotlib.use call before any import of TUI code.
 2012-07-18 ROwen    Modified to use RO 3.0 including the option to communicate using Twisted framework.
+2012-11-13 ROwen    Add workaround for bug on Tcl/Tk 8.5.11 that shows OptionMenu too narrow on MacOS X.
 """
 import os
 import sys
@@ -136,6 +137,14 @@ def runTUI():
     
     # add the main menu
     TUI.MenuBar.MenuBar()
+
+    # work around a Tcl/Tk bug in 8.5.11 that makes some OptionMenus too short on aqua
+    miscFontPrefVar = tuiModel.prefs.getPrefVar("Misc Font")
+    currFontSize = int(miscFontPrefVar.getValue()["size"])
+    miscFontPrefVar.setValue(dict(size=currFontSize+1))
+    tuiModel.tkRoot.update_idletasks()
+    miscFontPrefVar.setValue(dict(size=currFontSize))
+    
 
     if UseTwisted:
         reactor.run()
