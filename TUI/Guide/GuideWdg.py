@@ -238,6 +238,8 @@ History:
                     Removed use of update_idletasks.
 2012-08-29 ROwen    Removed use of deprecated dict.has_key method.
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
+                    Modified to use generic timer.
+                    Added an update_idletasks to work around a bug displaying holdWarnWdg on MacOS.
 """
 import atexit
 import os
@@ -246,6 +248,9 @@ import weakref
 import Tkinter
 import tkFileDialog
 import numpy
+if __name__ == "__main__":
+    import RO.Comm.Generic
+    RO.Comm.Generic.setFramework("tk")
 import RO.Alg
 import RO.Constants
 import RO.DS9
@@ -253,7 +258,7 @@ import RO.KeyVariable
 import RO.OS
 import RO.Prefs
 import RO.StringUtil
-from RO.TkUtil import Timer
+from RO.Comm.Generic import Timer
 import RO.Wdg
 import RO.Wdg.GrayImageDispWdg as GImDisp
 import TUI.TUIModel
@@ -1595,6 +1600,9 @@ class GuideWdg(Tkinter.Frame):
         else:
             sev = RO.Constants.sevWarning
             self.holdWarnWdg.grid()
+            self.update_idletasks() # work around Tcl/Tk 8.5.11 bug that stops this widget from being shown
+                # if the Current button is pushed several times in a row: the widget is always shown
+                # the first time, but not after that on MacOS 10.8.2
 #           self.statusBar.setMsg("Hold mode: guide controls disabled",
 #               severity=RO.Constants.sevWarning,
 #           )
@@ -2711,13 +2719,13 @@ if __name__ == "__main__":
     testFrame.wait_visibility() # must be visible to download images
     GuideTest.setParams(expTime=5, thresh=3, radMult=1, mode="field")
 
-    GuideTest.runDownload(
-      basePath = "dcam/UT060404/",
-      imPrefix = "proc-d",
-      startNum = 101,
-      numImages = 2,
-      waitMs = 2500,
-    )
-    testFrame.doChooseIm()
+#     GuideTest.runDownload(
+#       basePath = "dcam/UT060404/",
+#       imPrefix = "proc-d",
+#       startNum = 101,
+#       numImages = 2,
+#       waitMs = 2500,
+#     )
+#    testFrame.doChooseIm()
 
     root.mainloop()
