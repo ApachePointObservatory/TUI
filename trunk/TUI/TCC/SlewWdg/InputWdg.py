@@ -28,6 +28,7 @@ History:
 2007-09-28 ROwen    Fixed PR 666: was sending userModel to sub-widgets even if userModel not supplied.
 2011-02-16 ROwen    Disabled the Calibrate panel at Russet's request.
 2011-02-17 ROwen    Bug fix: Calibrate was still referenced in DisableDict, producing error messages.
+2012-11-14 ROwen    Update help text for show/hide controls for checkbuttons with indicatoron.
 """
 import Tkinter
 import ObjPosWdg
@@ -105,13 +106,13 @@ class InputWdg(RO.Wdg.InputContFrame):
         
         # list of option widgets, with descriptive text
         self.optionDescrWdgList = (
-            ("Mag, PM", magPMWdg, "Show/hide magnitude and proper motion controls"),
-            ("Drift Scan", driftScanWdg, "Show/hide drift scan controls"),
-            ("Keep Offsets",  keepOffsetWdg, "Show/hide controls to retain current offsets"),
+            ("Mag, PM", magPMWdg, "Show magnitude and proper motion controls?"),
+            ("Drift Scan", driftScanWdg, "Show drift scan controls?"),
+            ("Keep Offsets",  keepOffsetWdg, "Show controls to retain current offsets?"),
 # Calibrate panel disabled at Russet's request; she says it is hard to use correctly
 # partly because the exposure time is usually wrong for such bright stars
-#            ("Calibrate", calibWdg, "Show/hide pointing calibration controls"),
-            ("Axis Wrap", axisWrapWdg, "Show/hide wrap preference controls"),
+#            ("Calibrate", calibWdg, "Show pointing calibration controls?"),
+            ("Axis Wrap", axisWrapWdg, "Show wrap preference controls?"),
         )
     
         # create a set of controls to show the optional panels

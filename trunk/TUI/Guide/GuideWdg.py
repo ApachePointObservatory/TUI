@@ -502,10 +502,6 @@ class GuideWdg(Tkinter.Frame):
         self.showHideImageWdg = RO.Wdg.Checkbutton(
             histFrame,
             text = "Image",
-            #onvalue = "Hide",
-            #offvalue = "Show",
-            #showValue = True,
-            #width = 4,
             defValue = True,
             callFunc = self.doShowHideImage,
             helpText = "Show or hide image",
@@ -529,19 +525,12 @@ class GuideWdg(Tkinter.Frame):
         )
         self.nextImWdg.pack(side="left")
         
-        onOffVals = ("Current", "Hold")
-        lens = [len(val) for val in onOffVals]
-        maxLen = max(lens)
         self.showCurrWdg = RO.Wdg.Checkbutton(
             histFrame,
-#           text = "Current",
+            text = "Current",
             defValue = True,
-            onvalue = onOffVals[0],
-            offvalue = onOffVals[1],
-            width = maxLen,
-            showValue = True,
             callFunc = self.doShowCurr,
-            helpText = "Display current image?",
+            helpText = "Display new images as they come in?",
             helpURL = helpURL,
         )
         self.showCurrWdg.pack(side="left")
@@ -1599,20 +1588,17 @@ class GuideWdg(Tkinter.Frame):
         
         if doShowCurr:
             sev = RO.Constants.sevNormal
-            helpText = "Show new images; click to hold this image"
             self.holdWarnWdg.grid_remove()
 #           self.statusBar.setMsg("",
 #               severity=RO.Constants.sevNormal,
 #           )
         else:
             sev = RO.Constants.sevWarning
-            helpText = "Hold this image; click to show new images"
             self.holdWarnWdg.grid()
 #           self.statusBar.setMsg("Hold mode: guide controls disabled",
 #               severity=RO.Constants.sevWarning,
 #           )
         self.showCurrWdg.setSeverity(sev)
-        self.showCurrWdg.helpText = helpText
         
         self.enableCmdButtons()
         

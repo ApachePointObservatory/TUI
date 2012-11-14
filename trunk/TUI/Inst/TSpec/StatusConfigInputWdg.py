@@ -115,7 +115,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.tipTiltShowHideWdg = RO.Wdg.Checkbutton(
             master = self,
             text = "Tip-Tilt Mode",
-            helpText = "Show/hide tip-tilt controls",
+            helpText = "Show tip-tilt controls?",
             helpURL = self.HelpPrefix + "TipTilt",
         )
         self._stateTracker.trackCheckbutton("showTipTilt", self.tipTiltShowHideWdg)
@@ -192,7 +192,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.environShowHideWdg = RO.Wdg.Checkbutton(
             master = self,
             text = "Environment",
-            helpText = "Show/hide pressure and temps",
+            helpText = "Show pressure and temps?",
             helpURL = self.HelpPrefix + "Environment",
         )
         self._stateTracker.trackCheckbutton("showEnviron", self.environShowHideWdg)

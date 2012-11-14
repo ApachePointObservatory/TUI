@@ -74,9 +74,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             master = self,
             offvalue = self.model.mirStatesConst[0].capitalize(),
             onvalue = self.model.mirStatesConst[1].capitalize(),
-            showValue = True,
-            width = mirMaxNameLen,
-            helpText = "Desired state of calibration mirror",
+            helpText = "Insert calibration mirror for lamps?",
             helpURL = self.HelpPrefix + "Mirror",
             autoIsCurrent = True,
         )
@@ -107,8 +105,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 master = self,
                 onvalue = "On",
                 offvalue = "Off",
-                width = 3,
-                showValue = True,
                 helpURL = self.HelpPrefix + "Lamps",
                 autoIsCurrent = True,
             )
@@ -126,7 +122,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         self.calFilterCurrWdg = RO.Wdg.StrLabel(
             master = self,
-            width = 4,
+            width = 4, # initial value; update when filter names are known
             anchor = "c",
             helpText = "Current calibration lamp filter",
             helpURL = self.HelpPrefix + "Filter",
@@ -138,7 +134,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             items = [],
             helpText = "Desired calibration lamp filter",
             helpURL = self.HelpPrefix + "Filter",
-            width = 4,
             autoIsCurrent = True,
             defMenu = "Default",
         )
@@ -235,8 +230,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         lenList = [len(name) for name in nameList]
         maxLen = max(lenList)
         self.calFilterCurrWdg["width"] = maxLen
-        self.calFilterUserWdg["width"] = maxLen
-        
     
     def setLampNames(self, lampNames, isCurrent, **kargs):
         """Update lamp name labels and hide nonexistent lamps"""
@@ -251,7 +244,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             # else set lamp names wdg
             lampName = lampNames[ii] or ""
             self.lampNameWdgSet[ii].set("%s Lamp" % lampName, isCurrent)
-            self.lampUserWdgSet[ii].helpText = "Desired state of %s cal lamp" % (lampName,)
+            self.lampUserWdgSet[ii].helpText = "Turn on %s cal lamp?" % (lampName,)
             self.lampCurrWdgSet[ii].helpText = "Current state of %s cal lamp" % (lampName,)
             showHideDict[self._LampPrefix + str(ii)] = bool(lampName)
             if not lampName:

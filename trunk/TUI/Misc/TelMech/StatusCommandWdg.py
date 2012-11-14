@@ -180,21 +180,26 @@ class StatusCommandWdg (Tkinter.Frame):
             helpURL = _HelpURL,
         ).grid(row=self.row, column=self.col)
         self.row += 1
-        self.coversWdg = RO.Wdg.Checkbutton(
-            master = self,
-            onvalue = "Open",
-            offvalue = "Closed",
-            width = 6,
+        coversFrame = Tkinter.Frame(master = self)
+        self.coversUserWdg = RO.Wdg.Checkbutton(
+            master = coversFrame,
             autoIsCurrent = True,
-            showValue = True,
             command = self.doCoversCmd,
-            helpText = "Toggle the primary mirror covers",
+            helpText = "Open the primary mirror covers?",
             helpURL = _HelpURL,
         )
-        self.model.covers.addROWdg(self.coversWdg, setDefault=True)
-        self.model.covers.addROWdg(self.coversWdg)
-        self.coversWdg.grid(row=self.row, column=self.col)
+        self.coversUserWdg.pack(side="left")
+        self.coversCurrWdg = RO.Wdg.Label(
+            master = coversFrame,
+            width = 6,
+            anchor = "w",
+            helpText = "State of the primary mirror covers?",
+            helpURL = _HelpURL,
+        )
+        self.coversCurrWdg.pack(side="left")
+        coversFrame.grid(row=self.row, column=self.col, sticky="w")
         self.row += 3
+        self.model.covers.addIndexedCallback(self.updateCovers)
         
         RO.Wdg.StrLabel(
             master = self,
@@ -418,7 +423,6 @@ class StatusCommandWdg (Tkinter.Frame):
             colInd += 1
             
             ctrlStateFrame = Tkinter.Frame(self)
-            wdgList.append(ctrlStateFrame)
 
             if not catInfo.readOnly:
                 ctrlWdg = RO.Wdg.Checkbutton(
@@ -443,6 +447,7 @@ class StatusCommandWdg (Tkinter.Frame):
             )
             stateWdg.pack(side="left")
 
+            wdgList.append(ctrlStateFrame)
             ctrlStateFrame.grid(row = self.row, column = colInd, sticky="w")
             colInd += 1
             self.row += 1
@@ -508,13 +513,12 @@ class StatusCommandWdg (Tkinter.Frame):
     
     def doCoversCmd(self):
         """Open or close the primary mirror covers"""
-        boolVal = self.coversWdg.getBool()
-        stateStr = {True: "Open", False: "Closed"}[boolVal]
-        self.coversWdg["text"] = stateStr
+        boolVal = self.coversUserWdg.getBool()
         verbStr = {True: "open", False: "close"}[boolVal]
         cmdStr = "covers %s" % verbStr
+        self.coversCurrWdg.setIsCurrent(False)
         self.startCmd(
-            wdg = self.coversWdg,
+            wdg = self.coversUserWdg,
             cmdStr = cmdStr,
         )
     
@@ -609,6 +613,23 @@ class StatusCommandWdg (Tkinter.Frame):
         enableBtns = not isDefault and not cmdRunning
         self.tertRotApplyWdg.setEnable(enableBtns)
         self.tertRotRestoreWdg.setEnable(enableBtns)
+    
+    def updateCovers(self, value, isCurrent, keyVar=None):
+        """Handle covers keyword data"""
+#         print "updateCovers(value=%r, isCurrent=%r)" % (value, isCurrent)
+        if value == None:
+            severity = RO.Constants.sevWarning
+            strValue = "?"
+        else:
+            if value:
+                severity = RO.Constants.sevNormal
+                strValue = "Open"
+            else:
+                severity = RO.Constants.sevWarning
+                strValue = "Closed"
+        self.coversCurrWdg.set(strValue, severity=severity, isCurrent=isCurrent)
+        self.coversUserWdg.set(value)
+        self.coversUserWdg.setDefault(value, severity=severity, isCurrent=isCurrent)
     
     def updateTertRot(self, value, isCurrent, keyVar=None):
         """Handle tertRot keyword data"""

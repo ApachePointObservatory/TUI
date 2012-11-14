@@ -15,6 +15,7 @@ History:
                     Improved handling of drift speed and range by eliminating
                     class attributes that matched the contents of widgets.
 2011-07-29 ROwen    Added support for drifting across slit.
+2012-11-14 ROwen    Stop using indicatoron=False for Checkbutton (indirectly via showName).
 """
 import Tkinter
 import RO.Wdg
@@ -76,9 +77,7 @@ class ScriptClass(object):
         self.driftDirWdg = RO.Wdg.Checkbutton(
             master = self.expWdg,
             defValue = True,
-            onvalue = "Along Slit",
-            offvalue = "Across Slit",
-            showValue = True,
+            text = "Along Slit",
             helpText = "Drift along slit or across it?",
             helpURL = HelpURL,
         )

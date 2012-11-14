@@ -24,6 +24,7 @@ History:
                     - command and control chars are handled normally
                     - linefeed and tab (as well as return) transfer focus but enter nothing.
 2007-06-07 ROwen    Increased maxLines from 100 to 5000.
+2012-11-14 ROwen    Fix an issue where the message was rejected due to being unicode.
 """
 import urllib
 import Tkinter
@@ -32,10 +33,12 @@ import RO.Wdg
 import TUI.TUIModel
 import TUI.PlaySound
 
+WindowName = "Misc.Message"
+
 def addWindow(tlSet):
     # about window
     tlSet.createToplevel(
-        name = "Misc.Message",
+        name = WindowName,
         defGeom = "390x213+367+334",
         resizable = True,
         visible = True,
@@ -130,7 +133,7 @@ class MessageWdg(Tkinter.Frame):
     def doSend(self, *args, **kargs):
         # obtain the message and clear the display
         # note that the message is always \n-terminated
-        rawStr = self.inText.get("0.0", "end")[:-1]
+        rawStr =  str(self.inText.get("0.0", "end")[:-1])
         msgStr = encodeMsg(rawStr)
 #       print "sending %r encoded as %r" % (rawStr, msgStr)
         self.inText.delete("0.0", "end")

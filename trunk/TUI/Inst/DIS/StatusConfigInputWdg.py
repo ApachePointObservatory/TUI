@@ -223,11 +223,9 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         # for showing details (because most details
         # are color-specific and for lack of a better place)
         self.showDetailWdg = RO.Wdg.Checkbutton(self,
-            onvalue = "Show Less",
-            offvalue = "Show More",
+            text = "Details",
             defValue = False,
-            showValue = True,
-            helpText = "show/hide engineering details",
+            helpText = "Show engineering details?",
             helpURL = self.HelpPrefix + "ShowMore",
         )
         self._stateTracker.trackCheckbutton("showDetail", self.showDetailWdg)
@@ -451,11 +449,9 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         # grid that first as it is always displayed
         self.showCCDWdg = RO.Wdg.Checkbutton(
             self,
-            onvalue = "Hide CCD",
-            offvalue = "Show CCD",
+            text = "CCD",
             defValue = False,
-            showValue = True,
-            helpText = "show/hide binning, etc.",
+            helpText = "Show binning, etc.?",
             helpURL = self.HelpPrefix + "ShowCCD",
         )
         gr.addShowHideControl(self.CCDCat, self.showCCDWdg)
