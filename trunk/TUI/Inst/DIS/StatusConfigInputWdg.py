@@ -226,7 +226,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             text = "Details",
             defValue = False,
             helpText = "Show engineering details?",
-            helpURL = self.HelpPrefix + "ShowMore",
+            helpURL = self.HelpPrefix + "ShowDetails",
         )
         self._stateTracker.trackCheckbutton("showDetail", self.showDetailWdg)
         gr.addShowHideControl(self.DetailCat, self.showDetailWdg)

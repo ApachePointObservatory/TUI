@@ -11,7 +11,7 @@
 
 <p>CCD coordinates are always binned. 1,1 is the lower left pixel and 2048,1028 is the upper right pixel when binned 1x1.
 
-<p>Pushing the "Show Config" button displays configuration controls (each to the right of its corresponding item of status).
+<p>Pushing the "Config" button displays configuration controls (each to the right of its corresponding item of status).
 <ul>
 	<li>Controls with a colored background will be changed when you hit Apply.
 	<li>The contextual menu on each control can return that control to the current setting of the instrument.
@@ -32,7 +32,7 @@
 	</ul>
 </ul>
 
-<p><a name="ShowCCD"></a>Pushing the <b>Show CCD</b> button shows the following image-specific items. Note that these cannot be set separately for the blue and red cameras.
+<p><a name="ShowCCD"></a>Pushing the <b>CCD</b> button shows the following image-specific items. Note that these cannot be set separately for the blue and red cameras.
 
 <ul>
 	<li><a name="Bin"></a><b>Bin</b>: binning factor
@@ -42,7 +42,7 @@
 	<p><img alt="Window and overscan" src="Overscan.png">
 </ul>
 
-<p><a name="ShowMore"></a>Pushing the <b>Show More</b> button displays additional items. Most of these will only be of interest to observing specialists and engineers.
+<p><a name="ShowDetails"></a>Pushing the <b>Details</b> button displays additional items. Most of these will only be of interest to observing specialists and engineers.
 
 <ul>	
 	<li><a name="Detent"></a><b>Detent</b>: the commanded position of the grating turret detent. This is occasionally useful for diagnosing turret rotation problems: if detent gets hung up on the rim of the turret then the <b>next</b> turret move may show a huge decrease in the detent position.
@@ -57,15 +57,15 @@
 
 <p>Below the items is a status bar that shows help and the state of the currently executing configuration command.
 
-<p>The buttons along the bottom are as follows:
+<p><a name="CmdButtons"></a>The buttons along the bottom are as follows:
 
 <ul>
-	<li><a name="CmdButtons"></a><b>Expose...</b>: opens the separate DIS <a href="../ExposeWin.html">Expose window</a>.
-	<li><a name="CmdButtons"></a><b>Show Config</b>: show or hide the configuration controls.
+	<li><b>Expose...</b>: opens the separate DIS <a href="../ExposeWin.html">Expose window</a>.
+	<li><b>Config</b>: show or hide the configuration controls.
 	<p>The following are only available if the configuration controls are showing:
-	<li><a name="CmdButtons"></a><b>Apply</b>: apply the requested changes by sending a series of commands to DIS.
-	<li><a name="CmdButtons"></a><b>X</b>: cancel your pending configuration changes. The current command is allowed to finish, but any subsequent commands are flushed.
-	<li><a name="CmdButtons"></a><b>Current</b>: reset all configuration widgets to the current state of the instrument.
+	<li><b>Apply</b>: apply the requested changes by sending a series of commands to DIS.
+	<li><b>X</b>: cancel your pending configuration changes. The current command is allowed to finish, but any subsequent commands are flushed.
+	<li><b>Current</b>: reset all configuration widgets to the current state of the instrument.
 </ul>
 
 </body>
