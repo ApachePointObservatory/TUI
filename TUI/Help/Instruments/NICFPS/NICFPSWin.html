@@ -11,7 +11,7 @@
 
 <p>Warning: this is a preliminary implementation. Once the instrument builders have more time with the instrument we plan to refine the controls.
 
-<p>Pushing the "Show Config" button displays configuration controls (each to the right of its corresponding item of status).
+<p>Pushing the "Config" button displays configuration controls (each to the right of its corresponding item of status).
 <ul>
 	<li>Controls with a colored background will be changed when you hit Apply.
 	<li>The contextual menu on each control can return that control to the current setting of the instrument.
@@ -31,7 +31,7 @@
 		<li><a name="EtalonY"></a><b>Y Spacing</b>: y position of the etalon.
 		<li><a name="EtalonZ"></a><b>Z Spacing</b>: z spacing of the etalon. Z is along the beam, and thus most directly controls the wavelength.
 	</ul>
-	<li><a name="ShowDetector"></a><b>Show/Hide Detector</b>: shows or hides the following detecor controls:
+	<li><a name="ShowDetector"></a><b>Detector</b>: shows or hides the following detector controls:
 	<ul>
 		<li><a name="Window"></a><b>Window</b>: coordinates of the corners of the image (inclusive).
 		<li><a name="ImageSize"></a><b>Image Size</b>: size of image
@@ -42,15 +42,15 @@
 
 <p>Below the items is a status bar that shows help and the state of the currently executing configuration command.
 
-<p>The buttons along the bottom are as follows:
+<p><a name="CmdButtons"></a>The buttons along the bottom are as follows:
 
 <ul>
-	<li><a name="CmdButtons"></a><b>Expose...</b>: opens the separate NICFPS <a href="../ExposeWin.html">Expose window</a>.
-	<li><a name="CmdButtons"></a><b>Show Config</b>: show or hide the configuration controls.
+	<li><b>Expose...</b>: opens the separate NICFPS <a href="../ExposeWin.html">Expose window</a>.
+	<li><b>Config</b>: show or hide the configuration controls.
 	<p>The following are only available if the configuration controls are showing:
-	<li><a name="CmdButtons"></a><b>Apply</b>: apply the requested changes by sending a series of commands to NICFPS.
-	<li><a name="CmdButtons"></a><b>X</b>: cancel your pending configuration changes. The current command is allowed to finish, but any subsequent commands are flushed.
-	<li><a name="CmdButtons"></a><b>Current</b>: reset all configuration widgets to the current state of the instrument.
+	<li><b>Apply</b>: apply the requested changes by sending a series of commands to NICFPS.
+	<li><b>X</b>: cancel your pending configuration changes. The current command is allowed to finish, but any subsequent commands are flushed.
+	<li><b>Current</b>: reset all configuration widgets to the current state of the instrument.
 </ul>
 
 </body>

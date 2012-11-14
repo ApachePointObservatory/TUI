@@ -15,20 +15,23 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>1.9.6b1+ 2012-11-13</h3>
+<h3>1.9.6b2 2012-11-14</h3>
 
 <p>Visible changes:
 <ul>
-    <li>All checkbuttons now show the checkbox to accommodate a change in Tcl/Tk (indicatoron=0 is no longer supported for MacOS).
+    <li>All checkbuttons are now displayed as a checkbox (formerly some were shown as a raised or lowered button, but that is no longer supported under Tcl/Tk 8.5 on MacOS).
 </ul>
 
 <p>Bug fixes:
 <ul>
-    <li>Fixed a serious error in the enclosure widget that could cause TUI to freeze.
-    <li>Added a workaround for an annoying Tcl/Tk 8.5 bug that caused the filter menus in the log window to be shown at the wrong size. Unfortunately this introduces a small visual twitch when TUI first starts up.
+    <li>Fixed a serious error in the enclosure widget.
+    <li>Added a workaround for an annoying Tcl/Tk 8.5 bug that caused the filter menus in the log window to be shown at the wrong size on MacOS. Unfortunately this introduces a small visual twitch when TUI first starts up.
+    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1394">PR 1394</a> message window does not work. Another problem caused by the move to Tcl/Tk 8.5.
 </ul>
 
 <h3>1.9.6b1 2012-10-26</h3>
+
+<p>Accidental duplicate version number.</p>
 
 <p>Visible changes:
 <ul>
