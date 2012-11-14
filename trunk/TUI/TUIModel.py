@@ -110,7 +110,7 @@ class _Model (object):
         self.logFunc = self.logSource.logMsg
     
         # TUI preferences
-        self.prefs = prefs = TUI.TUIPrefs.TUIPrefs()
+        self.prefs = TUI.TUIPrefs.TUIPrefs()
         
         # TUI window (topLevel) set;
         # this starts out empty; others add windows to it

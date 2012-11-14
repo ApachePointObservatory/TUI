@@ -29,6 +29,9 @@ History:
 2012-10-26 ROwen    Modified to use separate checkbuttons to toggle state and labels to display state;
                     this works around a bug in Tk (indicatoron is ignored on MacOS X)
                     and may slightly clarify the interface because command and state are separate.
+2012-11-13 ROwen    Bug fix: the individual device widges were being mishandled for show/hide.
+                    This caused an incorrect display and TUI would freeze when showing devices.
+                    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 """
 import numpy
 import Tkinter
@@ -49,7 +52,7 @@ class DevStateWdg(RO.Wdg.Label):
     """Widget that displays a summary of device state.
     
     Note: this widget registers itself with the TelMech model
-    so once created it self-udpates.
+    so once created it self-updates.
     
     Inputs:
     - master: master widget
@@ -184,7 +187,6 @@ class StatusCommandWdg (Tkinter.Frame):
             width = 6,
             autoIsCurrent = True,
             showValue = True,
-            indicatoron = False,
             command = self.doCoversCmd,
             helpText = "Toggle the primary mirror covers",
             helpURL = _HelpURL,
@@ -205,7 +207,6 @@ class StatusCommandWdg (Tkinter.Frame):
             items = self.model.catDict["Eyelids"].devDict.keys(),
             noneDisplay = "?",
             ignoreCase = True,
-            width = 3,
             autoIsCurrent = True,
             defMenu = "Default",
             callFunc = self.tertRotEnable,
@@ -373,7 +374,7 @@ class StatusCommandWdg (Tkinter.Frame):
                 ctrl.grid(column=self.col, row=self.row, columnspan=_ColsPerDev, sticky="ew")
                 self.row += 1
 
-        self.addDevWdgs(catInfo, doHide=extraWdgs)
+        self.addDevWdgs(catInfo, doHide=bool(extraWdgs))
         
     def addCategoryLabel(self, catName, hasDetails):
         """Add a label for a category of devices"""
@@ -381,7 +382,6 @@ class StatusCommandWdg (Tkinter.Frame):
             labelWdg = RO.Wdg.Checkbutton(
                 master = self,
                 text = catName,
-                indicatoron = False,
                 callFunc = self.showHideDetails,
                 helpText = "show/hide detailed info",
             )
@@ -397,7 +397,7 @@ class StatusCommandWdg (Tkinter.Frame):
     def addDevWdgs(self, catInfo, doHide):
         """Add a set of widgets to control one device.
         """
-#       print "addDevWdgs(catInfo=%r, devName=%r)" % (catInfo, devName)
+#         print "addDevWdgs(catInfo=%r, doHide=%r)" % (catInfo.catName, doHide)
         stateWidth = max([len(name) for name in catInfo.stateNames])
         
         wdgList = []
@@ -418,6 +418,7 @@ class StatusCommandWdg (Tkinter.Frame):
             colInd += 1
             
             ctrlStateFrame = Tkinter.Frame(self)
+            wdgList.append(ctrlStateFrame)
 
             if not catInfo.readOnly:
                 ctrlWdg = RO.Wdg.Checkbutton(
@@ -429,7 +430,6 @@ class StatusCommandWdg (Tkinter.Frame):
                     helpURL = _HelpURL,
                 )
                 ctrlWdg["command"] = RO.Alg.GenericCallback(self._doCmd, catInfo, devName, ctrlWdg)
-                wdgList.append(ctrlWdg)
                 keyVar.addROWdg(ctrlWdg, setDefault=True)
                 keyVar.addROWdg(ctrlWdg)
                 ctrlWdg.pack(side="left")
@@ -442,7 +442,7 @@ class StatusCommandWdg (Tkinter.Frame):
                 helpURL = _HelpURL,
             )
             stateWdg.pack(side="left")
-            
+
             ctrlStateFrame.grid(row = self.row, column = colInd, sticky="w")
             colInd += 1
             self.row += 1
@@ -456,9 +456,9 @@ class StatusCommandWdg (Tkinter.Frame):
                 stateWdg.set(str, isCurrent=isCurrent)
             keyVar.addIndexedCallback(updateWdg)
             
-            if doHide:
-                for wdg in wdgList:
-                    wdg.grid_remove()
+        if doHide:
+            for wdg in wdgList:
+                wdg.grid_remove()
 
         self.detailWdgDict[catInfo.catName] = wdgList
     

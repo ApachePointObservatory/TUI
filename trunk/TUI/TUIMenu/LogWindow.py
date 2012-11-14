@@ -64,7 +64,8 @@ History:
 2011-08-11 ROwen    Added a state tracker to track filter information.
 2011-08-30 ROwen    Bug fix: Actor and Actors filters did not show commands sent to the actors.
 2012-07-10 ROwen    Removed use of update_idletasks.
-2012-11-13 ROwen    Cosmetic changes to make more similar to STUI's version (for easier diff).
+2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
+                    Cosmetic changes to make more similar to STUI's version (for easier diff).
 """
 import bisect
 import re
@@ -189,7 +190,6 @@ class TUILogWdg(Tkinter.Frame):
             callFunc = self.doFilterOnOff,
             helpText = "enable or disable filtering",
             helpURL = HelpURL,
-            indicatoron = False,
         )
         self.filterOnOffWdg.grid(row=0, column=ctrlCol1)
         ctrlCol1 += 1
@@ -313,7 +313,6 @@ class TUILogWdg(Tkinter.Frame):
         self.highlightOnOffWdg = RO.Wdg.Checkbutton(
             self.ctrlFrame2,
             text = "Highlight:",
-            indicatoron = False,
             callFunc = self.doShowHideAdvanced,
             helpText = "enable or disable highlighting",
             helpURL = HelpURL,
@@ -382,7 +381,6 @@ class TUILogWdg(Tkinter.Frame):
         self.highlightPlaySoundWdg = RO.Wdg.Checkbutton(
             self.highlightFrame,
             text = "Play Sound",
-            indicatoron = True,
             helpText = "play a sound when new highlighted text is received?",
             helpURL = HelpURL,
         )
