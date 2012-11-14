@@ -87,11 +87,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         # for showing ccd image info
         # grid that first as it is always displayed
         self.showCCDWdg = RO.Wdg.Checkbutton(self,
-            onvalue = "Hide CCD",
-            offvalue = "Show CCD",
+            text = "CCD",
             defValue = False,
-            showValue = True,
-            helpText = "show/hide binning, etc.",
+            helpText = "Show binning, etc.?",
             helpURL = self.HelpPrefix + "ShowCCD",
         )
         gr.addShowHideControl(self.CCDCat, self.showCCDWdg)

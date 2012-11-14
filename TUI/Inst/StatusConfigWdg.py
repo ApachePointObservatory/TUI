@@ -8,6 +8,7 @@ History:
                     Read actor from statusConfigInputClass.Actor, if present.
 2008-03-25 ROwen    The instrument actor is now obtained from the exposure model.
 2011-08-11 ROwen    Added a state tracker.
+2012-11-14 ROwen    Update help text for show/hide controls for checkbuttons with indicatoron.
 """
 import Tkinter
 import RO.ScriptRunner
@@ -93,11 +94,9 @@ class StatusConfigWdg (Tkinter.Frame):
 
         self.showConfigWdg = RO.Wdg.Checkbutton(
             master = buttonFrame,
-            onvalue = "Hide Config",
-            offvalue = "Show Config",
             callFunc = self._showConfigCallback,
-            showValue = True,
-            helpText = "show/hide configuration controls",
+            text = "Config",
+            helpText = "Show configuration controls?",
             helpURL = helpURL,
         )
         self.showConfigWdg.grid(row=0, column=bfCol)

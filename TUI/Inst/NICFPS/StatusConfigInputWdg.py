@@ -155,11 +155,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         self.slitOPathUserWdg = RO.Wdg.Checkbutton(
             master = self,
-            helpText = "put Slit in or out of the beam?",
+            text = "Slit",
+            helpText = "put Slit in the beam?",
             helpURL = self.HelpPrefix + "SlitInBeam",
             onvalue = "In",
             offvalue = "Out",
-            showValue = True,
             autoIsCurrent = True,
             isCurrent = False,
         )
@@ -227,11 +227,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         self.fpOPathUserWdg = RO.Wdg.Checkbutton(
             master = self,
-            helpText = "put Etalon in or out of the beam?",
+            text = "Etalon",
+            helpText = "put Etalon in the beam?",
             helpURL = self.HelpPrefix + "EtalonInBeam",
             onvalue = "In",
             offvalue = "Out",
-            showValue = True,
             autoIsCurrent = True,
             isCurrent = False,
         )
@@ -363,11 +363,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         # grid that first as it is always displayed
         self.showDetectWdg = RO.Wdg.Checkbutton(
             master = self,
-            onvalue = "Hide Detector",
-            offvalue = "Show Detector",
+            text = "Detector",
             defValue = False,
-            showValue = True,
-            helpText = "show/hide window mode",
+            helpText = "Show window mode?",
             helpURL = self.HelpPrefix + "ShowDetector",
         )
         gr.addShowHideControl(self.DetectCat, self.showDetectWdg)
@@ -506,7 +504,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.environShowHideWdg = RO.Wdg.Checkbutton(
             master = self,
             text = "Environment",
-            helpText = "Show/hide pressure and temps",
+            helpText = "Show pressure and temps?",
             helpURL = self.HelpPrefix + "Environment",
         )
         self._stateTracker.trackCheckbutton("showEnvironment", self.environShowHideWdg)

@@ -245,7 +245,7 @@ class ExposeInputWdg (Tkinter.Frame):
             self.showWindowBtn = RO.Wdg.Checkbutton(
                 master = self,
                 text = "Image Size",
-                helpText = "show/hide image size controls",
+                helpText = "Show image size controls?",
                 helpURL = helpURL,
             )
             self._stateTracker.trackCheckbutton("showWindow", self.showWindowBtn)

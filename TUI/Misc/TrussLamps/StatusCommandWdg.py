@@ -14,6 +14,7 @@ History:
 2005-01-18 ROwen    Modified to use background color instead of a separate "!" box to indicate "changing".
                     Bug fix: if a command failed instantly then the widget display was wrong.
 2005-06-56 ROwen    Removed unused variables (found by pychecker).
+2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 """
 import Tkinter
 import RO.Alg
@@ -123,7 +124,6 @@ class StatusCommandWdg (Tkinter.Frame):
             master = self,
             onvalue = "On",
             offvalue = "Off",
-#            indicatoron = False,
             autoIsCurrent = True,
             callFunc = RO.Alg.GenericCallback(self._doCmd, rowInd, lampName),
             helpText = "Toggle %s lamp" % (lampName,),

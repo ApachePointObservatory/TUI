@@ -24,6 +24,7 @@ History:
 2009-07-10 ROwen    Removed an inline conditional statement to be Python 2.4 compatible.
                     Modified for updated TestData.
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
+2012-11-14 ROwen    Update help text for show/hide controls for checkbuttons with indicatoron.
 """
 import Tkinter
 import RO.Constants
@@ -84,7 +85,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.environShowHideWdg = RO.Wdg.Checkbutton(
             master = self,
             text = "Environ",
-            helpText = "Show/hide environment details",
+            helpText = "Show environment details?",
             helpURL = self.HelpPrefix + "Environ",
         )
         
