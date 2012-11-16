@@ -9,6 +9,7 @@ History:
 2008-11-17 ROwen    Fixed PR 905: temperature alarms not properly reported.
 2008-11-18 ROwen    Fixed an error in yesterday's fix.
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
+2012-11-16 ROwen    Disable the ability to change slits; a temporary hack while TSpec's slit changer is broken.
 """
 import math
 import Tkinter
@@ -105,7 +106,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpText = "Desired slit",
             helpURL = self.HelpPrefix + "Slit",
         )
-        gr.gridWdg("Slit", self.currSlitWdg, None, self.userSlitWdg, colSpan=2)
+# disable user's ability to change slits until TSpec is fixed
+        gr.gridWdg("Slit", self.currSlitWdg, colSpan=2)
+#        gr.gridWdg("Slit", self.currSlitWdg, None, self.userSlitWdg, colSpan=2)
         self.model.slitPosition.addIndexedCallback(self._updSlitPosition)
         self.model.slitPositions.addCallback(self._updSlitPositions)
         
