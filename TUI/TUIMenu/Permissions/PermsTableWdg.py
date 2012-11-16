@@ -47,15 +47,18 @@ import weakref
 import Tkinter
 import RO.Constants
 import RO.Alg
+if __name__ == "__main__":
+    import RO.Comm.Generic
+    RO.Comm.Generic.setFramework("tk")
+from RO.Comm.Generic import Timer
 import RO.KeyVariable
-from RO.TkUtil import Timer
 import RO.Wdg
 import TUI.TUIModel
 import TUI.Models.PermsModel
 
 _HelpPrefix = "TUIMenu/PermissionsWin.html#"
 
-_ProgramWidth = 7 # width of program control buttons (need room for "Lockout")
+_ProgramWidth = 10 # width of program control buttons: need room for "Lockout" and checkbuttons
 _NewActorDelay = 1.0 # display disable delay (sec) while adding or removing actorList
 
 class ActorList(object):
@@ -675,7 +678,6 @@ class _LockoutPerms(_BasePerms):
         self._nameWdg = RO.Wdg.StrLabel (
             master = self._master,
             text = "Lockout",
-#            width = _ProgramWidth,
             anchor = "center",
             helpText = "lock out non-APO users",
             helpURL = self._helpURL,
@@ -751,8 +753,7 @@ class _ProgPerms(_BasePerms):
             prog = self._prog,
             command = self._progCommand,
             readOnly = self._readOnly,
-#            width = _ProgramWidth,
-            helpText = "Press to delete program %r" % (self._prog),
+            helpText = "Uncheck to delete program %r" % (self._prog),
             helpURL = self._helpURL,
         )
         self._nameWdg.addCallback(self._progCallFunc)
@@ -763,10 +764,10 @@ class _ProgPerms(_BasePerms):
         See also _progCallFunc, which controls actor enabling.
         """     
 #       print "%s._progCommand" % (self.__class__)
-        doUnreg = self._nameWdg.getBool()
+        doReg = self._nameWdg.getBool()
             
         # issue register or unregister command
-        if doUnreg:
+        if doReg:
             cmdVerb = "unregister"
         else:
             cmdVerb = "register"
@@ -774,7 +775,7 @@ class _ProgPerms(_BasePerms):
         self._doCmd(cmdStr)
     
         # if re-registering, restore permissions
-        if not doUnreg:
+        if doReg:
             self._actorCommand()
 
     def _progCallFunc(self, wdg=None):
@@ -874,7 +875,7 @@ class _ActorWdg(_SettingsWdg):
 #       print "%s %s setReadOnly(%r)" % (self._prog, self._actor, readonly)
     
     def _setState(self):
-        """State changed and not transiational; update widget appearance and help.
+        """State changed and not transitional; update widget appearance and help.
         """
         isChecked = self.getBool()
 #       print "%s %s _ActorWdg._setState; readOnly=%s; isChecked=%s, actReg=%s; desReg=%s" % \
@@ -899,14 +900,14 @@ class _ActorWdg(_SettingsWdg):
             self.setEnable(True)
             if self._prog:
                 if isChecked:
-                    self.helpText = "%s may use %s; click to change" % (self._prog, self._actor) 
+                    self.helpText = "%s may use %s; uncheck to prohibit" % (self._prog, self._actor) 
                 else:
-                    self.helpText = "%s may not use %s; click to change" % (self._prog, self._actor) 
+                    self.helpText = "%s may not use %s; check to allow" % (self._prog, self._actor) 
             else:
                 if isChecked:
-                    self.helpText = "%s is locked out; click to change" % (self._actor,)
+                    self.helpText = "%s is locked out; uncheck to unlock" % (self._actor,)
                 else:
-                    self.helpText = "%s is available; click to change" % (self._actor,)
+                    self.helpText = "%s is unlocked; check to lock out" % (self._actor,)
 
         else:
             # program not registered or in transition, so user cannot change permissions
@@ -935,7 +936,6 @@ class _ProgramWdg(_SettingsWdg):
         # handle defaults and forced settings
         tuiModel = TUI.TUIModel.getModel()
         self._canUnreg = True # can program be unregistered? some are fixed
-        kargs["indicatoron"] = False
         prog = kargs.get("prog")
         currProg = tuiModel.getProgID()
         if currProg and currProg.lower() == prog.lower():
@@ -974,13 +974,12 @@ class _ProgramWdg(_SettingsWdg):
     def getRegInfo(self):
         """Returns actReg, desReg
         """
-        return (not self.getDefBool(), not self.getBool())
+        return (self.getDefBool(), self.getBool())
     
     def _setState(self):
         """State changed; update widget appearance and help.
         """
-#       print "%s _ProgWdg._setState; readOnly=%s; isRegistered=%s, canUnreg=%s" % \
-#           (self._prog, self._readOnly, self._isRegistered, self._canUnreg)
+#         print "%s _ProgWdg._setState; readOnly=%s; canUnreg=%s" % (self._prog, self._readOnly, self._canUnreg)
         if self._readOnly:
             self.setEnable(False)
             self.helpText = "Permissions for program %s" % (self._prog,)
@@ -994,12 +993,12 @@ class _ProgramWdg(_SettingsWdg):
         self.setEnable(True)
         actReg, desReg = self.getRegInfo()
         if actReg:
-            self.helpText = "%s added; click to delete" % (self._prog,) 
+            self.helpText = "%s added; uncheck to delete" % (self._prog,) 
         else:
-            self.helpText = "%s deleted; click to re-add" % (self._prog,) 
+            self.helpText = "%s deleted; check to re-add" % (self._prog,) 
     
     def setRegistered(self, isRegistered):
-        self.setAll(not isRegistered)
+        self.setAll(isRegistered)
 
     def setReadOnly(self, readOnly):
 #       print "%s _ProgWdg.setReadOnly(%s)" % (self._prog, readOnly,)
