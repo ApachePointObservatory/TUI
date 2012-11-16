@@ -17,11 +17,16 @@
 
 <h3>1.9.6b3 2012-11-15</h3>
 
+<p>Visible changes:
+<ul>
+    <li>Disable the ability to change slits; a temporary hack while TSpec's slit changer is broken.
+</ul>
+
 <p>Bug fixes:
 <ul>
     <li>Columns in the permissions window were misaligned, due to showing checkbuttons for programs.
-    <li>Improved display of pop-up menus with a better workaround for Tck/Tk bug #3587262.
-    <li>Refined workarounds for two other Tcl/Tk bugs to only be applied on Tcl/Tk version 8.5.
+    <li>Improved display of pop-up menus with a better workaround for Tck/Tk bug #3587262: menubutton is sometimes too narrow if width=0.
+    <li>Refined the workarounds for two other Mac Tcl/Tk bugs (one for menubutton width, one for checkbutton width) such that they are only be applied to Tcl/Tk version 8.5.
 </ul> 
 
 <h3>1.9.6b2 2012-11-14</h3>
