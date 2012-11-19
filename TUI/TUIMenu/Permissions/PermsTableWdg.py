@@ -42,6 +42,8 @@ and because the transition has to occur somewhere.
 2011-10-12 ROwen    Bug fix: the row 2 permissions had a line across it after sorting (the width measuring frame).
 2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
+2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
+2012-11-19 ROwen    Fix PR 1396: program button sent the wrong command.
 """
 import weakref
 import Tkinter
@@ -768,9 +770,9 @@ class _ProgPerms(_BasePerms):
             
         # issue register or unregister command
         if doReg:
-            cmdVerb = "unregister"
-        else:
             cmdVerb = "register"
+        else:
+            cmdVerb = "unregister"
         cmdStr = '%s %s' % (cmdVerb, self._prog)
         self._doCmd(cmdStr)
     

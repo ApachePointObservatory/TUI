@@ -16,8 +16,12 @@
 2011-06-17 ROwen    Added constants WindowName.
 2011-07-27 ROwen    Updated for new location of PermsModel.
 2012-07-10 ROwen    Removed use of update_idletasks.
+2012-11-19 ROwen    Fixed demo mode.
 """
 import Tkinter
+if __name__ == "__main__":
+    import RO.Comm.Generic
+    RO.Comm.Generic.setFramework("tk")
 import RO.KeyVariable
 import RO.Wdg
 import TUI.TUIModel
