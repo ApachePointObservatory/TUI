@@ -66,6 +66,7 @@ History:
 2012-07-10 ROwen    Removed use of update_idletasks.
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
                     Cosmetic changes to make more similar to STUI's version (for easier diff).
+2012-11-29 ROwen    Fix spelling of Run_Commands (the s was missing).
 """
 import bisect
 import re
@@ -683,7 +684,7 @@ class TUILogWdg(Tkinter.Frame):
             actorCmdStr = actorCmdStr.strip()
 
             if "\n" in actorCmdStr:
-                raise RuntimeError("Cannot execute multiple lines; use Run_Command script instead.")
+                raise RuntimeError("Cannot execute multiple lines; use Run_Commands script instead.")
 
             try:
                 actor, cmdStr = actorCmdStr.split(None, 1)

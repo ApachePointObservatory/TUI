@@ -54,6 +54,7 @@ This is the main routine that calls everything else.
 2012-07-18 ROwen    Modified to use RO 3.0 including the option to communicate using Twisted framework.
 2012-11-13 ROwen    Add workaround for bug on Tcl/Tk 8.5.11 that shows OptionMenu too narrow on MacOS X.
 2012-11-16 ROwen    Remove workaround for Tcl/Tk bug; I put a better solution in RO.Wdg.OptionMenu.
+2012-11-29 ROwen    Set UseTwisted False; I don't know why it was True.
 """
 import os
 import sys
@@ -72,7 +73,7 @@ except ImportError:
 
 import RO.Comm.Generic
 
-UseTwisted = True
+UseTwisted = False
 if UseTwisted:
     RO.Comm.Generic.setFramework("twisted")
 else:

@@ -40,6 +40,7 @@ History:
 2012-06-11 ROwen    To avoid duplicate application menus on Mac OS X, Tcl/Tk 8.5 requires that the
                     application menu have all entries added before setting the menu property of the toplevel.
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
+2012-11-29 ROwen    Bug fix on MacOS X: a duplicate Preferences menu was shown. Now supports cmd-comma.
 """
 import Tkinter
 import RO.Alg
@@ -193,7 +194,12 @@ class MenuBar(object):
         
         # add the remaining predefined entries
         mnu.add_separator()
-        self._addWindow("%s.Preferences" % (appName,), mnu)
+        if self.wsys == RO.TkUtil.WSysAqua:
+            self.tuiModel.tkRoot.createcommand("::tk::mac::ShowPreferences",
+                RO.Alg.GenericCallback(self.showToplevel, "%s.Preferences" % (appName,)))
+        else:
+            self._addWindow("%s.Preferences" % (appName,), mnu)
+        
         mnu.add_command(label="Save Window Positions", command=self.doSaveWindowPos)
         if self.wsys == RO.TkUtil.WSysX11:
             mnu.add_separator()
@@ -226,7 +232,7 @@ class MenuBar(object):
         helpURL = RO.Constants._joinHelpURL(urlSuffix)
 
         RO.Comm.BrowseURL.browseURL(helpURL)
-
+    
     def doQuit(self):
         try:
             self.doDisconnect()
