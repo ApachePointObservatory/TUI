@@ -26,12 +26,10 @@ History:
 2007-06-07 ROwen    Increased maxLines from 100 to 5000.
 2012-11-14 ROwen    Fix an issue where the message was rejected due to being unicode.
 2012-11-29 ROwen    Remove fix from 2012-11-14; it was not in the right location.
+2012-11-30 ROwen    Removed fix for demo mode; it's inside RO now.
 """
 import urllib
 import Tkinter
-if __name__ == "__main__":
-    import RO.Comm.Generic
-    RO.Comm.Generic.setFramework("tk")
 import RO.KeyVariable
 import RO.Wdg
 import TUI.TUIModel
