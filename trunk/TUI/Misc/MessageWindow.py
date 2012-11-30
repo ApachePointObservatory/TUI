@@ -25,9 +25,13 @@ History:
                     - linefeed and tab (as well as return) transfer focus but enter nothing.
 2007-06-07 ROwen    Increased maxLines from 100 to 5000.
 2012-11-14 ROwen    Fix an issue where the message was rejected due to being unicode.
+2012-11-29 ROwen    Remove fix from 2012-11-14; it was not in the right location.
 """
 import urllib
 import Tkinter
+if __name__ == "__main__":
+    import RO.Comm.Generic
+    RO.Comm.Generic.setFramework("tk")
 import RO.KeyVariable
 import RO.Wdg
 import TUI.TUIModel
@@ -133,7 +137,7 @@ class MessageWdg(Tkinter.Frame):
     def doSend(self, *args, **kargs):
         # obtain the message and clear the display
         # note that the message is always \n-terminated
-        rawStr =  str(self.inText.get("0.0", "end")[:-1])
+        rawStr =  self.inText.get("0.0", "end")[:-1]
         msgStr = encodeMsg(rawStr)
 #       print "sending %r encoded as %r" % (rawStr, msgStr)
         self.inText.delete("0.0", "end")
