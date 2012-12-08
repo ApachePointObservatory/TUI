@@ -14,10 +14,14 @@ History:
 2011-07-27 ROwen    Added cmdInfo and isKeys fields to LogEntry.
                     Generate new LogEntry messages when cmds keywords CmdQueued and CmdDone are seen.
 2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
+2012-12-07 ROwen    Modified to use RO.Astro.Tm clock correction to show correct time for timestamp
+                    even if user's clock is keeping TAI or is drifting.
 """
 import time
 import collections
+
 import RO.AddCallback
+import RO.Astro.Tm
 import RO.Constants
 from RO.TkUtil import Timer
 import TUI.Models.CmdsModel
@@ -59,7 +63,6 @@ class CmdInfo(object):
             self.msgCmdID = self.cmdID
         else:
             self.msgCmdID = 0
-        
     
     def __str__(self):
         return "%s %d %s %s" % (self.cmdr, self.cmdID, self.actor, self.cmdStr)
@@ -90,7 +93,9 @@ class LogEntry(object):
         cmdInfo = None,
     ):
         self.unixTime = time.time()
-        self.taiTimeStr = time.strftime("%H:%M:%S", time.gmtime(self.unixTime -  - RO.Astro.Tm.getUTCMinusTAI()))
+        currPythonSeconds = RO.Astro.Tm.getCurrPySec(self.unixTime)
+        currTAITuple= time.gmtime(currPythonSeconds - RO.Astro.Tm.getUTCMinusTAI())
+        self.taiTimeStr = time.strftime("%H:%M:%S", currTAITuple)
         self.msgStr = msgStr
         self.actor = actor
         self.severity = severity
