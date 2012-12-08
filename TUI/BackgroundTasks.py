@@ -2,8 +2,6 @@
 """
 Handle background (invisible) tasks for the telescope UI
 
-To do: put up a log window so the intentional error in the test case can be seen
-
 History:
 2003-02-27 ROwen    Error messages now go to the log, not stderr.
 2003-03-05 ROwen    Modified to use simplified KeyVariables.
@@ -26,16 +24,18 @@ History:
 2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
 2012-07-18 ROwen    Modified to user RO.Comm.Generic.Timer.
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
+2012-12-07 ROwen    Improved time keeping so TUI can show the correct time even if the clock is not keeping perfect UTC.
+                    Sets time error using RO.Astro.Tm.setClockError(0) based on TAI reported by the TCC.
+                    If the clock appears to be keeping UTC or TAI then the clock is assumed to be keeping that time perfectly.
 """
 import sys
 import time
+import RO.Astro.Tm
 import RO.CnvUtil
 import RO.Constants
 import RO.PhysConst
-import RO.Astro.Tm
 import RO.KeyVariable
 from RO.Comm.Generic import Timer
-import RO.TkUtil
 import TUI.PlaySound
 import TUI.TUIModel
 import TUI.TCC.TCCModel
@@ -68,9 +68,9 @@ class BackgroundKwds(object):
         self.dispatcher = self.tuiModel.dispatcher
         self.didSetUTCMinusTAI = False
         self.checkConnTimer = Timer()
+        self.clockType = None # set to "UTC" or "TAI" if keeping that time system
 
-        self.tccModel.utcMinusTAI.addCallback(self.setUTCMinusTAI, callNow=False)
-        self.tccModel.tai.addCallback(self.checkTAI, callNow=False)
+        self.tccModel.utcMinusTAI.addIndexedCallback(self.setUTCMinusTAI, ind=0, callNow=False)
     
         self.connection.addStateCallback(self.connCallback, callNow=True)
 
@@ -82,6 +82,7 @@ class BackgroundKwds(object):
         """
         if conn.isConnected:
             self.checkConnTimer.start(self.checkConnInterval, self.checkConnection)
+            self.checkClock()
         else:
             self.checkConnTimer.cancel()
     
@@ -106,6 +107,18 @@ class BackgroundKwds(object):
         finally:
             if doQueue:
                 self.checkConnTimer.start(self.checkConnInterval, self.checkConnection)
+    
+    def checkClock(self):
+        """Check computer clock by asking the TCC for time
+        """
+        cmdVar = RO.KeyVariable.CmdVar(
+            actor = "tcc",
+            cmdStr = "show time",
+            timeLim = 2.0,
+            dispatcher = self.dispatcher,
+            callFunc = self.checkClockCallback,
+            keyVars = (self.tccModel.tai,),
+        )
 
     def checkCmdCallback(self, msgType, msgDict, cmdVar):
         if not cmdVar.isDone():
@@ -121,36 +134,68 @@ class BackgroundKwds(object):
         finally:
             if doQueue:
                 self.checkConnTimer.start(self.checkConnInterval, self.checkConnection)
+    
+    def checkClockCallback(self, msgType, msgDict, cmdVar):
+        """Callback from TCC "show time" command
         
-    def setUTCMinusTAI(self, valueList, isCurrent=1, keyVar=None):
-        """Updates UTC-TAI in RO.Astro.Tm
+        Determine if clock is keeping UTC, TAI or something else, and act accordingly.
         """
-        if isCurrent and valueList[0] != None:
-            RO.Astro.Tm.setUTCMinusTAI(valueList[0])
-            self.didSetUTCMinusTAI = True
-
-    def checkTAI(self, valueList, isCurrent=1, keyVar=None):
-        """Updates azimuth, altitude, zenith distance and airmass
-        valueList values are: az, alt, rot
-        """
-        if not isCurrent or not self.didSetUTCMinusTAI:
+        if not cmdVar.isDone():
             return
-
-        try:
-            if valueList[0] != None:
-                timeErr = (RO.Astro.Tm.taiFromPySec() * RO.PhysConst.SecPerDay) - valueList[0]
-                
-                if abs(timeErr) > self.maxTimeErr:
-                    self.tuiModel.logMsg(
-                        "Your clock appears to be off; time error = %.1f" % (timeErr,),
-                        severity = RO.Constants.sevError,
-                    )
-        except Exception, e:
+        if cmdVar.didFail():
             self.tuiModel.logMsg(
-                "TAI time keyword seen but clock check failed; error=%s" % (e,),
+                "clock check failed: tcc show time failed; assuming UTC",
                 severity = RO.Constants.sevError,
             )
-                
+            return
+        
+        currTAI = cmdVar.getLastKeyVarData(self.tccModel.tai, ind=0)
+        if currTAI is None:
+            self.tuiModel.logMsg(
+                "clock check failed: current TAI unknown; assuming UTC",
+                severity = RO.Constants.sevError,
+            )
+            return
+        if not self.didSetUTCMinusTAI:
+            self.tuiModel.logMsg(
+                "clock check failed: UTC-TAI unknown; assuming UTC",
+                severity = RO.Constants.sevError,
+            )
+            return
+        utcMinusTAI = RO.Astro.Tm.getUTCMinusTAI()
+        currUTC = utcMinusTAI + currTAI
+
+        RO.Astro.Tm.setClockError(0)
+        clockUTC = RO.Astro.Tm.utcFromPySec() * RO.PhysConst.SecPerDay
+        
+        if abs(clockUTC - currUTC) < 3.0:
+            # clock keeps accurate UTC (as well as we can figure); set time error to 0
+            self.clockType = "UTC"
+            self.tuiModel.logMsg("Your computer clock is keeping UTC")
+        elif abs(clockUTC - currTAI) < 3.0:
+            # clock keeps accurate TAI (as well as we can figure); set time error to UTC-TAI
+            self.clockType = "TAI"
+            RO.Astro.Tm.setClockError(-utcMinusTAI)
+            self.tuiModel.logMsg("Your computer clock is keeping TAI")
+        else:
+            # clock system unknown or not keeping accurate time; adjust based on current UTC
+            self.clockType = None
+            timeError = clockUTC - currUTC
+            RO.Astro.Tm.setClockError(timeError)
+            self.tuiModel.logMsg(
+                "Your computer clock is off by = %f.1 seconds" % (timeError,),
+                severity = RO.Constants.sevWarning,
+            )
+        
+    def setUTCMinusTAI(self, utcMinusTAI, isCurrent=1, keyVar=None):
+        """Updates UTC-TAI in RO.Astro.Tm
+        """
+        if isCurrent and utcMinusTAI != None:
+            RO.Astro.Tm.setUTCMinusTAI(utcMinusTAI)
+            self.didSetUTCMinusTAI = True
+            if self.clockType == "TAI":
+                RO.Astro.Tm.setClockError(-utcMinusTAI)
+
 
 if __name__ == "__main__":
     import TUI.TUIModel

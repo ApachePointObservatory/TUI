@@ -27,6 +27,9 @@ History:
 2010-11-05 ROwen    Show UTC date as well as time.
 2011-02-16 ROwen    Made the display expand to the right of the displayed data.
 2012-07-10 ROwen    Modified to use RO.TkUtil.Timer
+2012-12-07 ROwen    Modified to use RO.Astro.Tm clock correction to show correct time
+                    even if user's clock is keeping TAI or is drifting.
+                    Improve timing of next clock update to avoid lag.
 """
 import time
 import Tkinter
@@ -226,7 +229,8 @@ class MiscWdg (Tkinter.Frame):
         Call once to get things going
         """
         # update utc
-        currUTCTuple= time.gmtime(time.time())
+        currPythonSeconds = RO.Astro.Tm.getCurrPySec()
+        currUTCTuple= time.gmtime(currPythonSeconds)
         self.utcWdg.set(time.strftime("%Y-%m-%d %H:%M:%S", currUTCTuple))
         currUTCMJD = RO.Astro.Tm.mjdFromPyTuple(currUTCTuple)
     
@@ -235,7 +239,8 @@ class MiscWdg (Tkinter.Frame):
         self.lmstWdg.set(currLMST)
         
         # schedule the next event
-        self._clockTimer.start(1.0, self.updateClock)
+        clockDelay = 1.01 - (currPythonSeconds % 1.0)
+        self._clockTimer.start(clockDelay, self.updateClock)
     
     def setAxePos(self, axePos, isCurrent=True, keyVar=None):
         """Updates ha, dec, zenith distance and airmass
