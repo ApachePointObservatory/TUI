@@ -48,6 +48,7 @@ History:
 2011-06-28 ROwen    Added " and ctrl-click" to help string for Centroid Color.
 2012-07-10 ROwen    Added "Menu Font" preference. This fixes an issue in aqua Tcl/Tk 8.5
                     where menu items showed up in the "Misc Font"..
+2012-12-19 ROwen    Changed font preferences to be for font size only and simplifies the settings.
 """
 #import pychecker.checker
 import os
@@ -71,11 +72,12 @@ class TUIPrefs(PrefVar.PrefSet):
     def __init__(self,
         defFileName = TUI.TUIPaths.getPrefsFile(),
     ):
+        # before messing with the option database
         # create Font objects for the various types of widgets we wish to control
-        # and connect them to the widgets via the option database
-        defMiscFontWdg = Tkinter.Button()
-        defDataFontWdg = Tkinter.Entry()
-        defMenuFontWdg = Tkinter.Menu()
+        labelWdg = Tkinter.Label()
+        textWdg = Tkinter.Text()
+        menuWdg = Tkinter.Menu()
+        defMenuFont = tkFont.Font(font=menuWdg.cget("font"))
         
         # one must set umask to read it; blecch
         defUMaskInt = os.umask(0)
@@ -157,30 +159,32 @@ class TUIPrefs(PrefVar.PrefSet):
                 helpURL = _ExposuresHelpURL,
             ),
 
-            PrefVar.FontPrefVar(
-                name = "Misc Font",
+            PrefVar.FontSizePrefVar(
+                name = "Main Font Size",
                 category = "Fonts",
-                defWdg = defMiscFontWdg,
+                defWdg = labelWdg,
                 optionPatterns = ("*font",),
-                helpText = "Font for buttons",
+                helpText = "Font size for most widgets",
                 helpURL = _HelpURL,
             ),
-            PrefVar.FontPrefVar(
-                name = "Data Font",
+            PrefVar.FontSizePrefVar(
+                name = "Log Font Size",
                 category = "Fonts",
-                defWdg = defDataFontWdg,
-                optionPatterns = ("*Entry.font", "*Text.font", "*Label.font",),
-                helpText = "Font for text input and display",
+                defWdg = textWdg,
+                optionPatterns = ("*Text.font",),
+                helpText = "Font size for logs and other text widgets",
                 helpURL = _HelpURL,
             ),
-            PrefVar.FontPrefVar(
-                name = "Menu Font",
-                category = "Fonts",
-                defWdg = defMenuFontWdg,
-                optionPatterns = ("*Menu.font",),
-                helpText = "Font for menu items",
-                helpURL = _HelpURL,
-            ),
+# if you want to be able to set the font size for menu items
+# then uncomment this PrefVar and comment out option_add("*Menu.font"... below
+#             PrefVar.FontSizePrefVar(
+#                 name = "Menu Font Size",
+#                 category = "Fonts",
+#                 defWdg = menuWdg,
+#                 optionPatterns = ("*Menu.font",),
+#                 helpText = "Font size for menu entries",
+#                 helpURL = _HelpURL,
+#             ),
             
             PrefVar.ColorPrefVar(
                 name = "Background Color",
@@ -407,6 +411,9 @@ class TUIPrefs(PrefVar.PrefSet):
             defFileName = defFileName,
             defHeader = """Preferences for the Telescope User Interface\n""",
         )
+        
+        # use the default font for menu entries, instead of the basic font preference
+        labelWdg.option_add("*Menu.font", "size %s" % (defMenuFont.cget("size"),))
 
         try:
             self.readFromFile()
