@@ -15,106 +15,37 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>1.9.6b6 2012-12-19</h3>
+<h3>2.0.0 2013-01-04</h3>
 
 <p><b>Warning:</b> your old font preferences will be ignored (from TUI 1.9.6b5 or earlier) with a warning in the error log file. If you do not like the default font sizes, open Preferences>Fonts, update as desired and Save to update your preferences.
 
 <p>Visible changes:
 <ul>
-    <li>Overhauled the font preferences to make the appearance more standard. Now you can only set font size; the default font typefaces are always used.
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li>TUI shows wrong time if computer not on UTC. TUI now shows the correct time even if the user's clock is keeping TAI or has drifted. However, displayed time may be off by a second or two unless the computer's clock is keeping accurate UTC or TAI.
-</ul>
-
-<h3>1.9.6b5 2012-11-30</h3>
-
-<p>Bug fixes:
-<ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1399">PR 1399</a> Run_Commands broken. I made the code more forgiving of unicode, a problem that also showed up in ticket <a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1394">PR 1394</a> message window does not work.
-    <li>On MacOS X: eliminated the duplicate Preferences menu item; cmd-comma now opens preferences.
-    <li>On MacOS X: further refine workarounds for Aqua Tk 8.5 bugs in displaying widget width (these fixes are in RO 3.0.3).
-</ul>
-
-<p>Internal changes:
-<ul>
-    <li>Use Tcl/Tk instead of Twisted for communications to avoid depending on Twisted Framework.
-</ul>
-
-<h3>1.9.6b4 2012-11-19</h3>
-
-<p>Bug fixes:
-<ul>
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1396">PR 1396</a> Deleting programs in TUI not working as expected.
-</ul>
-
-<h3>1.9.6b3 2012-11-16</h3>
-
-<p>Visible changes:
-<ul>
     <li>Disable the ability to change slits; a temporary hack while TSpec's slit changer is broken.
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li>Columns in the permissions window were misaligned, due to showing checkbuttons for programs.
-    <li>Improved display of pop-up menus with a better workaround for Tck/Tk bug #3587262: menubutton is sometimes too narrow if width=0.
-    <li>Refined the workarounds for two other Mac Tcl/Tk bugs (one for menubutton width, one for checkbutton width) such that they are only be applied to Tcl/Tk version 8.5.
-</ul> 
-
-<h3>1.9.6b2 2012-11-14</h3>
-
-<p>Visible changes:
-<ul>
     <li>All checkbuttons are now displayed as a checkbox (formerly some were shown as a raised or lowered button, but that is no longer supported under Tcl/Tk 8.5 on MacOS).
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li>Fixed a serious error in the enclosure widget.
-    <li>Added a workaround for a Tcl/Tk 8.5 bug (ID 3587262) that caused the filter menus in the log window to be shown at the wrong size on MacOS. Unfortunately this introduces a small visual twitch when TUI first starts up.
-    <li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=1394">PR 1394</a> message window does not work. Another problem caused by the move to Tcl/Tk 8.5.
-</ul>
-
-<h3>1.9.6b1 2012-10-26</h3>
-
-<p>Accidental duplicate version number.</p>
-
-<p>Visible changes:
-<ul>
+    <li>Overhauled the font preferences to make the appearance more standard. Now you can only set font size; the default font typefaces are always used.
+    <li>Nudger window: removed Calibration offsets. This reduces the danger of accidentally applying sticky offsets.
+    <li>DIS now reports CCD temperature in K, not C; TUI's display updated accordingly.
     <li>Enclosure widget: removed BC eyelid (which no longer exists) and changed the controls so that the status and command checkbuttons are separate widgets. This fixes some display issues on MacOS X and allows displaying state = unknown.
 </ul>
 
 <p>Bug fixes:
 <ul>
-    <li>Fixed display issues on MacOS X: some pop-up menus and checkbuttons were too narrow. These are due to Tk bugs, including the checkbutton is always shown on MacOS X even if the indicatoron option is false. I also reported these bugs to the Tk project.
-</ul>
-
-<h3>1.9.6b1 2012-10-16</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Nudger window: removed Calibration offsets. This reduces the danger of accidentally applying sticky offsets.
-    <li>DIS now reports CCD temperature in K, not C; TUI's display updated accordingly.
+    <li>TUI showed the wrong time if the computer was not keeping good UTC time. TUI now shows the correct time even if the user's clock is keeping TAI or has drifted. However, displayed time may be off by a second or two unless the computer's clock is keeping accurate UTC or TAI.
+    <li>On MacOS X: eliminated the duplicate Preferences menu item; cmd-comma now opens preferences.
+    <li>The units for proper motion in RA/longitude were incorrectly listed as seconds/century; they really are arcsec/century. I fixed this in the proper motion entry widget in the Slew window, and in various help pages.
+    <li>The proper motion entry boxes had no help and the labels were incomplete (because a callback function was not being called when the coordinate system changed).
 </ul>
 
 <p>Internal changes:
 <ul>
-    <li>Modified to use RO 3.0.
+    <li>The Mac version now uses Aqua Tcl/Tk 8.5.
+    <li>Modified to use RO 3.0. This contains many workarounds for Aqua (MacOS) Tcl/Tk 8.5 bugs.
     <li>Now has the ability to use Twisted framework for communications, though this is off by default. Change a flag in Main.py to use Twisted.
-    <li>Improved compatibility with Tcl/Tk 8.5 on Mac OS X by eliminating a cause of duplicate application menus.
     <li>Removed use of update_idletasks to eliminate a source of subtle bugs.
     <li>Most timers now use RO.TkUtil.Timer; this simplifies the code a bit and eliminates the need for some Tk widgets.
     <li>Removed use of deprecated dict method has_key.
     <li>Changed line endings of html files from the old Mac standard to the new Mac/unix standard.
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li>The units for proper motion in RA/longitude were incorrectly listed as seconds/century; they really are arcsec/century. I fixed this in the proper motion entry widget in the Slew window, and in various help pages.
-    <li>The proper motion entry boxes had no help and the labels were incomplete (because a callback function was not being called when the coordinate system changed).
 </ul>
 
 <h3>1.9.5 2012-03-09</h3>
