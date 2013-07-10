@@ -86,6 +86,7 @@ Notes:
 2011-07-27 ROwen    Added modelIter.
                     Removed unneeded import of HubModel.
                     Changed all classes into modern style classes.
+2013-07-10 ROwen    Removed Shack-Hartmann.
 """
 __all__ = ['getModel']
 
@@ -231,13 +232,6 @@ def _makeInstInfoDict():
             canPauseExp = False,
             canStopExp = False,
             canAbortExp = False,
-        ),
-        _ExpInfo(
-            instName = "Shack-Hartmann",
-            instActor = "shack",
-            imSize = (512, 512),
-            expTypes = ("object", "reference", "dark"),
-            canPauseExp = False,
         ),
         _ExpInfo(
             instName = "SPIcam",
