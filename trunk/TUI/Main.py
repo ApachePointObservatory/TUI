@@ -55,9 +55,12 @@ This is the main routine that calls everything else.
 2012-11-13 ROwen    Add workaround for bug on Tcl/Tk 8.5.11 that shows OptionMenu too narrow on MacOS X.
 2012-11-16 ROwen    Remove workaround for Tcl/Tk bug; I put a better solution in RO.Wdg.OptionMenu.
 2012-11-29 ROwen    Set UseTwisted False; I don't know why it was True.
+2013-07-19 ROwen    Modified to print some info to stdout (e.g. the log) on startup.
+                    Modified to only show the version name, not version date, in the log at startup.
 """
 import os
 import sys
+import time
 import Tkinter
 
 # make sure matplotlib is configured correctly (if it is available)
@@ -133,12 +136,15 @@ def runTUI():
             logFunc = tuiModel.logMsg,
         )
     
-    tuiModel.logMsg(
-        "TUI Version %s: ready to connect" % (TUI.Version.VersionStr,)
-    )
-    
     # add the main menu
     TUI.MenuBar.MenuBar()
+    
+    tuiModel.logMsg(
+        "TUI Version %s: ready to connect" % (TUI.Version.VersionName,)
+    )
+    startTimeStr = time.strftime("%Y-%m-%dT%H:%M:%S")
+    platformStr = TUI.TUIModel.getPlatform()
+    sys.stdout.write("TUI %s running on %s started %s\n" % (TUI.Version.VersionName, platformStr, startTimeStr))
 
     if UseTwisted:
         reactor.run()

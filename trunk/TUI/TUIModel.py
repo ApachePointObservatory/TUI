@@ -48,6 +48,7 @@ History:
                     Removed one unused import.
 2011-08-11 ROwen    Added logFunc.
 2012-07-09 ROwen    Updated for changes to RO.KeyDispatcher.
+2013-07-19 ROwen    Replaced getLoginExtra function with getPlatform.
 """
 import platform
 import sys
@@ -85,13 +86,17 @@ class _Model (object):
     def __init__(self, testMode = False):
         self.tkRoot = Tkinter.Frame().winfo_toplevel()
     
+        platformStr = getPlatform()
+        loginExtraStr = "type=%r version=%r platform=%r" % \
+            (TUI.Version.ApplicationName, TUI.Version.VersionName, platformStr)
+
         # network connection
         if testMode:
             print "Running in test mode, no real connection possible"
             connection = RO.Comm.HubConnection.NullConnection()
         else:
             connection = RO.Comm.HubConnection.HubConnection(
-                loginExtra = getLoginExtra(),
+                loginExtra = loginExtraStr,
             )
 
         # keyword dispatcher
@@ -194,8 +199,9 @@ def getBaseHelpURL():
         urlStylePath += "/"
     return "file:///" + urlStylePath
 
-def getLoginExtra():
-    """Return extra login data"""
+def getPlatform():
+    """Return a string describing the platform
+    """
     platformData = platform.platform()
     if platformData.lower().startswith("darwin"):
         try:
@@ -207,9 +213,7 @@ def getLoginExtra():
                 platformData = "MacOSX-%s-%s" % (macVers, extraInfo)
         except Exception:
             pass
-    
-    return "type=%r version=%r platform=%r" % \
-        (TUI.Version.ApplicationName, TUI.Version.VersionName, platformData)
+    return platformData
     
 
 if __name__ == "__main__":

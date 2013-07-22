@@ -68,15 +68,9 @@ try:
     if errLog:
         sys.stderr = errLog
         sys.stdout = errLog
-        import time
-        import TUI.Version
-        startTimeStr = time.strftime("%Y-%m-%dT%H:%M:%S")
-        errLog.write("TUI %s started %s\n" % (TUI.Version.VersionStr, startTimeStr))
     
     import TUI.Main
     TUI.Main.runTUI()
-except (SystemExit, KeyboardInterrupt):
-    pass
 except Exception, e:
     traceback.print_exc(file=sys.stderr)
 
