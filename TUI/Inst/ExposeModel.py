@@ -225,9 +225,17 @@ def _makeInstInfoDict():
             imSize = (2048, 2048),
         ),
         _ExpInfo(
+            instName = "GIFS",
+            imSize = (1024, 1024),
+            minExpTime = 0.1,
+            canPauseExp = False,
+            canStopExp = False,
+            canAbortExp = False,
+        ),
+        _ExpInfo(
             instName = "NICFPS",
             imSize = (1024, 1024),
-            minExpTime = 0, 
+            minExpTime = 0,
             expTypes = ("object", "flat", "dark"),
             canPauseExp = False,
             canStopExp = False,
