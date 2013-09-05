@@ -17,10 +17,11 @@
 2010-04-23 ROwen    Stopped using Exception.message to make Python 2.6 happier.
 2011-02-18 ROwen    Acknowledge Joseph Huehnerhoff for the Windows builds.
 2012-10-15 ROwen    Assume matplotlib is installed. Report pygame version, if installed.
+2013-09-05 ROwen    Change "import Image" to "from PIL import Image" for compatibility with Pillow.
 """
 import os.path
 import sys
-import Image
+from PIL import Image
 import matplotlib
 import numpy
 import pyfits
