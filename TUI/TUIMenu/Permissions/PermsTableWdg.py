@@ -44,8 +44,8 @@ and because the transition has to occur somewhere.
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 2012-11-19 ROwen    Fix PR 1396: program button sent the wrong command.
+2013-10-11 ROwen    Removed an unused import (weakref) and an unused variable.
 """
-import weakref
 import Tkinter
 import RO.Constants
 import RO.Alg
@@ -233,7 +233,6 @@ class PermsTableWdg(Tkinter.Frame):
         self._actorList.clearAllTitleWdg()
         for wdg in self._titleWdgSet:
             wdg.destroy()
-        currCat = 1
         for col, actor in self._actorList.getColActorList():
             if not actor:
                 # insert dividor
