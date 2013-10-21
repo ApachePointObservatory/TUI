@@ -59,7 +59,7 @@
 <ul>
 	<li>Many windows display help in a status bar near the bottom of the window. Simply place the mouse pointer over a control to display its help.
 
-	<li><A HREF="index.html">Detailed on-line help</A> is accessible from from most controls and displays. You are reading one page of this help right now. To get help for a particular control, right-click on it and select Help from the menu that appears. This will open the appropriate section of the manual in your default web browser (warning: if you have multiple desktops the window may open in a different desktop).
+	<li><A HREF="index.html">Detailed on-line help</A> is accessible from most controls and displays. You are reading one page of this help right now. To get help for a particular control, right-click on it and select Help from the menu that appears. This will open the appropriate section of the manual in your default web browser (warning: if you have multiple desktops the window may open in a different desktop).
 </ul>
 
 <h2>Message window</h2>
@@ -81,7 +81,7 @@
 		<li>O: the current position of the telescope.
 		<li>+: the target position. This matches the current position except during a slew.
 		<li>X: the position, if any, set in the Slew window.
-		<li>&middot;: objects in your catalog(s), if any.
+		<li>&middot;: objects in your catalogs, if any catalogs are open.
 	</ul>
 	<li>The outer spiral shows the azimuth wrap. If the azimuth approaches either end of the spiral, you are in danger of tracking into a limit.
 </ul>
@@ -89,7 +89,7 @@
 <h3>Focal Plane window</h3>
 
 <ul>
-	<li>The inner portion of the Focal Plane window (TCC&gt;Focal Plane menu item) shows the orientation of the sky and horizon relative to the focal plane. This can be very useful for predicting which way an offset will occur. It can also help diagnose the causes of pointing errors.
+	<li>The inner portion of the Focal Plane window (TCC&gt;Focal Plane menu item) shows the orientation of the sky and horizon relative to the focal plane. This can be very useful for predicting which direction an offset will go.
 	<li>The outer spiral shows the rotator wrap. If the rotator position approaches either end of the spiral, you are in danger of tracking into a limit.
 </ul>
 
@@ -100,9 +100,9 @@
 	<li>See <a href="#EnteringPosition">Entering Positions, Times and Offsets</a> below for hints on entering positions.
 	<li>See <a href="Telescope/UserCatalogs.html">User Catalogs</a> to create and load a catalog of positions.
 	<li>To select a catalog item, either double click it in the Sky window or select it from the Catalog menu in the Slew window. In either case, this simply fills in the information in the Slew window. You still have to push the Slew button to slew.
-	<li>You will usually want FK5 or ICRS coordinates, depending on your object catalog. ICRS is simply FK5 J2000.
+	<li>You will usually want FK5 or ICRS coordinates, depending on your object catalog. ICRS is essentially FK5 J2000.
 	<li>The usual choice for rotation is 0&deg; Object. This keeps north up on your instrument. Another common choice is 0&deg; Horizon, which keeps atmospheric dispersion along the slit of a spectrograph.
-	<li>The history menu shows you your past slews. Select one to set that slew up again.
+	<li>The history menu shows you your past slews. Select one to set up that slew again.
 </ul>
 
 <h2>Offsetting</h2>
@@ -111,23 +111,23 @@
 	<li>The Offset window (TCC&gt;Offset menu item) and Nudger window (TCC&gt;Nudger) allow you to offset the telescope.
 	<li>See <a href="Telescope/OffsetTypes.html">about offsets</a> for information about the various kinds of offsets.
 	<li>Absolute offsets (only available in the Offset window) replace any existing offset. Relative offsets are added to any existing offset.
-	<li>The Focal Plane window can help you figure out which direction an offset will move things.
+	<li>The Focal Plane window can help you figure out which direction an offset will move.
 </ul>
 
 <h2>Using Instruments</h2>
 
 <ul>
-	<li>Each instrument has two windows: one for configuration and one for exposures. To open the configuration window, select the instrument in the Inst menu. To open the exposure window, click <code>Expose...</code> in the configuration window.
+	<li>Most instruments have two windows: one for configuration and one for exposures (simpler instruments only have one window). To open the configuration window, select the instrument in the Inst menu. To open the exposure window, click <code>Expose...</code> in the configuration window.
 	<li>To configure an instrument, open its configuration window and press <code>Config</code> to display the user-settable controls. Set the controls as desired and click <code>Apply</code>.
-	<li>The current configuration should always be correct. However, the user-settable controls can get out of date if you leave them exposed. To bring the user-settable controls up to date, press the <code>Current</code> button.
+	<li>The current configuration should always be correct. However, the user-settable controls may get out of date if you leave them visible. To bring the user-settable controls up to date, press the <code>Current</code> button.
 </ul>
 
 <h2>Guiding</h2>
 
 <ul>
-	<li>You can control various guiders and slitviewers from the Guide menu.
 	<li>The <a href="Guiding/GuidingUsersGuide.html">Guiding Users's Guide</a> has a nice overview of guiding.
-	<li>Guide windows have a number of hidden controls and shortcuts, so I strongly recommend you read the <a href="Guiding/index.html">Guiding Manual</a> before trying to use them.
+	<li>Guide windows have some hidden controls and shortcuts, so I strongly recommend you look over the <a href="Guiding/index.html">Guiding Manual</a>.
+	<li>You can select various guiders and slitviewers from the Guide menu.
 	<li>If you have a guide window open then guide images will be downloaded even if you don't have Auto Get selected. However, only the most recent 100 images are ever kept on disk and all guide images are deleted when TUI quits.
 </ul>
 
