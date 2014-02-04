@@ -4,24 +4,43 @@
 History:
 2013-09-03 ROwen
 """
-import TUI.Inst.ExposeWdg
+import functools
 
-InstName = "GIFS"
+from TUI.Inst.ExposeWdg import ExposeWdg
+from TUI.Inst.StatusConfigWdg import StatusConfigWdg
+from TUI.Inst.GIFS.StatusConfigInputWdg import StatusConfigInputWdg
+
+InstName = StatusConfigInputWdg.InstName
 WindowName = "Inst.%s" % (InstName,)
 
 def addWindow(tlSet):
     tlSet.createToplevel (
-        name = WindowName,
+        name = "None.%s Expose" % (InstName,),
+        defGeom = "+452+280",
+        resizable = False,
+        wdgFunc = functools.partial(ExposeWdg, instName=InstName),
+        visible = False,
+    )
+
+    tlSet.createToplevel (
+        name = "Inst.%s" % (InstName,),
         defGeom = "+676+280",
         resizable = False,
-        wdgFunc = GIFSExposeWindow,
+        wdgFunc = functools.partial(StatusConfigWdg, statusConfigInputClass=StatusConfigInputWdg),
         visible = False,
         doSaveState = True,
     )
 
-class GIFSExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
-    HelpPrefix = 'Instruments/%sWin.html#' % (InstName,)
-    def __init__(self, master):
-        TUI.Inst.ExposeWdg.ExposeWdg.__init__(self, master, instName=InstName)
-        
-        self.configWdg.pack_forget()
+if __name__ == "__main__":
+    import TestData
+
+    root = TestData.tuiModel.tkRoot
+    root.resizable(width=0, height=0)
+
+    tlSet = TestData.tuiModel.tlSet
+    addWindow(tlSet)
+    tlSet.makeVisible("Inst.%s" % (InstName,))
+    
+    TestData.start()
+    
+    root.mainloop()

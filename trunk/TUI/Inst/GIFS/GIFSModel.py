@@ -58,7 +58,6 @@ class _Model (object):
                 * destination position
                 * estimated time to arrive (sec)
             """,
-            refreshCmd = "status",
         )
 
         self.ccdTemp = keyVarFact(
@@ -77,12 +76,10 @@ class _Model (object):
 
         self.collimatorConfig = configKeyFactory(
             keyword = "collimatorConfig",
-            refreshCmd = "collimator getConfig",
         )
 
         self.disperserConfig = configKeyFactory(
             keyword = "disperserConfig",
-            refreshCmd = "disperser getConfig",
         )
 
         # filterPos instead of filterConfig; it is output multiple times: once per filterwheel slot
@@ -102,12 +99,10 @@ class _Model (object):
 
         self.lensletsConfig = configKeyFactory(
             keyword="lensletsConfig",
-            refreshCmd = "lenslets getConfig",
         )
 
         self.magnifierConfig = configKeyFactory(
             keyword = "magnifierConfig",
-            refreshCmd = "magnifier getConfig",
         )
 
         self.calMirrorStatus = keyVarFact(
@@ -118,7 +113,6 @@ class _Model (object):
             * preset name: one of "in", "out", apparently
             * position: ???
             """,
-            refreshCmd = "status",
         )
 
         self.collimatorStatus = statusKeyFactory(keyword="collimatorStatus")
@@ -136,7 +130,6 @@ class _Model (object):
             * bandpass (Angstroms)
             * focus offset (motor steps)
             """,
-            refreshCmd = "status",
         )
 
         self.disperserStatus = statusKeyFactory(keyword="disperserStatus")
