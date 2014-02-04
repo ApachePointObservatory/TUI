@@ -6,6 +6,7 @@ History:
 2008-02-11 ROwen    Modified to use new TUI.Inst.StatusConfigWdg.
 2008-02-12 ROwen    Misfeature fix: was using instName=Expose for the expose window.
 2011-08-11 ROwen    Modified to save state.
+2014-02-03 ROwen    Updated to use modernized TestData.
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
@@ -45,16 +46,15 @@ class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):
 
 if __name__ == "__main__":
     import RO.Wdg
-
-    root = RO.Wdg.PythonTk()
-    root.resizable(width=0, height=0)
-    
     import TestData
-    tlSet = TestData.tuiModel.tlSet
 
+    root = TestData.tuiModel.tkRoot
+    root.resizable(width=0, height=0)
+
+    tlSet = TestData.tuiModel.tlSet
     addWindow(tlSet)
     tlSet.makeVisible("Inst.%s" % (InstName,))
     
-    TestData.dispatch()
+    TestData.start()
     
     root.mainloop()

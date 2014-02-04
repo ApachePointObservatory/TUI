@@ -9,6 +9,8 @@ History:
 2008-02-11 ROwen    Modified to be compatible with the new TUI.Inst.StatusConfigWdg.
 2008-04-24 ROwen    Fixed bug in test code (found by pychecker).
 2008-07-24 ROwen    Fixed CR 809: added x,y labels to CCD controls.
+2014-02-03 ROwen    Added explicit stateTracker argument and the fixed test code to use it.
+                    Updated to use modernized TestData.
 """
 import Tkinter
 import RO.Constants
@@ -29,10 +31,15 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
     def __init__(self,
         master,
+        stateTracker,
     **kargs):
         """Create a new widget to show status for and configure SPIcam
+
+        Inputs:
+        - master: parent widget
+        - stateTracker: an RO.Wdg.StateTracker
         """
-        RO.Wdg.InputContFrame.__init__(self, master, **kargs)
+        RO.Wdg.InputContFrame.__init__(self, master, stateTracker=stateTracker, **kargs)
         self.model = SPIcamModel.getModel()
 
         # set while updating user ccd binning or user window default,
@@ -445,14 +452,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
 
 if __name__ == "__main__":
-    root = RO.Wdg.PythonTk()
-
     import TestData
-        
-    testFrame = StatusConfigInputWdg (root)
+    root = TestData.tuiModel.tkRoot
+    stateTracker = RO.Wdg.StateTracker(logFunc = TestData.tuiModel.logFunc)
+
+    testFrame = StatusConfigInputWdg(root, stateTracker=stateTracker)
     testFrame.pack()
     
-    TestData.dispatch()
+    TestData.start()
     
     testFrame.restoreDefault()
 

@@ -55,6 +55,8 @@ History:
 2008-04-24 ROwen    Fixed bug in test code (found by pychecker).
 2011-08-11 ROwen    Modified to save state.
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
+2014-02-03 ROwen    Added explicit stateTracker argument and fixed test code to use it.
+                    Updated to use modernized TestData.
 """
 import Tkinter
 import RO.Constants
@@ -66,7 +68,7 @@ import NICFPSModel
 _DataWidth = 8  # width of data columns
 _EnvWidth = 6 # width of environment value columns
 
-class StatusConfigInputWdg (RO.Wdg.InputContFrame):
+class StatusConfigInputWdg(RO.Wdg.InputContFrame):
     InstName = "NICFPS"
     HelpPrefix = 'Instruments/%s/%sWin.html#' % (InstName, InstName)
 
@@ -79,10 +81,15 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
     def __init__(self,
         master,
+        stateTracker,
     **kargs):
         """Create a new widget to show status for and configure NICFPS
+
+        Inputs:
+        - master: parent widget
+        - stateTracker: an RO.Wdg.StateTracker
         """
-        RO.Wdg.InputContFrame.__init__(self, master, **kargs)
+        RO.Wdg.InputContFrame.__init__(self, master, stateTracker=stateTracker, **kargs)
         self.model = NICFPSModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
         
@@ -1003,14 +1010,14 @@ def fmtExp(num):
 
 
 if __name__ == '__main__':
-    root = RO.Wdg.PythonTk()
-
     import TestData
-        
-    testFrame = StatusConfigInputWdg (root)
+    root = TestData.tuiModel.tkRoot
+    stateTracker = RO.Wdg.StateTracker(logFunc = TestData.tuiModel.logFunc)
+
+    testFrame = StatusConfigInputWdg(root, stateTracker=stateTracker)
     testFrame.pack()
     
-    TestData.dispatch()
+    TestData.start()
     
     testFrame.restoreDefault()
 
