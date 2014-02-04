@@ -4,6 +4,7 @@ testDispatcher = TUI.Base.TestDispatcher.TestDispatcher(actor="gifs", delay=0.5)
 tuiModel = testDispatcher.tuiModel
 
 MainDataList = (
+    "ccdTemp=250.1; heaterPower=12.3",
     "magnifierConfig=zero, clear, 7x7, 14x14",
     "lensletsConfig=clear, zero, pinhole, wedge, bare_lens",
     "filterPos=1, filter1,  6572.0, 265.0, 0.0",
@@ -24,6 +25,9 @@ MainDataList = (
 
 # Each element of animDataSet is list of keywords
 AnimDataSet = (
+    ("collimatorStatus=1,-221616.0,-135080.0,3.7",),
+    ("collimatorStatus=1,-260360.0,-208050.0,2.9",),
+    ("collimatorStatus=0, zero, 0.0, 0.0",),
 )
 
 def start():
