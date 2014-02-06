@@ -31,21 +31,25 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     
     def __init__(self,
         master,
+        stateTracker,        
     **kargs):
         """Create a new widget to show status for and configure the Dual Imaging Spectrograph
+
+        Inputs:
+        - master: parent widget
+        - stateTracker: an RO.Wdg.StateTracker
         """
-        RO.Wdg.InputContFrame.__init__(self, master, **kargs)
+        RO.Wdg.InputContFrame.__init__(self, master, stateTracker=stateTracker, **kargs)
         self.model = TSpecModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
 
         # save last known exposure mode number for each exposure mode
         self.currExpModeNumDict = {}
 
-        gr = RO.Wdg.StatusConfigGridder(
+        self.gridder = RO.Wdg.StatusConfigGridder(
             master = self,
             sticky = "w",
         )
-        self.gridder = gr
         
         #
         # Exposure Mode
@@ -86,7 +90,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             maxMenu = "Maximum",
         )
         self.userExpModeNumWdg.pack(side="left")
-        gr.gridWdg("Exposure Mode", currExpModeFrame, None, userExpModeFrame, colSpan=2)
+        self.gridder.gridWdg("Exposure Mode", currExpModeFrame, None, userExpModeFrame, colSpan=2)
         self.model.exposureModeInfo.addCallback(self._updExposureModeInfo)
         self.model.exposureMode.addCallback(self._updExposureMode)
         
@@ -107,8 +111,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpURL = self.HelpPrefix + "Slit",
         )
 # disable user's ability to change slits until TSpec is fixed
-        gr.gridWdg("Slit", self.currSlitWdg, colSpan=2)
-#        gr.gridWdg("Slit", self.currSlitWdg, None, self.userSlitWdg, colSpan=2)
+        self.gridder.gridWdg("Slit", self.currSlitWdg, colSpan=2)
+#        self.gridder.gridWdg("Slit", self.currSlitWdg, None, self.userSlitWdg, colSpan=2)
         self.model.slitPosition.addIndexedCallback(self._updSlitPosition)
         self.model.slitPositions.addCallback(self._updSlitPositions)
         
@@ -142,14 +146,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpText = "Desired tip-tilt mode",
             helpURL = self.HelpPrefix + "TipTilt",
         )
-        wdgSet = gr.gridWdg(
+        wdgSet = self.gridder.gridWdg(
             self.tipTiltShowHideWdg,
             self.currTipTiltModeWdg,
             None,
             self.userTipTiltModeWdg,
             colSpan=2,
         )
-        gr.addShowHideWdg(self.TipTiltCat, wdgSet.cfgWdg)
+        self.gridder.addShowHideWdg(self.TipTiltCat, wdgSet.cfgWdg)
     
         self.currTipTiltPosWdgSet = (
             RO.Wdg.FloatLabel(
@@ -177,7 +181,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 helpURL = self.HelpPrefix + "TipTilt",
             ),
         )
-        gr.gridWdg(
+        self.gridder.gridWdg(
             "Tip-Tilt Position",
             self.currTipTiltPosWdgSet,
             None,
@@ -187,7 +191,62 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.ttMode.addIndexedCallback(self._updTTMode)
         self.model.ttLimits.addCallback(self._updTTLimits)
         self.model.ttPosition.addCallback(self._updTTPosition)
-        
+
+        class KeyCmdFmt(RO.InputCont.BasicFmt):
+            def __init__(self, keyword, valSep=",", doQuote=False):
+                self.keyword = keyword
+                self.valSep = str(valSep)
+                self.doQuote = bool(doQuote)
+            def __call__(self, inputCont):
+                valList = inputCont.getValueList()
+                if not valList:
+                    return ""
+                if self.doQuote:
+                    valFmt = "\"%s\""
+                else:
+                    valFmt = "%s"
+                valStrList = [valFmt % (val,) for val in valList]
+                valStr = self.valSep.join(valStrList)
+                name = inputCont.getName()
+                return "%s %s=%s" % (name, self.keyword, valStr)
+
+        self.inputCont = RO.InputCont.ContList (
+            conts = [
+                RO.InputCont.WdgCont (
+                    name = 'mode',
+                    wdgs = (self.userExpModeNameWdg, self.userExpModeNumWdg),
+                    formatFunc = RO.InputCont.BasicFmt(valSep="=")
+                ),
+                RO.InputCont.WdgCont (
+                    name = 'ttMode',
+                    wdgs = self.userTipTiltModeWdg,
+                    formatFunc = KeyCmdFmt("mode"),
+                ),
+                RO.InputCont.WdgCont (
+                    name = 'gotoSlit',
+                    wdgs = self.userSlitWdg,
+                    formatFunc = KeyCmdFmt("position", doQuote=True),
+                ),
+                RO.InputCont.WdgCont (
+                    name = 'ttPosition',
+                    wdgs = self.userTipTiltPosWdgSet,
+                    formatFunc = KeyCmdFmt("newposition"),
+                ),
+            ],
+        )
+
+        self.configWdg = RO.Wdg.InputContConfigWdg(
+            master = self,
+            sysName = "%sConfig" % (self.InstName,),
+            userConfigsDict = self.tuiModel.userConfigsDict,
+            inputCont = self.inputCont,
+            text = "Configs",
+        )
+        self.gridder.gridWdg(
+            cfgWdg = self.configWdg,
+            colSpan = 2,
+        )
+
         #
         # Environmental widgets
         #
@@ -207,12 +266,12 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpURL = self.HelpPrefix + "Environment",
         )
 
-        gr.gridWdg (
+        self.gridder.gridWdg (
             label = self.environShowHideWdg,
             dataWdg = self.environStatusWdg,
             colSpan = 2,
         )
-        
+         
         # hidable frame showing current pressure and temperatures
 
         self.envFrameWdg = Tkinter.Frame(master=self, borderwidth=1, relief="solid")
@@ -289,9 +348,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         # this set is indexed by row (sensor)
         # and then by column (name, current temp, min temp, max temp)
         self.tempWdgSet = []
-        nextCol = gr.getNextCol()
+        nextCol = self.gridder.getNextCol()
         
-        gr.gridWdg (
+        self.gridder.gridWdg (
             label = False,
             dataWdg = self.envFrameWdg,
             cfgWdg = False,
@@ -302,6 +361,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
         
         self.columnconfigure(nextCol, weight=1)
+       
+        self.gridder.allGridded()
 
         self.model.tempNames.addCallback(self._updEnviron, callNow = False)
         self.model.temps.addCallback(self._updEnviron, callNow = False)
@@ -311,53 +372,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.vacuumAlarm.addCallback(self._updEnviron, callNow = False)
         self.model.vacuumThreshold.addCallback(self._updEnviron, callNow = False)
         
-        gr.allGridded()
-        
         self.tipTiltShowHideWdg.addCallback(self._doShowHide, callNow = False)
         self.environShowHideWdg.addCallback(self._doShowHide, callNow = False)
-
-        class KeyCmdFmt(RO.InputCont.BasicFmt):
-            def __init__(self, keyword, valSep=",", doQuote=False):
-                self.keyword = keyword
-                self.valSep = str(valSep)
-                self.doQuote = bool(doQuote)
-            def __call__(self, inputCont):
-                valList = inputCont.getValueList()
-                if not valList:
-                    return ""
-                if self.doQuote:
-                    valFmt = "\"%s\""
-                else:
-                    valFmt = "%s"
-                valStrList = [valFmt % (val,) for val in valList]
-                valStr = self.valSep.join(valStrList)
-                name = inputCont.getName()
-                return "%s %s=%s" % (name, self.keyword, valStr)
-        
-        self.inputCont = RO.InputCont.ContList (
-            conts = [
-                RO.InputCont.WdgCont (
-                    name = 'mode',
-                    wdgs = (self.userExpModeNameWdg, self.userExpModeNumWdg),
-                    formatFunc = RO.InputCont.BasicFmt(valSep="=")
-                ),
-                RO.InputCont.WdgCont (
-                    name = 'ttMode',
-                    wdgs = self.userTipTiltModeWdg,
-                    formatFunc = KeyCmdFmt("mode"),
-                ),
-                RO.InputCont.WdgCont (
-                    name = 'gotoSlit',
-                    wdgs = self.userSlitWdg,
-                    formatFunc = KeyCmdFmt("position", doQuote=True),
-                ),
-                RO.InputCont.WdgCont (
-                    name = 'ttPosition',
-                    wdgs = self.userTipTiltPosWdgSet,
-                    formatFunc = KeyCmdFmt("newposition"),
-                ),
-            ],
-        )
 
     def _addTempWdgRow(self):
         """Add a row of temperature widgets"""

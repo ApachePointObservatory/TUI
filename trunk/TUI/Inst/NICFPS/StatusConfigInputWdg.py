@@ -57,6 +57,7 @@ History:
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 2014-02-03 ROwen    Added explicit stateTracker argument and fixed test code to use it.
                     Updated to use modernized TestData.
+2014-02-05 ROwen    Added config widget.
 """
 import Tkinter
 import RO.Constants
@@ -619,9 +620,6 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         
         self.columnconfigure(nextCol, weight=1)
             
-        
-        gr.allGridded()
-        
         # add callbacks that deal with multiple widgets
         self.model.filterNames.addCallback(self._updFilterNames)
         self.environShowHideWdg.addCallback(self._doShowHide, callNow = False)
@@ -690,6 +688,19 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
                 ),
             ],
         )
+
+        self.configWdg = RO.Wdg.InputContConfigWdg(
+            master = self,
+            sysName = "%sConfig" % (self.InstName,),
+            userConfigsDict = self.tuiModel.userConfigsDict,
+            inputCont = self.inputCont,
+            text = "Configs",
+        )
+        self.gridder.gridWdg(
+            cfgWdg = self.configWdg,
+        )
+        
+        self.gridder.allGridded()
         
         def repaint(evt):
             self.restoreDefault()

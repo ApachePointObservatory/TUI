@@ -60,8 +60,8 @@ import RO.Constants
 import RO.MathUtil
 import RO.Wdg
 import RO.KeyVariable
-import DISModel
 import TUI.TUIModel
+import DISModel
 
 _MaxDataWidth = 5
 
@@ -79,11 +79,17 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
     
     def __init__(self,
         master,
+        stateTracker,
     **kargs):
         """Create a new widget to show status for and configure the Dual Imaging Spectrograph
+
+        Inputs:
+        - master: parent widget
+        - stateTracker: an RO.Wdg.StateTracker
         """
-        RO.Wdg.InputContFrame.__init__(self, master, **kargs)
+        RO.Wdg.InputContFrame.__init__(self, master, stateTracker=stateTracker, **kargs)
         self.model = DISModel.getModel()
+        self.tuiModel = TUI.TUIModel.getModel()
 
         # set while updating user ccd binning or user window default,
         # to prevent storing new unbinned values for ccd window.        
@@ -632,10 +638,6 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
                     return ''
                 name = inputCont.getName()
                 return "%s=%d" % (name, self.indFunc(valueList[0]) + self.offset)
-        
-        # At this point the widgets are all set up;
-        # set the flag (so showHideWdg works)
-        self.gridder.allGridded()       
 
         # add callbacks that access widgets
         self.model.maskNames.addCallback(self.maskNameUserWdg.setItems)
@@ -712,6 +714,20 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
                 ),
             ],
         )
+
+        self.configWdg = RO.Wdg.InputContConfigWdg(
+            master = self,
+            sysName = "%sConfig" % (self.InstName,),
+            userConfigsDict = self.tuiModel.userConfigsDict,
+            inputCont = self.inputCont,
+            text = "Configs",
+        )
+        self.gridder.gridWdg(
+            cfgWdg = self.configWdg,
+            colSpan = 2,
+        )
+        
+        self.gridder.allGridded()
         
         def repaint(evt):
             self.restoreDefault()
@@ -882,14 +898,14 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
 
 
 if __name__ == "__main__":
-    root = RO.Wdg.PythonTk()
-
     import TestData
+    root = TestData.tuiModel.tkRoot
+    stateTracker = RO.Wdg.StateTracker(logFunc=TestData.tuiModel.logFunc)
         
-    testFrame = StatusConfigInputWdg (root)
+    testFrame = StatusConfigInputWdg(master=root, stateTracker=stateTracker)
     testFrame.pack()
     
-    TestData.dispatch()
+    TestData.start()
     
     testFrame.restoreDefault()
 

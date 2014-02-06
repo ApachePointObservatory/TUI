@@ -47,17 +47,15 @@ class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):
 
 
 if __name__ == "__main__":
-    import RO.Wdg
-
-    root = RO.Wdg.PythonTk()
-    root.resizable(width=0, height=0)
-    
     import TestData
-    tlSet = TestData.tuiModel.tlSet
 
+    root = TestData.tuiModel.tkRoot
+    root.resizable(width=0, height=0)
+
+    tlSet = TestData.tuiModel.tlSet
     addWindow(tlSet)
     tlSet.makeVisible("Inst.%s" % (InstName,))
     
-    TestData.dispatch()
+    TestData.start()
     
     root.mainloop()

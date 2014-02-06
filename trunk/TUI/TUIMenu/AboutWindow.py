@@ -74,6 +74,7 @@ def getSpecialFileStr():
     for name, func in (
         ("Preferences", TUI.TUIPaths.getPrefsFile),
         ("Window Geom.", TUI.TUIPaths.getGeomFile),
+        ("User Configs", TUI.TUIPaths.getUserConfigsFile)
     ):
         try:
             filePath = func()

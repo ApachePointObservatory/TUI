@@ -12,9 +12,9 @@
                     by all versions of TUI.
                     Added ifExists argument to getAddPaths.
                     Added getGeomFile and getPrefsFile.
+2014-02-04 ROwen    Added getUserConfigsFile.
 """
 import os
-import sys
 import RO.OS
 import TUI  # for TUI.__file__
 import TUI.Version
@@ -57,18 +57,25 @@ def getAddPaths(ifExists=True):
     return addPathList
 
 def getGeomFile():
-    geomDir = RO.OS.getPrefsDirs(inclNone=True)[0]
-    if geomDir == None:
+    prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
+    if prefsDir == None:
         raise RuntimeError("Cannot determine prefs dir")
-    geomName = "%s%sGeom" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
-    return os.path.join(geomDir, geomName)
+    fileName = "%s%sGeom" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
+    return os.path.join(prefsDir, fileName)
 
 def getPrefsFile():
     prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
     if prefsDir == None:
         raise RuntimeError("Cannot determine prefs dir")
-    prefsName = "%s%sPrefs" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
-    return os.path.join(prefsDir, prefsName)
+    fileName = "%s%sPrefs" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
+    return os.path.join(prefsDir, fileName)
+
+def getUserConfigsFile():
+    prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
+    if prefsDir == None:
+        raise RuntimeError("Cannot determine prefs dir")
+    fileName = "%s%sUserConfigs" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
+    return os.path.join(prefsDir, fileName)
 
 def getResourceDir(*args):
     """Return the resource directory for a specified resource.
