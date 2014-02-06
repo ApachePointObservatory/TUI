@@ -57,6 +57,7 @@ import RO.Comm
 import RO.Comm.HubConnection
 import RO.Constants
 import RO.KeyDispatcher
+import RO.Alg
 import RO.OS
 import RO.TkUtil
 import RO.Wdg
@@ -116,6 +117,13 @@ class _Model (object):
     
         # TUI preferences
         self.prefs = TUI.TUIPrefs.TUIPrefs()
+
+        # Dict of saved user-specified configurations for various instruments and other systems.
+        # Keys are sysName: config
+        # The dict is read from a file and auto-saved to the same file as it is updated.
+        self.userConfigsDict = RO.Alg.SavedDict(
+            filePath = TUI.TUIPaths.getUserConfigsFile(),
+        )
         
         # TUI window (topLevel) set;
         # this starts out empty; others add windows to it

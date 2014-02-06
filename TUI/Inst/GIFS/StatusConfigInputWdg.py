@@ -2,7 +2,7 @@
 """Configuration input panel for GIFS.
 
 History:
-2014-02-03 ROwen
+2014-02-05 ROwen
 """
 import Tkinter
 import RO.Constants
@@ -13,6 +13,9 @@ import GIFSModel
 
 _DataWidth = 8  # width of data columns
 _EnvWidth = 6 # width of environment value columns
+
+_DefaultConfig = dict(
+)
 
 class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     InstName = "GIFS"
@@ -27,8 +30,12 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         stateTracker,
     **kargs):
         """Create a new widget to show status for and configure GIFS
+
+        Inputs:
+        - master: parent widget
+        - stateTracker: an RO.Wdg.StateTracker
         """
-        RO.Wdg.InputContFrame.__init__(self, master, stateTracker=stateTracker, **kargs)
+        RO.Wdg.InputContFrame.__init__(self, master=master, stateTracker=stateTracker, **kargs)
         self.model = GIFSModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
         
@@ -99,8 +106,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.ccdTemp.addROWdg(self.ccdTempWdg)
         self.model.heaterPower.addROWdg(self.heaterPowerWdg)
 
-        self.gridder.allGridded()
-
         eqFmtFunc = RO.InputCont.BasicFmt(
             nameSep="=",
         )
@@ -140,9 +145,22 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             ],
         )
         
-        # def repaint(evt):
-        #     self.restoreDefault()
-        # self.bind('<Map>', repaint)
+        self.configWdg = RO.Wdg.InputContConfigWdg(
+            master = self,
+            sysName = "%sConfig" % (self.InstName,),
+            userConfigsDict = self.tuiModel.userConfigsDict,
+            inputCont = self.inputCont,
+            text = "Configs",
+        )
+        self.gridder.gridWdg(
+            cfgWdg = self.configWdg,
+        )
+
+        self.gridder.allGridded()
+        
+        def repaint(evt):
+            self.restoreDefault()
+        self.bind("<Map>", repaint)
 
 
 class StageControls(object):
@@ -318,7 +336,7 @@ class FilterControls(StageControls):
 if __name__ == '__main__':
     import TestData
     root = TestData.tuiModel.tkRoot
-    stateTracker = RO.Wdg.StateTracker(logFunc = TestData.tuiModel.logFunc)
+    stateTracker = RO.Wdg.StateTracker(logFunc=TestData.tuiModel.logFunc)
     
     testFrame = StatusConfigInputWdg(root, stateTracker=stateTracker)
     testFrame.pack()

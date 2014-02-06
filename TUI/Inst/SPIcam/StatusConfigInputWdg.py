@@ -11,12 +11,14 @@ History:
 2008-07-24 ROwen    Fixed CR 809: added x,y labels to CCD controls.
 2014-02-03 ROwen    Added explicit stateTracker argument and the fixed test code to use it.
                     Updated to use modernized TestData.
+2014-02-05 ROwen    Added config widget.
 """
 import Tkinter
 import RO.Constants
 import RO.MathUtil
 import RO.Wdg
 import RO.KeyVariable
+import TUI.TUIModel
 import SPIcamModel
 
 _MaxDataWidth = 5
@@ -39,8 +41,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         - master: parent widget
         - stateTracker: an RO.Wdg.StateTracker
         """
-        RO.Wdg.InputContFrame.__init__(self, master, stateTracker=stateTracker, **kargs)
+        RO.Wdg.InputContFrame.__init__(self, master=master, stateTracker=stateTracker, **kargs)
         self.model = SPIcamModel.getModel()
+        self.tuiModel = TUI.TUIModel.getModel()
 
         # set while updating user ccd binning or user window default,
         # to prevent storing new unbinned values for ccd window.        
@@ -273,10 +276,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                     return ''
                 name = inputCont.getName()
                 return "%s %d" % (name, self.indFunc(valueList[0]) + self.offset)
-        
-        # At this point the widgets are all set up;
-        # set the flag (so showHideWdg works)
-        self.gridder.allGridded()       
 
         # add callbacks that access widgets
         self.model.filterNames.addCallback(self.filterNameUserWdg.setItems)
@@ -316,7 +315,22 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 ),
             ],
         )
+
+        self.configWdg = RO.Wdg.InputContConfigWdg(
+            master = self,
+            sysName = "%sConfig" % (self.InstName,),
+            userConfigsDict = self.tuiModel.userConfigsDict,
+            defaultConfigs = dict(),
+            inputCont = self.inputCont,
+            text = "Configs",
+        )
+        self.gridder.gridWdg(
+            cfgWdg = self.configWdg,
+            colSpan = 2,
+        )
         
+        self.gridder.allGridded()
+
         def repaint(evt):
             self.restoreDefault()
         self.bind("<Map>", repaint)

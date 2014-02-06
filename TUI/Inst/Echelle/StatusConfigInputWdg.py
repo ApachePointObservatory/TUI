@@ -22,6 +22,7 @@ import Tkinter
 import RO.MathUtil
 import RO.Wdg
 import RO.KeyVariable
+import TUI.TUIModel
 import EchelleModel
 
 class StatusConfigInputWdg (RO.Wdg.InputContFrame):
@@ -32,20 +33,25 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     
     def __init__(self,
         master,
+        stateTracker,
     **kargs):
         """Create a new widget to show status for and configure the Dual Imaging Spectrograph
+
+        Inputs:
+        - master: parent widget
+        - stateTracker: an RO.Wdg.StateTracker
         """
-        RO.Wdg.InputContFrame.__init__(self, master, **kargs)
+        RO.Wdg.InputContFrame.__init__(self, master=master, stateTracker=stateTracker, **kargs)
         self.model = EchelleModel.getModel()
+        self.tuiModel = TUI.TUIModel.getModel()
         
         mirLens = [len(name) for name in self.model.mirStatesConst]
         mirMaxNameLen = max(mirLens)
 
-        gr = RO.Wdg.StatusConfigGridder(
+        self.gridder = RO.Wdg.StatusConfigGridder(
             master = self,
             sticky = "",
         )
-        self.gridder = gr
 
         self.shutterCurrWdg = RO.Wdg.StrLabel(
             master = self,
@@ -55,7 +61,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
         self.model.shutter.addROWdg(self.shutterCurrWdg)
         
-        gr.gridWdg (
+        self.gridder.gridWdg (
             label = "Shutter",
             dataWdg = self.shutterCurrWdg,
             units = False,
@@ -79,7 +85,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             autoIsCurrent = True,
         )
         
-        gr.gridWdg (
+        self.gridder.gridWdg (
             label = "Cal. Mirror",
             dataWdg = self.mirrorCurrWdg,
             units = False,
@@ -108,7 +114,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 helpURL = self.HelpPrefix + "Lamps",
                 autoIsCurrent = True,
             )
-            gr.gridWdg (
+            self.gridder.gridWdg (
                 label = lampNameWdg,
                 dataWdg = lampCurrWdg,
                 units = False,
@@ -140,15 +146,13 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.calFilterNames.addCallback(self.setCalFilterNames)
         self.model.calFilter.addROWdg(self.calFilterUserWdg, setDefault=True)
         
-        gr.gridWdg (
+        self.gridder.gridWdg (
             label = "Cal. Filter",
             dataWdg = self.calFilterCurrWdg,
             units = False,
             cfgWdg = self.calFilterUserWdg,
         )
         
-        gr.allGridded()
-
         # add callbacks that need multiple widgets present
         self.model.mirror.addIndexedCallback(self.setMirrorState)
         self.model.lampNames.addCallback(self.setLampNames)
@@ -186,6 +190,20 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 ),
             ],
         )
+
+        self.configWdg = RO.Wdg.InputContConfigWdg(
+            master = self,
+            sysName = "%sConfig" % (self.InstName,),
+            userConfigsDict = self.tuiModel.userConfigsDict,
+            inputCont = self.inputCont,
+            text = "Configs",
+        )
+        self.gridder.gridWdg(
+            units = False,
+            cfgWdg = self.configWdg,
+        )
+        
+        self.gridder.allGridded()
 
     def doMirror(self, *args):
         """Called when the calibration mirror user control is toggled.
@@ -277,14 +295,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
 
 if __name__ == "__main__":
-    root = RO.Wdg.PythonTk()
-
     import TestData
+    root = TestData.tuiModel.tkRoot
+    stateTracker = RO.Wdg.StateTracker(logFunc=TestData.tuiModel.logFunc)
         
-    testFrame = StatusConfigInputWdg (root)
+    testFrame = StatusConfigInputWdg(master=root, stateTracker=stateTracker)
     testFrame.pack()
     
-    TestData.dispatch()
+    TestData.start()
     
     testFrame.restoreDefault()
 

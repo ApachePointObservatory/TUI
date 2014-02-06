@@ -240,10 +240,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.ntpStatus.addCallback(self._updNTPStatus, callNow = True)
         self.model.fwStatus.addCallback(self._updFWStatus, callNow = True)
         self._doShowHide()
-        
-        eqFmtFunc = RO.InputCont.BasicFmt(
-            nameSep="=",
-        )
 
     def _doShowHide(self, wdg=None):
         showTemps = self.environShowHideWdg.getBool()
