@@ -235,12 +235,12 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             ],
         )
 
-        self.configWdg = RO.Wdg.InputContConfigWdg(
+        self.configWdg = RO.Wdg.InputContPresetsWdg(
             master = self,
             sysName = "%sConfig" % (self.InstName,),
-            userConfigsDict = self.tuiModel.userConfigsDict,
+            userPresetsDict = self.tuiModel.userPresetsDict,
             inputCont = self.inputCont,
-            text = "Configs",
+            text = "Presets",
         )
         self.gridder.gridWdg(
             cfgWdg = self.configWdg,
@@ -613,14 +613,14 @@ def fmtExp(num):
 
 
 if __name__ == "__main__":
-    root = RO.Wdg.PythonTk()
-
     import TestData
-        
-    testFrame = StatusConfigInputWdg (root)
+    root = TestData.tuiModel.tkRoot
+    stateTracker = RO.Wdg.StateTracker(logFunc=TestData.tuiModel.logFunc)
+
+    testFrame = StatusConfigInputWdg (root, stateTracker=stateTracker)
     testFrame.pack()
     
-    TestData.dispatch()
+    TestData.start()
 
     testFrame.restoreDefault()
 
