@@ -12,7 +12,7 @@
                     by all versions of TUI.
                     Added ifExists argument to getAddPaths.
                     Added getGeomFile and getPrefsFile.
-2014-02-04 ROwen    Added getUserConfigsFile.
+2014-02-04 ROwen    Added getUserPresetsFile.
 """
 import os
 import RO.OS
@@ -70,11 +70,11 @@ def getPrefsFile():
     fileName = "%s%sPrefs" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
     return os.path.join(prefsDir, fileName)
 
-def getUserConfigsFile():
+def getUserPresetsFile():
     prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
     if prefsDir == None:
         raise RuntimeError("Cannot determine prefs dir")
-    fileName = "%s%sUserConfigs" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
+    fileName = "%s%sUserPresets" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
     return os.path.join(prefsDir, fileName)
 
 def getResourceDir(*args):

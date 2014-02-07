@@ -11,7 +11,10 @@ History:
 2010-03-05 ROwen    Modified the dispatch method to accept a single keyword string or a collection.
 2010-11-01 ROwen    Bug fix: dispatch argument keywords changed to dataList.
 2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
+2014-02-07 ROwen    Bug fix: added missing import.
+                    Updated runDataDictSet docs to indicate actor is a valid keyword in the data.
 """
+import random
 import RO.SeqUtil
 from RO.TkUtil import Timer
 import TUI.TUIModel
@@ -70,15 +73,15 @@ class TestDispatcher(object):
             "Version=1.0"
             ("AxePos=-342.563, 38.625, 5.4", "TCCPos=-342.563, 38.625, 5.0")
         - cmdr: commander (program.username); defaults to me
-        - actor: name of actor
         - cmdID: command ID (an integer)
+        - actor: name of actor
         - msgCode: message code; one of :>iwe!
         """
         if cmdr == None:
             cmdr = self.cmdr
         if cmdID == None:
             cmdID = self.cmdID
-        if actor == None:
+        if actor == None: 
             actor = self.actor
         if msgCode == None:
             msgCode = self.msgCode
@@ -111,9 +114,10 @@ class TestDispatcher(object):
                     ("AxePos=-341.230, 39.023, 5.3", "TCCPos=-341.231, 39.024, 5.4"),
                 )
             - delay: time to wait for next item (sec)
-            - msgCode: one of >iwe!:
-            - cmdID: command ID (an int)
             - cmdr: program_name.user_name
+            - cmdID: command ID (an int)
+            - actor: actor data comes from
+            - msgCode: one of >iwe!:
         """
         for item in dataDictSet:
             item.setdefault("delay", self.delay)

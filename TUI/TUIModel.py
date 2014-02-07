@@ -121,8 +121,8 @@ class _Model (object):
         # Dict of saved user-specified configurations for various instruments and other systems.
         # Keys are sysName: config
         # The dict is read from a file and auto-saved to the same file as it is updated.
-        self.userConfigsDict = RO.Alg.SavedDict(
-            filePath = TUI.TUIPaths.getUserConfigsFile(),
+        self.userPresetsDict = RO.Alg.SavedDict(
+            filePath = TUI.TUIPaths.getUserPresetsFile(),
         )
         
         # TUI window (topLevel) set;

@@ -715,12 +715,12 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             ],
         )
 
-        self.configWdg = RO.Wdg.InputContConfigWdg(
+        self.configWdg = RO.Wdg.InputContPresetsWdg(
             master = self,
             sysName = "%sConfig" % (self.InstName,),
-            userConfigsDict = self.tuiModel.userConfigsDict,
+            userPresetsDict = self.tuiModel.userPresetsDict,
             inputCont = self.inputCont,
-            text = "Configs",
+            text = "Presets",
         )
         self.gridder.gridWdg(
             cfgWdg = self.configWdg,
