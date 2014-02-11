@@ -5,7 +5,7 @@
 2007-05-24 ROwen    Added corrections submitted by Craig Loomis.
 2007-06-07 ROwen    Removed unsupported ccdHeaters and ccdTemps keywords.
 """
-from RO.CnvUtil import asFloatOrNone, asInt, asBool
+from RO.CnvUtil import asFloatOrNone, asBool
 import RO.Wdg
 import RO.KeyVariable
 import TUI.TUIModel
@@ -22,8 +22,6 @@ def getModel():
     return _theModel
 
 
-
-
 class _Model (object):
     def __init__(self,
         **kargs):
@@ -38,7 +36,6 @@ class _Model (object):
             nval = 1,
             dispatcher = self.dispatcher,
         )
-
         configKeyFactory = RO.KeyVariable.KeyVarFactory(
             actor = self.actor,
             converters = str,
@@ -46,18 +43,27 @@ class _Model (object):
             dispatcher = self.dispatcher,
             description="Named positions for this device",
         )
-
         statusKeyFactory = RO.KeyVariable.KeyVarFactory(
             actor = self.actor,
-            converters = (asBool, str, asFloatOrNone, asFloatOrNone),
-            nval = 4,
+            converters = (asBool, str, str, asFloatOrNone, asFloatOrNone, asFloatOrNone),
+            nval = 6,
             dispatcher = self.dispatcher,
-            description="""Fields are:
+            description="""Status about a stage. Sent once at the start of a move
+                and at least once at the end of a move. Fields are:
                 * is moving?
-                * current position (a name or float)
+                * current name or position
+                * destination name or position
                 * destination position
-                * estimated time to arrive (sec)
+                * position error (remaining distance to move when moving)
+                * estimated time to arrive (sec) (0 when not moving)
             """,
+        )
+        presetsKeyFactory = RO.KeyVariable.KeyVarFactory(
+            actor = self.actor,
+            converters = str,
+            nval = (1, None),
+            dispatcher = self.dispatcher,
+            description="""Stage setting for the preset named in presetNames""",
         )
 
         self.ccdTemp = keyVarFact(
@@ -65,7 +71,6 @@ class _Model (object):
             converters = asFloatOrNone,
             description = "CCD temperature (K)",
         )
-
         self.heaterPower = keyVarFact(
             keyword = "heaterPower",
             converters = asFloatOrNone,
@@ -73,37 +78,49 @@ class _Model (object):
         )
 
         # no calMirrorConfig: options are "in", "out"
-
         self.collimatorConfig = configKeyFactory(
             keyword = "collimatorConfig",
         )
-
         self.disperserConfig = configKeyFactory(
             keyword = "disperserConfig",
         )
-
-        # filterPos instead of filterConfig; it is output multiple times: once per filterwheel slot
-        self.filterPos = keyVarFact(
-            keyword = "filterPos",
-            converters = (asInt, str, asFloatOrNone, asFloatOrNone, asFloatOrNone),
-            nval = 5,
-            description = """Details about one availabler filter
-            * filterwheel slot (1-6)
-            * filter name
-            * central wavelength (Angstroms)
-            * bandpass: bandpass (Angstroms)
-            * focus offset (motor steps)
-            """,
-            refreshCmd = "filterwheel getConfig",
+        self.filterNames = keyVarFact(
+            keyword = "filterNames",
+            converters = str,
+            nval = (1, None),
+            description = "Filter names, in slot order",
         )
-
+        self.filterWavelengths = keyVarFact(
+            keyword = "filterWavelengths",
+            converters = asFloatOrNone,
+            nval = (1, None),
+            description = "Filter wavelengths (Angstroms), in slot order",
+        )
+        self.filterBandpasses = keyVarFact(
+            keyword = "filterBandpasses",
+            converters = asFloatOrNone,
+            nval = (1, None),
+            description = "Filter bandpasses (Angstroms), in slot order",
+        )
+        self.filterWavelengths = keyVarFact(
+            keyword = "filterWavelengths",
+            converters = asFloatOrNone,
+            nval = (1, None),
+            description = "Filter wavelengths (Angstroms), in slot order",
+        )
+        self.filterFocusOffsets = keyVarFact(
+            keyword = "filterFocusOffsets",
+            converters = asFloatOrNone,
+            nval = (1, None),
+            description = "Filter focus offsets (motor steps), in slot order",
+        )
         self.lensletsConfig = configKeyFactory(
             keyword="lensletsConfig",
         )
-
         self.magnifierConfig = configKeyFactory(
             keyword = "magnifierConfig",
         )
+
 
         self.calMirrorStatus = keyVarFact(
             keyword="calMirrorStatus",
@@ -114,9 +131,8 @@ class _Model (object):
             * position: ???
             """,
         )
-
         self.collimatorStatus = statusKeyFactory(keyword="collimatorStatus")
-
+        self.disperserStatus = statusKeyFactory(keyword="disperserStatus")
         self.filterStatus = keyVarFact(
             keyword = "filterStatus",
             converters = (asBool, asFloatOrNone, asFloatOrNone, str, asFloatOrNone, asFloatOrNone, asFloatOrNone),
@@ -131,12 +147,16 @@ class _Model (object):
             * focus offset (motor steps)
             """,
         )
-
-        self.disperserStatus = statusKeyFactory(keyword="disperserStatus")
-
         self.lensletsStatus = statusKeyFactory(keyword="lensletsStatus")
-
         self.magnifierStatus = statusKeyFactory(keyword="magnifierStatus")
+
+        self.presetNames = presetsKeyFactory(keyword="presetNames", description="List of preset names")
+        self.presetCalMirrors = presetsKeyFactory(keyword="presetCalMirrors")
+        self.presetCollimators = presetsKeyFactory(keyword="presetCollimators")
+        self.presetDispersers = presetsKeyFactory(keyword="presetDispersers")
+        self.presetFilters = presetsKeyFactory(keyword="presetFilters")
+        self.presetLenslets = presetsKeyFactory(keyword="presetLenslets")
+        self.presetMagnifiers = presetsKeyFactory(keyword="presetMagnifiers")
 
         keyVarFact.setKeysRefreshCmd()
 

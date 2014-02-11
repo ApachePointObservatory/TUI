@@ -5,6 +5,7 @@ History:
 2014-02-05 ROwen
 """
 import Tkinter
+from RO.TkUtil import Timer
 import RO.Constants
 import RO.MathUtil
 import RO.Wdg
@@ -14,8 +15,6 @@ import GIFSModel
 _DataWidth = 8  # width of data columns
 _EnvWidth = 6 # width of environment value columns
 
-_DefaultConfig = dict(
-)
 
 class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     InstName = "GIFS"
@@ -38,6 +37,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         RO.Wdg.InputContFrame.__init__(self, master=master, stateTracker=stateTracker, **kargs)
         self.model = GIFSModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
+        self.updateStdPresetsTimer = Timer()
         
         self.gridder = RO.Wdg.StatusConfigGridder(
             master = self,
@@ -70,7 +70,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         self.filter = FilterControls(
             gridder = self.gridder,
-            filterPosKey = self.model.filterPos,
+            label = "Filter Wheel",
+            configKey = self.model.filterNames,
             statusKey = self.model.filterStatus,
         )
 
@@ -79,6 +80,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             label = "Collimator",
             configKey = self.model.collimatorConfig,
             statusKey = self.model.collimatorStatus,
+            showOther = True,
         )
 
         self.disperser = StageControls(
@@ -106,46 +108,56 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.ccdTemp.addROWdg(self.ccdTempWdg)
         self.model.heaterPower.addROWdg(self.heaterPowerWdg)
 
-        eqFmtFunc = RO.InputCont.BasicFmt(
-            nameSep="=",
+        moveFmtFunc = RO.InputCont.BasicFmt(
+            nameSep = " move=",
         )
 
         # set up the input container set
         self.inputCont = RO.InputCont.ContList (
             conts = [
                 RO.InputCont.WdgCont (
-                    name = 'magnifier move',
-                    wdgs = self.magnifier.userWdg,
-                    formatFunc = eqFmtFunc,
-                ),
-                RO.InputCont.WdgCont (
-                    name = 'lenslets move',
-                    wdgs = self.lenslets.userWdg,
-                    formatFunc = eqFmtFunc,
-                ),
-                RO.InputCont.WdgCont (
-                    name = 'calmirror ',
+                    name = "calmirror",
                     wdgs = self.calMirror.userWdg,
+                    formatFunc = RO.InputCont.BasicFmt(nameSep=" "),
                 ),
                 RO.InputCont.WdgCont (
-                    name = 'filter move',
-                    wdgs = self.filter.userWdg,
-                    formatFunc = eqFmtFunc,
-                ),
-                RO.InputCont.WdgCont (
-                    name = 'collimator move',
+                    name = "collimator",
                     wdgs = self.collimator.userWdg,
-                    formatFunc = eqFmtFunc,
+                    formatFunc = moveFmtFunc,
                 ),
                 RO.InputCont.WdgCont (
-                    name = 'disperser move',
+                    name = "disperser",
                     wdgs = self.disperser.userWdg,
-                    formatFunc = eqFmtFunc,
+                    formatFunc = moveFmtFunc,
+                ),
+                RO.InputCont.WdgCont (
+                    name = "filter",
+                    wdgs = self.filter.userWdg,
+                    formatFunc = moveFmtFunc,
+                ),
+                RO.InputCont.WdgCont (
+                    name = "lenslets",
+                    wdgs = self.lenslets.userWdg,
+                    formatFunc = moveFmtFunc,
+                ),
+                RO.InputCont.WdgCont (
+                    name = "magnifier",
+                    wdgs = self.magnifier.userWdg,
+                    formatFunc = moveFmtFunc,
                 ),
             ],
         )
+
+        self._inputContNameKeyVarDict = dict(
+            calmirror = self.model.presetCalMirrors,
+            collimator = self.model.presetCollimators,
+            disperser = self.model.presetDispersers,
+            filter = self.model.presetFilters,
+            lenslets = self.model.presetLenslets,
+            magnifier = self.model.presetMagnifiers,
+        )
         
-        self.configWdg = RO.Wdg.InputContPresetsWdg(
+        self.presetsWdg = RO.Wdg.InputContPresetsWdg(
             master = self,
             sysName = "%sConfig" % (self.InstName,),
             userPresetsDict = self.tuiModel.userPresetsDict,
@@ -153,20 +165,47 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             text = "Presets",
         )
         self.gridder.gridWdg(
-            cfgWdg = self.configWdg,
+            cfgWdg = self.presetsWdg,
         )
 
         self.gridder.allGridded()
+
+        # for presets data use a timer to increase the chance that all keywords have been seen
+        # before the method is called
+        def callUpdPresets(*args, **kwargs):
+            self.updateStdPresetsTimer.start(0.1, self.updateStdPresets)
+        for keyVar in self._inputContNameKeyVarDict.itervalues():
+            keyVar.addCallback(callUpdPresets)
         
         def repaint(evt):
             self.restoreDefault()
         self.bind("<Map>", repaint)
 
+    def updateStdPresets(self):
+        """Update standard presets, if the data is available
+        """
+        self.updateStdPresetsTimer.cancel()
+        nameList = self.model.presetNames.get()[0]
+        if None in nameList:
+            return
+        numPresets = len(nameList)
+        dataDict = dict()
+        for inputContName, keyVar in self._inputContNameKeyVarDict.iteritems():
+            valList = keyVar.get()[0]
+            if len(valList) != numPresets or None in valList:
+                return
+            dataDict[inputContName] = valList
+
+        # stdPresets is a dict of name: dict of input container name: value
+        stdPresets = dict((name, dict((inputContName, valList[i]) for inputContName, valList in dataDict.iteritems()))
+            for i, name in enumerate(nameList))
+        self.presetsWdg.setStdPresets(stdPresets)
+
 
 class StageControls(object):
     """A set of widgets that controls one generic GIFS motorized stage
     """
-    def __init__(self, gridder, label, configKey, statusKey, descr=None):
+    def __init__(self, gridder, label, configKey, statusKey, descr=None, showOther=False):
         """Construct the widgets, grid them and wire them up
 
         @param[in] gridder: gridder to use to grid widgets
@@ -174,12 +213,14 @@ class StageControls(object):
         @param[in] configKey: configuration keyword variable; None if none
         @param[in] statusKey: status keyword variable
         @param[in] descr: brief description, for help strings; if None then label.lower()
+        @param[in] showOther: show Other... in the menu?
         """
         self.gridder = gridder
         self.label = label
         self.configKey = configKey
         self.statusKey = statusKey
         self.descr = descr if descr is not None else label.lower()
+        self._showOther = bool(showOther)
         self.cmdVerb = label.lower().replace(" ", "")
         self._makeWdg()
 
@@ -233,6 +274,18 @@ class StageControls(object):
             return None
         return "%s move=%s" % (self.cmdVerb, self.currWdg.getString())
 
+    def _doOther(self):
+        currValue = self.statusKey.getInd(2)[0]
+        ob = OtherDialog(
+            master = self.gridder.master,
+            currValue = currValue,
+            descr = self.descr,
+        )
+        result = ob.result
+        if ob.result is None:
+            return
+        self.userWdg.set(result, forceValid=True)
+
     def configCallback(self, valueList, isCurrent, keyVar=None):
         """Config updated
         """
@@ -242,20 +295,26 @@ class StageControls(object):
             checkCurrent = True,
             checkDef = False,
         )
+        if self._showOther:
+            menu = self.userWdg.getMenu()
+            menu.add_command(
+                label = "Other...",
+                command = self._doOther,
+            )
 
     def statusCallback(self, valueList, isCurrent, keyVar=None):
         """Status updated
         """
         isMoving = valueList[0]
         currPos = valueList[1]
-        moveDuration = valueList[3]
+        moveDuration = valueList[5]
         self.currWdg.set(currPos, isCurrent=isCurrent)
-        self.userWdg.setDefault(currPos, isCurrent=isCurrent, doCheck=False)
         if isMoving and moveDuration > 0:
             self.progressBar.start(value=moveDuration, newMax=moveDuration)
             self.progressBar.grid()
         else:
             self.progressBar.grid_remove()
+            self.userWdg.setDefault(currPos, isCurrent=isCurrent, doCheck=False)
 
     def __repr__(self):
         return "%s(%s)" % (type(self).__name__, self.label)
@@ -300,30 +359,6 @@ class CalMirrorControls(StageControls):
 
 
 class FilterControls(StageControls):
-    def __init__(self, gridder, filterPosKey, statusKey):
-        self.filterNameDict = {}
-        StageControls.__init__(self,
-            gridder = gridder,
-            label = "Filter Wheel",
-            configKey = None,
-            statusKey = statusKey,
-        )
-        self.filterPosKey = filterPosKey
-        filterPosKey.addCallback(self.filterPosCallback)
-
-    def filterPosCallback(self, valueList, isCurrent, keyVar=None):
-        """new filterPos data
-        """
-        if not isCurrent:
-            return
-
-        slot = valueList[0]
-        name = valueList[1]
-        self.filterNameDict[slot] = name
-
-        nameList = sorted(self.filterNameDict.itervalues())
-        self.userWdg.setItems(nameList)
-
     def statusCallback(self, valueList, isCurrent, keyVar=None):
         """Status updated
         """
@@ -333,6 +368,27 @@ class FilterControls(StageControls):
         self.progressBar.grid_remove()
 
 
+class OtherDialog(RO.Wdg.InputDialog.ModalDialogBase):
+    """Dialog box to enter a custom value into an OptionMenu
+    """
+    def __init__(self, master, currValue, descr):
+        self._currValue = currValue
+        self._descr = descr.title()
+        RO.Wdg.InputDialog.ModalDialogBase.__init__(self, master=master, title=self._descr)
+
+    def body(self, master):
+        RO.Wdg.StrLabel(master=master, text="%s Position" % (self._descr,)).grid(row=0, column=0, columnspan=2)
+        RO.Wdg.StrLabel(master=master, text="Current").grid(row=1, column=0, sticky="e")
+        RO.Wdg.StrLabel(master=master, text=str(self._currValue)).grid(row=1, column=1, sticky="e")
+        RO.Wdg.StrLabel(master=master, text="New").grid(row=2, column=0, sticky="e")
+        self.entryWdg = RO.Wdg.FloatEntry(master)
+        self.entryWdg.grid(row=2, column=1, sticky="e")
+        return self.entryWdg # return the item that gets initial focus
+
+    def setResult(self):
+        self.result = self.entryWdg.getNumOrNone()
+
+
 if __name__ == '__main__':
     import TestData
     root = TestData.tuiModel.tkRoot
@@ -340,6 +396,8 @@ if __name__ == '__main__':
     
     testFrame = StatusConfigInputWdg(root, stateTracker=stateTracker)
     testFrame.pack()
+    
+    TestData.start()
     
     testFrame.restoreDefault()
 
@@ -363,7 +421,7 @@ if __name__ == '__main__':
     Tkinter.Button(bf, text='Current', command=testFrame.restoreDefault).pack(side='left')
     Tkinter.Button(bf, text='Demo', command=TestData.animate).pack(side='left')
     bf.pack()
-    
-    TestData.start()
+
+    testFrame.gridder.addShowHideControl(testFrame.ConfigCat, cfgWdg)
 
     root.mainloop()

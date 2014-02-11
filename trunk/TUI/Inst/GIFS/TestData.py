@@ -5,29 +5,33 @@ tuiModel = testDispatcher.tuiModel
 
 MainDataList = (
     "ccdTemp=250.1; heaterPower=12.3",
-    "magnifierConfig=zero, clear, 7x7, 14x14",
-    "lensletsConfig=clear, zero, pinhole, wedge, bare_lens",
-    "filterPos=1, filter1,  6572.0, 265.0, 0.0",
-    "filterPos=2, red_ifs,  6572.0, 265.0, 1.2",
-    "filterPos=3, filt6300, 6307.0, 126.0, -23.3",
-    "filterPos=4, halpha_a, 6564.0,  10.0, 28.3",
-    "filterPos=5, filter5,  6564.0,  10.0, -12.7",
-    "filterPos=6, filter6,  6564.0,  10.0, 10.8",
+
     "collimatorConfig=spect_pinhole_red, spect_pinhole_green, imaging_bare_lens_green, zero, imaging_pinhole_green, imaging_green, spect_bare_lens_red, spect_bare_lens_green, imaging_red, imaging_pinhole_red, imaging_bare_lens_red",
     "disperserConfig=etalon, clear, green, zero, red, hi_res",
-    "magnifierStatus=0, zero, 1.0, 1.0",
-    "lensletsStatus=0, zero, 0.0, 0.0",
+    "filterNames=filter1, red_ifs, filt6300, halpha_a, filter5, filter6",
+    "lensletsConfig=clear, zero, pinhole, wedge, bare_lens",
+    "magnifierConfig=zero, clear, 7x7, 14x14",
+
     "calMirrorStatus=in, 0.0",
+    "collimatorStatus=0, spect_pinhole_red, spect_pinhole_red, -3.2, 0.0, 0.0",
+    "disperserStatus=0, green, green, 1200.0, 0.0, 0.0",
     "filterStatus=0, 4.0, -120000.0, halpha_a, 6564.0, 10.0, 0.0",
-    "collimatorStatus=0, spect_pinhole_red, -3.2, 0.0",
-    "disperserStatus=0, zero, 0.0, 0.0",
+    "lensletsStatus=0, pinhole, pinhole, -523.0, 0.0, 0.0",
+    "magnifierStatus=0, 7x7, 7x7, 321.0, 0.0, 0.0",
+
+    "presetNames=foo, bar, baz",
+    "presetCalMirrors=in, out, in",
+    "presetCollimators=imaging_green, imaging_bare_lens_green, spect_bare_lens_red",
+    "presetDispersers=etalon, green, clear",
+    "presetFilters=red_ifs, filt6300, halpha_a",
+    "presetLenslets=clear, wedge, pinhole",
+    "presetMagnifiers=7x7, clear, 14x14",
 )
 
 # Each element of animDataSet is list of keywords
 AnimDataSet = (
-    ("collimatorStatus=1,-221616.0,-135080.0,3.7",),
-    ("collimatorStatus=1,-260360.0,-208050.0,2.9",),
-    ("collimatorStatus=0, zero, 0.0, 0.0",),
+    ("collimatorStatus=1, spect_pinhole_red, imaging_green, -3.2, 32450.0, 0.5",),
+    ("collimatorStatus=0, imaging_green, imaging_green, 32450.0, 0.0, 0",),
 )
 
 def start():
