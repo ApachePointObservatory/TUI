@@ -352,20 +352,34 @@ class CalMirrorControls(StageControls):
     def statusCallback(self, valueList, isCurrent, keyVar=None):
         """Status updated
         """
-        currPos = valueList[0]
+        isMoving = valueList[0]
+        currPos = valueList[1]
+        moveDuration = valueList[3]
         self.currWdg.set(currPos, isCurrent=isCurrent)
         self.userWdg.setDefault(currPos, isCurrent=isCurrent)
-        self.progressBar.grid_remove()
+        if isMoving and moveDuration > 0:
+            self.progressBar.start(value=moveDuration, newMax=moveDuration)
+            self.progressBar.grid()
+        else:
+            self.progressBar.grid_remove()
+            self.userWdg.setDefault(currPos, isCurrent=isCurrent, doCheck=False)
 
 
 class FilterControls(StageControls):
     def statusCallback(self, valueList, isCurrent, keyVar=None):
         """Status updated
         """
+        isMoving = valueList[0]
         currPos = valueList[3]
+        moveDuration = valueList[7]
         self.currWdg.set(currPos, isCurrent=isCurrent)
         self.userWdg.setDefault(currPos, isCurrent=isCurrent, doCheck=False)
-        self.progressBar.grid_remove()
+        if isMoving and moveDuration > 0:
+            self.progressBar.start(value=moveDuration, newMax=moveDuration)
+            self.progressBar.grid()
+        else:
+            self.progressBar.grid_remove()
+            self.userWdg.setDefault(currPos, isCurrent=isCurrent, doCheck=False)
 
 
 class OtherDialog(RO.Wdg.InputDialog.ModalDialogBase):

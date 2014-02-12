@@ -124,19 +124,21 @@ class _Model (object):
 
         self.calMirrorStatus = keyVarFact(
             keyword="calMirrorStatus",
-            converters = (str, str),
-            nval = 2,
+            converters = (asBool, str, str, asFloatOrNone),
+            nval = 4,
             description = """calMirror status
+            * isMoving
             * preset name: one of "in", "out", apparently
             * position: ???
+            * estimated time to arrive (sec) (0 when not moving)
             """,
         )
         self.collimatorStatus = statusKeyFactory(keyword="collimatorStatus")
         self.disperserStatus = statusKeyFactory(keyword="disperserStatus")
         self.filterStatus = keyVarFact(
             keyword = "filterStatus",
-            converters = (asBool, asFloatOrNone, asFloatOrNone, str, asFloatOrNone, asFloatOrNone, asFloatOrNone),
-            nval = 7,
+            converters = (asBool, asFloatOrNone, asFloatOrNone, str, asFloatOrNone, asFloatOrNone, asFloatOrNone, asFloatOrNone),
+            nval = 8,
             description = """Filter status
             * is moving?
             * filter slot (1-6 but a float for some reason)
@@ -145,6 +147,7 @@ class _Model (object):
             * central wavelength (Angstroms)
             * bandpass (Angstroms)
             * focus offset (motor steps)
+            * estimated time to arrive (sec) (0 when not moving)
             """,
         )
         self.lensletsStatus = statusKeyFactory(keyword="lensletsStatus")

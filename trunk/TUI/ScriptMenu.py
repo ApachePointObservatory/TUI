@@ -22,38 +22,44 @@ History:
                     Modified test code to show a standard pull-down menu.
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2012-07-18 ROwen    Removed use of update_idletasks and an ugly Mac workaround that is no longer required.
+2014-02-12 ROwen    Moved some code to TUI.Base.ScriptLoader so other users could get to it more easily.
 """
 import os
-import sys
 import Tkinter
 import tkFileDialog
-import tkMessageBox
 import RO.Alg
-import RO.OS
-import RO.Wdg
 import RO.TkUtil
-import TUI.TUIPaths
-import TUI.TUIModel
+from TUI.Base.ScriptLoader import getScriptDirs, ScriptLoader
 
+__all__ = ["getScriptMenu"]
 
 def getScriptMenu(master):
-    # look for TUIAddition script dirs
-    addPathList = TUI.TUIPaths.getAddPaths()
-    addScriptDirs = [os.path.join(path, "Scripts") for path in addPathList]
-    addScriptDirs = [path for path in addScriptDirs if os.path.isdir(path)]
-
-    # prepend the standard script dir and remove duplicates
-    stdScriptDir = TUI.TUIPaths.getResourceDir("Scripts")
-    scriptDirs = [stdScriptDir] + addScriptDirs
-    scriptDirs = RO.OS.removeDupPaths(scriptDirs)
+    scriptDirs = getScriptDirs()
     
-    rootNode = _RootNode(master, "", scriptDirs)
+    rootNode = _RootNode(master=master, label="", pathList=scriptDirs)
     rootNode.checkMenu(recurse=True)
     
     return rootNode.menu
 
 class _MenuNode:
+    """Menu and related information about sub-menu of the Scripts menu
+
+    Each node represents one level of hiearchy in the various scripts directories.
+    The contents of a given subdir are dynamically tested, but the existence
+    of a particular subdirectory is not. This sounds like a mistake to me;
+    if a given subdir exists in any scripts dir, it should be checked every time
+    in all scripts dirs.
+    """
     def __init__(self, parentNode, label, pathList):
+        """Construct a _MenuNode
+
+        Inputs:
+        - parentNode: parent menu node
+        - label: label of this sub-menu
+        - pathList: list of paths to this subdirectory in the script hierarchy
+            (one entry for each of the following, but only if the subdir exists:
+            built-in scripts dir, local TUIAddtions/Scripts and shared TUIAdditions/Scripts)
+        """
 #       print "_MenuNode(%r, %r, %r)" % (parentNode, label, pathList)
         self.parentNode = parentNode
         self.label = label
@@ -134,11 +140,12 @@ class _MenuNode:
         itemKeys.sort()
 #       print "%s found items: %s" % (self, itemKeys)
         for label in itemKeys:
+            subPathList = list(self.getLabels()) + [label]
             fullPath = self.itemDict[label]
 #               print "adding script %r: %r" % (label, fullPath)
             self.menu.add_command(
                 label = label,
-                command = _LoadScript(self, label, fullPath),
+                command = ScriptLoader(subPathList=subPathList, fullPath=fullPath),
             )
         
         subdirList = self.subDict.keys()
@@ -162,7 +169,16 @@ class _MenuNode:
 
 
 class _RootNode(_MenuNode):
+    """The main scripts menu and related information
+    """
     def __init__(self, master, label, pathList):
+        """Construct the _RootNode
+
+        Inputs:
+        - parentNode: parent menu node
+        - label: label of this sub-menu
+        - pathList: list of paths to scripts, as returned by TUI.Base.ScriptLoader.getScriptDirs()
+        """
         self.master = master
         _MenuNode.__init__(self, None, label, pathList)
         self.isAqua = (RO.TkUtil.getWindowingSystem() == RO.TkUtil.WSysAqua)
@@ -179,7 +195,7 @@ class _RootNode(_MenuNode):
         """
         self.menu.add_command(label="Open...", command=self.doOpen)
         _MenuNode._fillMenu(self)
-    
+
     def doOpen(self):
         """Handle Open... menu item.
         """
@@ -194,7 +210,8 @@ class _RootNode(_MenuNode):
         )
         if not fullPath:
             return
-        _LoadScript(self, fullPath, fullPath)()
+        pathList = os.path.split(fullPath)
+        ScriptLoader(subPathList=pathList, fullPath=fullPath)()
 
     def getLabels(self):
         """Return a list of labels all the way up to, but not including, the root node.
@@ -202,48 +219,10 @@ class _RootNode(_MenuNode):
         return []
 
 
-class _LoadScript:
-    def __init__(self, node, label, fullPath):
-        labelSet = node.getLabels() + [label]
-        self.tlName = 'ScriptNone.' + ":".join(labelSet)
-#       print "_LoadScript(%s, %s, %s); tlName=%s" % (node, label, fullPath, self.tlName)
-        self.fullPath = fullPath
-        self.tuiModel = TUI.TUIModel.getModel()
-    
-    def __call__(self):
-        """If the script window exists, bring it to the front.
-        Otherwise, load the script file into a new script window.
-        """
-#       print "_LoadScript.doMenu(); tlName=%s" % (tlName,)
-        tl = self.tuiModel.tlSet.getToplevel(self.tlName)
-        if tl:
-            tl.makeVisible()
-        else:
-            try:
-                self.tuiModel.tlSet.createToplevel(
-                    name = self.tlName,
-                    resizable = False,
-                    wdgFunc = self.makeWdg,
-                )
-            except Exception, e:
-                tkMessageBox.showerror(
-                    message = "Could not load script:\n%r\n%s\n(See console for more info.)" % (self.fullPath, e),
-                )
-
-    def makeWdg(self, master):
-#       print "_LoadScript.makeWdg(%r); tlName=%s" % (master, tlName,)
-        return RO.Wdg.ScriptFileWdg(
-            master=master,
-            filename = self.fullPath,
-            dispatcher = self.tuiModel.dispatcher,
-        )
-
-
 if __name__ == "__main__":
+    import RO.Wdg
     root = Tkinter.Tk()
     
-    newTl = RO.Wdg.Toplevel(root, title="Other")
-
     menuBar = Tkinter.Menu(root)
     root["menu"] = menuBar
 
