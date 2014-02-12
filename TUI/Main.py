@@ -57,6 +57,7 @@ This is the main routine that calls everything else.
 2012-11-29 ROwen    Set UseTwisted False; I don't know why it was True.
 2013-07-19 ROwen    Modified to print some info to stdout (e.g. the log) on startup.
                     Modified to only show the version name, not version date, in the log at startup.
+2014-02-12 ROwen    Added a call to reopen script windows.
 """
 import os
 import sys
@@ -135,6 +136,9 @@ def runTUI():
             tlSet = tuiModel.tlSet,
             logFunc = tuiModel.logMsg,
         )
+
+    # load scripts
+    TUI.Base.ScriptLoader.reopenScriptWindows()
     
     # add the main menu
     TUI.MenuBar.MenuBar()

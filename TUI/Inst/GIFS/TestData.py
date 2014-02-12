@@ -12,10 +12,10 @@ MainDataList = (
     "lensletsConfig=clear, zero, pinhole, wedge, bare_lens",
     "magnifierConfig=zero, clear, 7x7, 14x14",
 
-    "calMirrorStatus=in, 0.0",
+    "calMirrorStatus=0, in, 0.0, 0.0",
     "collimatorStatus=0, spect_pinhole_red, spect_pinhole_red, -3.2, 0.0, 0.0",
     "disperserStatus=0, green, green, 1200.0, 0.0, 0.0",
-    "filterStatus=0, 4.0, -120000.0, halpha_a, 6564.0, 10.0, 0.0",
+    "filterStatus=0, 4.0, -120000.0, halpha_a, 6564.0, 10.0, 0.0, 0.0",
     "lensletsStatus=0, pinhole, pinhole, -523.0, 0.0, 0.0",
     "magnifierStatus=0, 7x7, 7x7, 321.0, 0.0, 0.0",
 
@@ -30,8 +30,12 @@ MainDataList = (
 
 # Each element of animDataSet is list of keywords
 AnimDataSet = (
-    ("collimatorStatus=1, spect_pinhole_red, imaging_green, -3.2, 32450.0, 0.5",),
+    ("collimatorStatus=1, spect_pinhole_red, imaging_green, -3.2, 32450.0, 1.5",),
+    ("filterStatus=1, 2.0, -120000.0, red_ifs, 6564.0, 10.0, 0.0, 2.0"),
+    ("calMirrorStatus=1, in, 0.0, 1.0"),
     ("collimatorStatus=0, imaging_green, imaging_green, 32450.0, 0.0, 0",),
+    ("calMirrorStatus=0, out, 0.0, 0.0"),
+    ("filterStatus=0, 2.0, -120000.0, red_ifs, 6564.0, 10.0, 0.0, 0.0"),
 )
 
 def start():
