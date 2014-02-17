@@ -51,9 +51,10 @@ History:
 2010-07-02 ROwen    Removed email.Utils from required modules (it causes trouble for modern builds).
 2011-08-11 ROwen    Removed  obsolete LSPrefersPPC from property list.
                     Removed obsolete constant UniversalBinaryOK.
+2014-02-17 ROwen    Added LSArchitecturePriority to PList to force 32-bit mode (for 10.9 compatibility).
+                    Added LSMinimumSystemVersion to PList.                    
 """
 import os
-import platform
 from plistlib import Plist
 import shutil
 import subprocess
@@ -89,6 +90,10 @@ plist = Plist(
     CFBundleShortVersionString  = shortVersStr,
     CFBundleGetInfoString       = "%s %s" % (appName, fullVersStr),
     CFBundleExecutable          = appName,
+    LSMinimumSystemVersion      = "10.6.0",
+    LSArchitecturePriority      = ("i386",) # force 32-bit mode;
+        # this is needed for Tcl/TK 8.5.11 to run on MacOS X 10.9;
+        # I'm stuck with 8.5.11 due to a crashing bug in Tcl/Tk 8.5.12 - 8.5.15.1
 )
 
 setup(
