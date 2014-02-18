@@ -5,12 +5,12 @@
 </head>
 <h2><a href="index.html">TUI</a>:Introduction</h2>
 
-<p>TUI is a user interface for the APO 3.5m telescope. It runs on unix, MacOS X and Windows.
+<p>TUI is a user interface for the APO 3.5m telescope. It runs on unix, MacOS and possibly on Windows.
 
 <h2>Starting and Stopping TUI</h2>
 
 <ul>
-	<li>On unix, type "tui" at the command-line prompt. On MacOS X or Windows, double-click TUI. If TUI is not yet installed, see the <a href="Installation.html">installation instructions</a>.
+	<li>On unix, type "tui" at the command-line prompt. On MacOS or Windows, double-click TUI. If MacOS complains that the application is unsigned then right-click TUI and select Open. If TUI is not yet installed, see the <a href="Installation.html">installation instructions</a>.
 	
 	<li>If you have never run TUI before, set up your preferences before proceeding (for help on any item, right-click on the control and select Help from the menu that appears):
 	
@@ -70,27 +70,12 @@
 
 <h2>Monitoring the Telescope</h2>
 
+<p>The following windows can help you keep track of what's going on:
 <ul>
-	<li>You can see what's going on using the Status, Sky and Focal Plane windows. The Status window is always displayed. The Sky and Focal Plane windows are open by default and can be re-opened or brought to the front by selecting the TCC&gt;Sky and TCC&gt;Focal Plane menu items.
-</ul>
-
-<h3>Sky window</h3>
-<ul>
-	<li>The inner az/alt grid of the Sky window (TCC&gt;Sky) shows the sky as seen by the telescope and includes the following markers:
-	<ul>
-		<li>O: the current position of the telescope.
-		<li>+: the target position. This matches the current position except during a slew.
-		<li>X: the position, if any, set in the Slew window.
-		<li>&middot;: objects in your catalogs, if any catalogs are open.
-	</ul>
-	<li>The outer spiral shows the azimuth wrap. If the azimuth approaches either end of the spiral, you are in danger of tracking into a limit.
-</ul>
-
-<h3>Focal Plane window</h3>
-
-<ul>
-	<li>The inner portion of the Focal Plane window (TCC&gt;Focal Plane menu item) shows the orientation of the sky and horizon relative to the focal plane. This can be very useful for predicting which direction an offset will go.
-	<li>The outer spiral shows the rotator wrap. If the rotator position approaches either end of the spiral, you are in danger of tracking into a limit.
+	<li><a href="Telescope/StatusWin.html">Status</a>: shows current position, offset, time, cartridge, etc.
+	<li><a href="Telescope/SkyWin.html">Sky</a>: shows the position of the telescope on the sky, including azimuth wrap.
+	<li><a href="Telescope/FocalPlaneWin.html">Focal Plane</a>: shows the orientation of the sky relative to the instrument.
+	<li><a href="TUIMenu/LogWin.html">Logs</a>: show all messages received by STUI, with various filtering options. There are multiple log windows, each of which can have its own filters.
 </ul>
 
 <h2>Slewing</h2>

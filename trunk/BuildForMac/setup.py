@@ -52,7 +52,7 @@ History:
 2011-08-11 ROwen    Removed  obsolete LSPrefersPPC from property list.
                     Removed obsolete constant UniversalBinaryOK.
 2014-02-17 ROwen    Added LSArchitecturePriority to PList to force 32-bit mode (for 10.9 compatibility).
-                    Added LSMinimumSystemVersion to PList.                    
+                    Added LSMinimumSystemVersion to PList.
 """
 import os
 from plistlib import Plist
