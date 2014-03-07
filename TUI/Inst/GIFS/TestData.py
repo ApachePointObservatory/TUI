@@ -19,13 +19,13 @@ MainDataList = (
     "lensletsStatus=0, pinhole, pinhole, -523.0, 0.0, 0.0",
     "magnifierStatus=0, 7x7, 7x7, 321.0, 0.0, 0.0",
 
-    "presetNames=foo, bar, baz",
-    "presetCalMirrors=in, out, in",
-    "presetCollimators=imaging_green, imaging_bare_lens_green, spect_bare_lens_red",
-    "presetDispersers=etalon, green, clear",
-    "presetFilters=red_ifs, filt6300, halpha_a",
-    "presetLenslets=clear, wedge, pinhole",
-    "presetMagnifiers=7x7, clear, 14x14",
+    "namePresets=foo, bar, baz",
+    "calMirrorPresets=in, out, in",
+    "collimatorPresets=imaging_green, imaging_bare_lens_green, spect_bare_lens_red",
+    "disperserPresets=etalon, green, clear",
+    "filterPresets=red_ifs, filt6300, halpha_a",
+    "lensletPresets=clear, wedge, pinhole",
+    "magnifierPresets=7x7, clear, 14x14",
 )
 
 # Each element of animDataSet is list of keywords

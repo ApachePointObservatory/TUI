@@ -1,9 +1,7 @@
 #!/usr/bin/env python
-"""An object that models the current state of SPIcam.
+"""An object that models the current state of GIFS.
 
-2007-05-22 ROwen    Placeholder with some guesses as to keyword variables.
-2007-05-24 ROwen    Added corrections submitted by Craig Loomis.
-2007-06-07 ROwen    Removed unsupported ccdHeaters and ccdTemps keywords.
+2014-02-25 ROwen
 """
 from RO.CnvUtil import asFloatOrNone, asBool
 import RO.Wdg
@@ -52,9 +50,10 @@ class _Model (object):
                 and at least once at the end of a move. Fields are:
                 * is moving?
                 * current name or position
-                * destination name or position
-                * destination position
-                * position error (remaining distance to move when moving)
+                * commanded name or position
+                * commanded position as a number
+                * position error = measured - commanded position;
+                  when starting a move this is the negative of the distance to be moved
                 * estimated time to arrive (sec) (0 when not moving)
             """,
         )
@@ -63,7 +62,7 @@ class _Model (object):
             converters = str,
             nval = (1, None),
             dispatcher = self.dispatcher,
-            description="""Stage setting for the preset named in presetNames""",
+            description="""Stage setting for the preset named in namePresets""",
         )
 
         self.ccdTemp = keyVarFact(
@@ -90,26 +89,20 @@ class _Model (object):
             nval = (1, None),
             description = "Filter names, in slot order",
         )
-        self.filterWavelengths = keyVarFact(
-            keyword = "filterWavelengths",
+        self.filterCenters = keyVarFact(
+            keyword = "filterCenters",
             converters = asFloatOrNone,
             nval = (1, None),
-            description = "Filter wavelengths (Angstroms), in slot order",
+            description = "Filter central wavelengths (Angstroms), in slot order",
         )
-        self.filterBandpasses = keyVarFact(
-            keyword = "filterBandpasses",
+        self.filterWidths = keyVarFact(
+            keyword = "filterWidths",
             converters = asFloatOrNone,
             nval = (1, None),
-            description = "Filter bandpasses (Angstroms), in slot order",
+            description = "Filter bandpass widths (Angstroms), in slot order",
         )
-        self.filterWavelengths = keyVarFact(
-            keyword = "filterWavelengths",
-            converters = asFloatOrNone,
-            nval = (1, None),
-            description = "Filter wavelengths (Angstroms), in slot order",
-        )
-        self.filterFocusOffsets = keyVarFact(
-            keyword = "filterFocusOffsets",
+        self.filterFocus = keyVarFact(
+            keyword = "filterFocus",
             converters = asFloatOrNone,
             nval = (1, None),
             description = "Filter focus offsets (motor steps), in slot order",
@@ -120,7 +113,6 @@ class _Model (object):
         self.magnifierConfig = configKeyFactory(
             keyword = "magnifierConfig",
         )
-
 
         self.calMirrorStatus = keyVarFact(
             keyword="calMirrorStatus",
@@ -153,13 +145,13 @@ class _Model (object):
         self.lensletsStatus = statusKeyFactory(keyword="lensletsStatus")
         self.magnifierStatus = statusKeyFactory(keyword="magnifierStatus")
 
-        self.presetNames = presetsKeyFactory(keyword="presetNames", description="List of preset names")
-        self.presetCalMirrors = presetsKeyFactory(keyword="presetCalMirrors")
-        self.presetCollimators = presetsKeyFactory(keyword="presetCollimators")
-        self.presetDispersers = presetsKeyFactory(keyword="presetDispersers")
-        self.presetFilters = presetsKeyFactory(keyword="presetFilters")
-        self.presetLenslets = presetsKeyFactory(keyword="presetLenslets")
-        self.presetMagnifiers = presetsKeyFactory(keyword="presetMagnifiers")
+        self.namePresets = presetsKeyFactory(keyword="namePresets", description="List of preset names")
+        self.calMirrorPresets = presetsKeyFactory(keyword="calMirrorPresets")
+        self.collimatorPresets = presetsKeyFactory(keyword="collimatorPresets")
+        self.disperserPresets = presetsKeyFactory(keyword="disperserPresets")
+        self.filterPresets = presetsKeyFactory(keyword="filterPresets")
+        self.lensletPresets = presetsKeyFactory(keyword="lensletPresets")
+        self.magnifierPresets = presetsKeyFactory(keyword="magnifierPresets")
 
         keyVarFact.setKeysRefreshCmd()
 
