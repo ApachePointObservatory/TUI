@@ -149,12 +149,12 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
 
         self._inputContNameKeyVarDict = dict(
-            calmirror = self.model.presetCalMirrors,
-            collimator = self.model.presetCollimators,
-            disperser = self.model.presetDispersers,
-            filter = self.model.presetFilters,
-            lenslets = self.model.presetLenslets,
-            magnifier = self.model.presetMagnifiers,
+            calmirror = self.model.calMirrorPresets,
+            collimator = self.model.collimatorPresets,
+            disperser = self.model.disperserPresets,
+            filter = self.model.filterPresets,
+            lenslets = self.model.lensletPresets,
+            magnifier = self.model.magnifierPresets,
         )
         
         self.presetsWdg = RO.Wdg.InputContPresetsWdg(
@@ -185,7 +185,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         """Update standard presets, if the data is available
         """
         self.updateStdPresetsTimer.cancel()
-        nameList = self.model.presetNames.get()[0]
+        nameList = self.model.namePresets.get()[0]
         if None in nameList:
             return
         numPresets = len(nameList)
