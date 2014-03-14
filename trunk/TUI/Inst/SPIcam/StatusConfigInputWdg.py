@@ -12,6 +12,7 @@ History:
 2014-02-03 ROwen    Added explicit stateTracker argument and the fixed test code to use it.
                     Updated to use modernized TestData.
 2014-02-05 ROwen    Added config widget.
+2014-03-14 ROwen    Added a Presets widget
 """
 import Tkinter
 import RO.Constants
@@ -323,6 +324,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             stdPresets = dict(),
             inputCont = self.inputCont,
             text = "Presets",
+            helpText = "use and manage named presets",
+            helpURL = self.HelpPrefix + "Presets",
         )
         self.gridder.gridWdg(
             cfgWdg = self.configWdg,

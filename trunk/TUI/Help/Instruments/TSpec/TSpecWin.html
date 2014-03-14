@@ -9,7 +9,7 @@
 
 <p>Displays the current status of TripleSpec and allows you to change the configuration.
 
-<p>Pushing the "Config" button displays configuration controls (each to the right of its corresponding item of status).
+<p>Pushing the "Config" button displays configuration controls (each to the right of its corresponding item of status). Select TUI:Save Window Positions to remember the state of this checkbutton.
 <ul>
 	<li>Controls with a colored background will be changed when you hit Apply.
 	<li>The contextual menu on each control can return that control to the current setting of the instrument.
@@ -38,6 +38,15 @@
     <li><a name="ArrayPower"></a><b>Array Power</b>: is the imaging array power on or off? The control is hidden unless you push the "Array Power" button because one rarely needs to power down the array.
 
 	<li><a name="Environment"></a><b>Environment</b>: the button controls whether to show or hide pressure and various temperatures. An OK to the right of the button means that the pressure and all temperatures are acceptable.
+</ul>
+
+<p><a name="Presets"></a><b>Presets</b> allows you to save and restore named configurations. This is only visible if Config is checked.
+
+<ul>
+    <li>Use Presets:Edit:Save to save the state of the configuration controls as a named preset. Note that it saves the state of the controls, not the actual state of the instrument, so you can save any preset you like without commanding the instrument.
+    <li>The Presets:Edit menu also allows to rename and delete saved presets.
+    <li>Select a named preset to set the configuration controls to that preset. Then change any controls you like and press Apply to apply.
+    <li>Presets are saved in a file whose location is given in TUI:About TUI.
 </ul>
 
 <p>Below the status and configuration items is a status bar that shows help and the state of the currently executing configuration command.

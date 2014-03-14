@@ -13,6 +13,7 @@
                     Added ifExists argument to getAddPaths.
                     Added getGeomFile and getPrefsFile.
 2014-02-04 ROwen    Added getUserPresetsFile.
+2014-03-14 ROwen    Added ".json" suffix to user presets file name.
 """
 import os
 import RO.OS
@@ -74,7 +75,7 @@ def getUserPresetsFile():
     prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
     if prefsDir == None:
         raise RuntimeError("Cannot determine prefs dir")
-    fileName = "%s%sUserPresets" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
+    fileName = "%s%sUserPresets.json" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
     return os.path.join(prefsDir, fileName)
 
 def getResourceDir(*args):
