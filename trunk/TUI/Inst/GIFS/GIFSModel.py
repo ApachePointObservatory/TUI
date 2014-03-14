@@ -154,6 +154,9 @@ class _Model (object):
         self.magnifierPresets = presetsKeyFactory(keyword="magnifierPresets")
 
         keyVarFact.setKeysRefreshCmd()
+        configKeyFactory.setKeysRefreshCmd()
+        statusKeyFactory.setKeysRefreshCmd()
+        presetsKeyFactory.setKeysRefreshCmd()
 
 
 if __name__ == "__main__":

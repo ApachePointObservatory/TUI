@@ -197,8 +197,15 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             dataDict[inputContName] = valList
 
         # stdPresets is a dict of name: dict of input container name: value
-        stdPresets = dict((name, dict((inputContName, valList[i]) for inputContName, valList in dataDict.iteritems()))
-            for i, name in enumerate(nameList))
+        stdPresets = dict()
+        for i, name in enumerate(nameList):
+            contDict = dict()
+            for inputContName, valList in dataDict.iteritems():
+                if not valList[i]:
+                    continue
+                contDict[inputContName] = valList[i]
+            if contDict:
+                stdPresets[name] = contDict
         self.presetsWdg.setStdPresets(stdPresets)
 
 
