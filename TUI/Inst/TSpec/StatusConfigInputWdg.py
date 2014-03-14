@@ -10,6 +10,7 @@ History:
 2008-11-18 ROwen    Fixed an error in yesterday's fix.
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 2012-11-16 ROwen    Disable the ability to change slits; a temporary hack while TSpec's slit changer is broken.
+2014-03-14 ROwen    Added a Presets widget
 """
 import math
 import Tkinter
@@ -241,6 +242,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             userPresetsDict = self.tuiModel.userPresetsDict,
             inputCont = self.inputCont,
             text = "Presets",
+            helpText = "use and manage named presets",
+            helpURL = self.HelpPrefix + "Presets",
         )
         self.gridder.gridWdg(
             cfgWdg = self.configWdg,

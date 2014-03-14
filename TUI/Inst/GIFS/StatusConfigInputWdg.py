@@ -3,6 +3,7 @@
 
 History:
 2014-02-05 ROwen
+2014-03-14 ROwen    Added support for help.
 """
 import Tkinter
 from RO.TkUtil import Timer
@@ -12,13 +13,15 @@ import RO.Wdg
 import TUI.TUIModel
 import GIFSModel
 
+HelpURL = 'Instruments/GIFS/GIFSWin.html'
+
 _DataWidth = 8  # width of data columns
 _EnvWidth = 6 # width of environment value columns
 
 
 class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     InstName = "GIFS"
-    HelpPrefix = 'Instruments/%s/%sWin.html#' % (InstName, InstName)
+    HelpPrefix = HelpURL + "#"
 
     # category names
     ConfigCat = RO.Wdg.StatusConfigGridder.ConfigCat
@@ -163,6 +166,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             userPresetsDict = self.tuiModel.userPresetsDict,
             inputCont = self.inputCont,
             text = "Presets",
+            helpText = "use and manage named presets",
+            helpURL = self.HelpPrefix + "Presets",
         )
         self.gridder.gridWdg(
             cfgWdg = self.presetsWdg,
@@ -245,7 +250,8 @@ class StageControls(object):
             items = (),
             autoIsCurrent = True,
             trackDefault = True,
-            helpText = "desired position of %s" % (self.descr,)
+            helpText = "desired position of %s" % (self.descr,),
+            helpURL = HelpURL,
         )
 
     def _makeWdg(self):
@@ -257,6 +263,7 @@ class StageControls(object):
         self.currWdg = RO.Wdg.StrLabel(
             master = self.gridder.master,
             helpText = "current position of %s" % (self.descr,),
+            helpURL = HelpURL,
         )
 
         self.progressBar = RO.Wdg.TimeBar(
@@ -347,6 +354,7 @@ class CalMirrorControls(StageControls):
             showValue = True,
             trackDefault = True,
             helpText = "desired position of %s" % (self.descr,),
+            helpURL = HelpURL,
         )
 
     def getCmd(self):

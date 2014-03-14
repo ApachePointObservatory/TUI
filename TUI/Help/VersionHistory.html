@@ -15,31 +15,20 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>2.2.0b3 2014-03-13</h3>
-
-<p>Bug fixes:
-<ul>
-    <li>Presets menus only saved a subset of values (it did not save data controls that were set to the current value).
-    <li>GIFS standard presets were broken due to empty values. Now those are treated as "do not set".
-    <li>GIFS Model was not retrieving some data at connect time.
-</ul>
-
-<h3>2.2.0b2 2014-03-07</h3>
+<h3>2.2.0 2014-03-14</h3>
 
 <p>Visible changes:
 <ul>
-    <li>Tweaked GIFS keyword names for Jon Brinkmann.
-    <li>Improved compatibility with MacOS 10.9: the application now runs in 32-bit mode, though you should still manually disable app nap.
-    <li>Updated the MacOS instructions here and in the introduction.
-</ul>
-
-<h3>2.2.0b1 2014-02-12</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Added a Presets menu to the config window of most instruments. This allows the user to save and manage named presets. If an instrument comes with standard presets (GIFS is likely to) then these will also be listed.
-    <li>Added GIFS configuration support. It will not work until GIFS ICC updated. More changes are likely.
+    <li>Added full GIFS support.
+    <li>Added a Presets menu to the config window of most instruments. This allows the user to save and manage named presets. If an instrument comes with standard presets (only GIFS at this point) then these will also be listed.
     <li>Scripts that were open when Save Window Positions was selected are reopened at startup.
+    <li>Updated the MacOS instructions here and in the introduction.
+    <li>Improved compatibility with MacOS 10.9: the application now runs in 32-bit mode, though you should still manually disable app nap.
+</ul>
+
+<p>Bug fix:
+<ul>
+    <li>CmdVar objects were sending the command "None" when aborted, due to careless casting. Fixed by changing the default from None to "" in CmdVar and ScriptRunner, and by also testing for None in CmdVar when casting (for backwards compatibility, though no code in TUI specifies None).
 </ul>
 
 <p>Internal changes

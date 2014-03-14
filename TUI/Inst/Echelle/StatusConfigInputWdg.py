@@ -17,6 +17,7 @@ History:
 2005-06-10 ROwen    Added display of current shutter state.
 2006-04-27 ROwen    Removed use of ignored clearMenu and defMenu in StatusConfigGridder.
 2008-02-11 ROwen    Modified to be compatible with the new TUI.Inst.StatusConfigWdg.
+2014-03-14 ROwen    Added a Presets widget
 """
 import Tkinter
 import RO.MathUtil
@@ -197,6 +198,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             userPresetsDict = self.tuiModel.userPresetsDict,
             inputCont = self.inputCont,
             text = "Presets",
+            helpText = "use and manage named presets",
+            helpURL = self.HelpPrefix + "Presets",
         )
         self.gridder.gridWdg(
             units = False,
