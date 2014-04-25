@@ -15,8 +15,33 @@ f = plt.figure()
 ax = f.add_subplot(111, polar=True)
 ax.quiver(theta, r, dr * cos(theta) - dt * sin (theta), dr * sin(theta) + dt * cos(theta))
 
+
+@todo:
+- Major graph improvements:
+    - Show a faint line showing the order of the points.
+    - When a star has been measured indicate it in some way. I think:
+        - Show ref star position instead of grid position.
+        - Show ref star position in green if measurement successful, red if measurement failed.
+        - Update connecting lines
+- Add a log window that reports each step as taken; keep updating status for a star
+    until data is measured and logged for it, then onto the next line,
+    or else only add a line after the star is fully measured or fails (easier, but less informative).
+- Add a display of star N of N while running (could just add "N of" to the numStars widget);
+    also indicate measurement M of M for each star.
+- Add an exposure timer?
+- Handle binning, and windowing to speed up exposures.
+    I propose common code with the focus scripts, and handling multiple instruments identically
+    (i.e. either one focus scripts and one pointing data script per instrument,
+    or else a single focus script and a single pointing data script, each of which supports all instruments)
+
+    Meanwhile much of this code is borrowed directly from BaseFocusScript,
+    even though some of it is not a perfect fit.
+- Handle instruments, not just guiders
+- Add a help page and link to it
+
 History:
 2014-04-21 ROwen    Start tinkering
+2014-04-25 ROwen    Major improvements: supports any guider and may even work.
 """
 import collections
 import glob
@@ -32,6 +57,9 @@ import RO.CnvUtil
 import RO.MathUtil
 from RO.ScriptRunner import ScriptError
 from RO.Comm.Generic import Timer
+from RO.Astro.Tm import isoDateTimeFromPySec
+import RO.OS
+import RO.StringUtil
 import RO.Wdg
 import TUI.TUIModel
 import TUI.TCC.TCCModel
@@ -40,6 +68,17 @@ import TUI.Inst.ExposeModel
 import TUI.Guide.GuideModel
 
 WindowName = "Misc.Get Pointing Data"
+
+MeanLat = 32.780361 # latitude of telescope (deg)
+
+# Dictionary of instrument position: TPOINT rotator name
+# See TPOINT manual section 4.5.2 "Option records" for the codes
+# See TCSpk manual section 3.1 for the difference between the left and right Nasmyth mount
+# Note that the NA1 port has the Echelle, and hence no rotator
+InstPosRotDict = dict(
+    na2 = "ROTL",
+    tr2 = "ROTTEL",    
+)
 
 def addWindow(tlSet):
     """Create the window for TUI.
@@ -59,16 +98,6 @@ class InstActors(object):
 
 class ScriptClass(object):
     """Widget to collect pointing data
-
-    @todo:
-    - Handle multiple instruments, including binning, and windowing to speed up exposures.
-        I propose common code with the focus scripts, and handling multiple instruments identically
-        (i.e. either one focus scripts and one pointing data script per instrument,
-        or else a single focus script and a single pointing data script, each of which supports all instruments)
-
-        Meanwhile much of this code is borrowed directly from BaseFocusScript,
-        even though some of it is not a perfect fit.
-    - Add a help page and link to it
     """
     def __init__(self, sr):
         """Construct a ScriptClass
@@ -83,8 +112,8 @@ class ScriptClass(object):
         self._nextPointTimer = Timer()
         self._gridDirs = getGridDirs()
         self.tccModel = TUI.TCC.TCCModel.getModel()
-        self.tccModel.instName.addIndexedCallback(self._setInstName)
-        self.guideModel = TUI.Guide.GuideModel.getModel("gcam")
+        self.gcamActor = None
+        self.guideModel = None
         self.actorData = collections.OrderedDict()
         self.maxFindAmpl = 30000
         self.defRadius = 5.0
@@ -100,7 +129,6 @@ class ScriptClass(object):
             self.binFactor = self.defBinFactor
             self.dispBinFactor = self.defBinFactor
         self.finalBinFactor = finalBinFactor
-        self.gcamActor = "gcam"
 
         self.azAltGraph = AzAltGraph(master=sr.master)
         self.azAltGraph.grid(row=0, column=0)
@@ -109,22 +137,28 @@ class ScriptClass(object):
 
         ctrlFrame = Tkinter.Frame(sr.master)
         gr = RO.Wdg.Gridder(ctrlFrame)
+        self.guiderNameWdg = RO.Wdg.StrLabel(
+            master = ctrlFrame,
+            anchor = "w",
+            helpText = "Guider that will be used to measure pointing error",
+        )
+        gr.gridWdg(False, self.guiderNameWdg, colSpan=2, sticky="ew")
         self._gridDict = dict()
         self.gridWdg = RO.Wdg.OptionMenu(
             master = ctrlFrame,
-            label = "Az/Alt Grid",
+            # don't set a label, as this will be displayed instead of the current value
             callFunc = self._setGrid,
             items = (),
             postCommand = self._fillGridsMenu,
             helpText = "az/alt grid",
         )
-        gr.gridWdg(self.gridWdg.label, self.gridWdg)
-        self.instWdg = RO.Wdg.OptionMenu(
+        gr.gridWdg("Az/Alt Grid", self.gridWdg)
+        self.numStarsWdg = RO.Wdg.StrLabel(
             master = ctrlFrame,
-            items = (),
-            helpText = "instrument or guider to use to measure pointing error",
+            anchor = "w",
+            helpText = "number of stars in the grid",
         )
-#        gr.gridWdg("Instrument", self.instWdg)
+        gr.gridWdg(False, self.numStarsWdg, colSpan=2, sticky="ew")
         gr.startNewCol()
         self.numExpWdg = RO.Wdg.IntEntry(
             master = ctrlFrame,
@@ -170,6 +204,8 @@ class ScriptClass(object):
         )
         gr.gridWdg(self.centroidRadWdg.label, self.centroidRadWdg, "arcsec")
 
+        self.tccModel.instName.addIndexedCallback(self._setInstName, callNow=True)
+
         if sr.debug:
             self.tccModel.instName.set(["DIS"],)
 
@@ -177,8 +213,10 @@ class ScriptClass(object):
         """Call when the TCC reports a new instName
         """
         if instName is None:
-            return
-        return
+            if not self.sr.isExecuting():
+                guiderName = "(none)"
+                self.gcamActor = None
+                self.guideModel = None
 
         # some variant of the following will probably be wanted, once I unify the code with focus scripts
         #...
@@ -197,31 +235,23 @@ class ScriptClass(object):
                 "No model for instrument %r" % (instName,),
                 severity = RO.Constants.sevWarning,
             )
-            self.actorData = collections.OrderedDict()
         else:
-            instInfo = self.exposeModel.instInfo
-            centroidActor = instInfo.centroidActor
-            guiderActor = instInfo.guiderActor
-            actorData = collections.OrderedDict()
-            if guiderActor:
-                guiderName = TUI.Inst.ExposeModel.GuiderActorNameDict.get(guiderActor, guiderActor)
-                actorData[guiderName] = InstActors(
-                    name = guiderName,
-                    exposeActor = None,
-                    guiderActor = guiderActor,
-                )
-            if centroidActor:
-                actorData[self.exposeModel.instName] = InstActors(
-                    name = self.exposeModel.instName,
-                    exposeActor = self.exposeModel.instInfo.exposeActor,
-                    guiderActor = self.exposeModel.instInfo.centroidActor,
-                 )
-            instNames = actorData.keys()
-            self.instWdg.setItems(instNames)
-            if instNames:
-                self.instWdg.setDefault(instNames[0], showDefault=True)
-            else:
-                self.instWdg.setDefault(None, showDefault=True)
+            guiderActor = None
+
+        instInfo = self.exposeModel.instInfo
+        guiderActor = instInfo.guiderActor
+        if guiderActor:
+            guiderName = TUI.Inst.ExposeModel.GuiderActorNameDict.get(guiderActor, guiderActor)
+            self.gcamActor = guiderActor
+            self.guideModel = TUI.Guide.GuideModel.getModel("gcam")
+            gcamInfo = self.guideModel.gcamInfo
+            self.defBinFactor = gcamInfo.defBinFac
+            self.expTimeWdg.setDefault(gcamInfo.defExpTime)
+        else:
+            guiderName = "(none)"
+            self.gcamActor = None
+            self.guideModel = None
+        self.guiderNameWdg.set(guiderName)
 
     def _fillGridsMenu(self):
         """Set items of the Grids menu based on available grid files and update self._gridDict
@@ -265,13 +295,13 @@ class ScriptClass(object):
                     self.sr.showMsg("Cannot parse line %s as az alt: %r\n" % (i+1, line),
                         severity = RO.Constants.sevWarning, isTemp=True)
         self.azAltList = azAltList
+        self.numStarsWdg.set("%s stars" % (len(self.azAltList),))
         self.azAltGraph.plotAzAltPoints(azAltList)
 
     def enableCmdBtns(self, doEnable):
         """Enable or disable command buttons (e.g. Expose and Sweep).
         """
         self.gridWdg.setEnable(doEnable)
-        self.instWdg.setEnable(doEnable)
 
     def run(self, sr):
         """Take a set of pointing data
@@ -281,7 +311,14 @@ class ScriptClass(object):
         if not self.azAltList:
             raise ScriptError("No az/alt grid selected")
         
-        self.recordUserParams(doStarPos=False)
+        self.recordUserParams()
+
+        ptDataDir = os.path.join(RO.OS.getDocsDir(), "ptdata")
+        if not os.path.exists(ptDataDir):
+            sr.showMsg("Creating directory %r" % (ptDataDir,))
+            os.mkdir(ptDataDir)
+        if not os.path.isdir(ptDataDir):
+            raise ScriptError("Could not create directory %r" % (ptDataDir,))
 
         # set self.relStarPos to center of pointing error probe
         # (the name is a holdover from BaseFocusScript; the field is the location to centroid stars)
@@ -301,41 +338,89 @@ class ScriptClass(object):
             self.ptErrProbe = ptErrProbe
             self.relStarPos = guideProbe.ctrXY[:]
 
-        for az, alt in self.azAltList[:]:
-            # use a copy in case somebody alters the list while running, though that should not be possible
-            yield sr.waitCmd(
-                actor = "tcc",
-                cmdStr = "track %0.7f, %0.7f obs/pterr=(find, refSlew)" % (az, alt),
-                keyVars = (self.tccModel.ptRefStar,),
-            )
-            cmdVar = sr.value
-            ptRefStarValues = cmdVar.getLastKeyVarData(self.tccModel.ptRefStar, ind=None)
-            if not ptRefStarValues:
-                if not sr.debug:
-                    raise ScriptError("No pointing reference star found")
-                else:
-                    ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
-            self.ptRefStar = PtRefStar(ptRefStarValues)
-            numExp = self.numExpWdg.getNum()
-            for expInd in range(numExp):
-                if expInd == 0:
-                    yield self.waitFindStar(firstOnly=True)
-                else:
-                    yield self.waitCentroid()
-                starMeas = sr.value
-                if starMeas.xyPos is None:
-                    break
+        # open log file and write header
+        currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
+        ptDataName = "ptdata_%s.dat" % (currDateStr,)
+        ptDataPath = os.path.join(ptDataDir, ptDataName)
+        numEntries = 0
+        with open(ptDataPath, "w") as ptDataFile:
+            headerStrList = self.getHeaderStrList(currDateStr)
+            for headerStr in headerStrList:
+                ptDataFile.write(headerStr)
+                ptDataFile.write("\n")
+            ptDataFile.flush()
 
-                yield self.waitComputePtErr(starMeas)
-                ptErr = sr.value
-
-                # log absolute error (ignoring current calib and guide offsets)
-
-                # correct relative error (using current calib and guide offsets)
+            for az, alt in self.azAltList[:]:
+                # use a copy in case somebody alters the list while running, though that should not be possible
                 yield sr.waitCmd(
                     actor = "tcc",
-                    cmdStr = "offset calib %s, %s" % (ptErr.ptErr[0], ptErr.ptErr[1])
+                    cmdStr = "track %0.7f, %0.7f obs/pterr=(find, refSlew)" % (az, alt),
+                    keyVars = (self.tccModel.ptRefStar,),
                 )
+                cmdVar = sr.value
+                ptRefStarValues = cmdVar.getLastKeyVarData(self.tccModel.ptRefStar, ind=None)
+                if not ptRefStarValues:
+                    if not sr.debug:
+                        raise ScriptError("No pointing reference star found")
+                    else:
+                        ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
+                self.ptRefStar = PtRefStar(ptRefStarValues)
+                numExp = self.numExpWdg.getNum()
+                for expInd in range(numExp):
+                    if expInd == 0:
+                        yield self.waitFindStar(firstOnly=True)
+                    else:
+                        yield self.waitCentroid()
+                    starMeas = sr.value
+                    if starMeas.xyPos is None:
+                        break
+
+                    yield self.waitComputePtErr(starMeas)
+                    ptErr = sr.value
+
+                    # correct relative error (using current calib and guide offsets)
+                    yield sr.waitCmd(
+                        actor = "tcc",
+                        cmdStr = "offset calib %s, %s" % (ptErr.ptErr[0], ptErr.ptErr[1])
+                    )
+
+                # log pointing error
+                # do this after the last measurement of the star, so we have only one entry per star
+                # and record the value with the star most accurately centered (we hope)
+                ptDataFile.write(ptErr.getPtDataStr())
+                ptDataFile.write("\n")
+                ptDataFile.flush()
+                numEntries += 1
+
+    def getHeaderStrList(self, currDateStr):
+        """Return TPOINT data file header as a list of strings
+        """
+        instPos = self.tccModel.instPos.getInd(0)[0]
+        if self.sr.debug and instPos is None:
+            instPos = "NA2"
+        if instPos is None:
+            raise ScriptError("Instrument position unknown")
+        tpointRotCode = InstPosRotDict.get(instPos.lower(), "")
+        optionList = ["AZALT"]
+        if tpointRotCode:
+            optionList.append(tpointRotCode)
+
+        meanLatDMS = RO.StringUtil.dmsStrFromDeg(MeanLat).split(":")
+        meanLatDMSStr = " ".join(meanLatDMS)
+        if len(meanLatDMS) != 3:
+            raise ScriptError("Bug: MeanLat=%r split into %r, not 3 fields" % (MeanLat, meanLatDMS))
+
+        headerStrList = (
+            "! Caption record:",
+            "APO 3.5M Pointing Data " + currDateStr,
+            "! Option record: AZALT followed by rotator code, if applicable",
+            " ".join(optionList),
+            "! Run parameters: telescope latitude deg min sec",
+            meanLatDMSStr,
+            "! Pointing data (TPOINT format #4):",
+            "! az_desired_phys alt_desired_phys az_mount alt_mount rot_phys (all in deg)",
+        )
+        return headerStrList
 
     def waitComputePtErr(self, starMeas):
         yield self.sr.waitCmd(
@@ -360,7 +445,7 @@ class ScriptClass(object):
         if not ptDataValueList:
             if self.sr.debug:
                 # des phys az, alt, real mount az, alt
-                ptDataValueList = (20, 80, 20.001, 79.002)
+                ptDataValueList = (20, 80, 20.001, 79.002, 45.0)
             else:
                 raise ScriptError("ptData keyword not seen")
 
@@ -368,6 +453,7 @@ class ScriptClass(object):
             ptErr = ptCorrValueList[0:2],
             desPhysPos = ptDataValueList[0:2],
             mountPos = ptDataValueList[2:4],
+            rotPhys = ptDataValueList[4],
         )
 
     def formatBinFactorArg(self, isFinal):
@@ -477,47 +563,17 @@ class ScriptClass(object):
 
         self.enableCmdBtns(False)
     
-    def recordUserParams(self, doStarPos=True):
-        """Record user-set parameters relating to exposures but not to focus
-        
-        Inputs:
-        - doStarPos: if true: save star position and related information;
-            warning: if doStarPos true then there must *be* a valid star position
+    def recordUserParams(self):
+        """Record user-set parameters relating to exposures
         
         Set the following instance variables:
         - expTime
         - centroidRadPix
-        The following are set to None if doStarPos false:
-        - absStarPos
-        - relStarPos
-        - window
         """
         self.expTime = self.getEntryNum(self.expTimeWdg)
         self.binFactor = self.dispBinFactor
         centroidRadArcSec = self.getEntryNum(self.centroidRadWdg)
         self.centroidRadPix = centroidRadArcSec / (self.arcsecPerPixel * self.binFactor)
-        
-        if doStarPos:
-            winRad = self.centroidRadPix * self.WinSizeMult
-            
-            self.absStarPos = [None, None]
-            for ii in range(2):
-                wdg = self.starPosWdgSet[ii]
-                self.absStarPos[ii] = self.getEntryNum(wdg)
-            
-            if self.doWindow:
-                windowMinXY = [max(self.instLim[ii],   int(0.5 + self.absStarPos[ii] - winRad)) for ii in range(2)]
-                windowMaxXY = [min(self.instLim[ii-2], int(0.5 + self.absStarPos[ii] + winRad)) for ii in range(2)]
-                self.window = windowMinXY + windowMaxXY
-                self.relStarPos = [self.absStarPos[ii] - windowMinXY[ii] for ii in range(2)]
-                #print "winRad=%s, windowMinXY=%s, relStarPos=%s" % (winRad, windowMinXY, self.relStarPos)
-            else:
-                self.window = None
-                self.relStarPos = self.absStarPos[:]
-        else:
-            self.absStarPos = None
-            self.relStarPos = None
-            self.window = None
 
     def updBinFactor(self, *args, **kargs):
         """Called when the user changes the bin factor"""
@@ -653,7 +709,6 @@ class ScriptClass(object):
 
     def end(self, sr):
         self.gridWdg.setEnable(True)
-        self.instWdg.setEnable(True)
 
 
 class AzAltGraph(Tkinter.Frame):
@@ -763,17 +818,37 @@ class StarMeas(object):
 class PtErr(object):
     """Pointing error data
     """
-    def __init__(self, ptErr, desPhysPos, mountPos):
+    def __init__(self, ptErr, desPhysPos, mountPos, rotPhys):
         """Construct a PtErr object
 
         Inputs:
         - ptErr: az, alt pointing error relative to current calibration and guide offsets (deg)
-        - desPhysPos: desired physical position
-        - mountPos: current mount position
+        - desPhysPos: az, alt desired physical position (deg)
+        - mountPos: az, alt current mount position (deg)
+        - rotPhys: rotator physical position (deg)
         """
         self.ptErr = ptErr
         self.desPhysPos = desPhysPos
         self.mountPos = mountPos
+        self.rotPhys = rotPhys
+
+    def getPtDataStr(self):
+        """Return pointing model data in a form suitable for TPOINT
+
+        Format is the following values, space-separated, all in deg:
+        - az desired physical position
+        - alt desired physical position
+        - az mount position
+        - alt mount position
+        - rot physical angle
+        """
+        return "%0.6f %0.6f %0.6f %0.6f %0.5f" % (
+            self.desPhysPos[0],
+            self.desPhysPos[1],
+            self.mountPos[0],
+            self.mountPos[1],
+            self.rotPhys,
+        )
 
 class PtRefStar(object):
     """Information about a pointing reference star
@@ -790,7 +865,6 @@ class PtRefStar(object):
         self.coordSysName = valueList[6]
         self.coordSysDate = valueList[7]
         self.mag = valueList[8]
-
 
 def makeStarData(
     typeChar = "f",
