@@ -49,7 +49,10 @@ or register ROWdg widgets to automatically display updating values.
 2010-09-24 ROwen    Added <mir> keywords.
 2011-07-14 ROwen    Added ipConfig, gcFocus, gcFocusLim, gcNomFocus, instFocus, rotInstXYAng and rotOffsetScale;
                     all of these except ipConfig and gcFocus are new in TCC 2.15.0.
+2014-04-23 ROwen    Added gProbeDict
 """
+from collections import OrderedDict
+
 import RO.CnvUtil
 import RO.CoordSys
 import RO.KeyVariable
@@ -104,7 +107,7 @@ def _cnvRotType(tccName):
         )[tccName.lower()]
     except KeyError:
         raise ValueError()
-        
+
 class _Model (object):
     def __init__(self,
     **kargs):
@@ -121,11 +124,11 @@ class _Model (object):
             naxes = 1,
             dispatcher = self.dispatcher,
         )
-        
+
         self.axisNames = ("Az", "Alt", "Rot")
-         
+
         # user-specified values
-        
+
         self.objName = keyVarFact(
             keyword = "ObjName",
             nval = 1,
@@ -151,50 +154,50 @@ class _Model (object):
             naxes = 2,
             description = "Object offset (user coords)",
         )
-                
+
         self.objArcOff = pvtVarFact(
             keyword = "ObjArcOff",
             naxes = 2,
             description = "Object arc offset (user coords)",
         )
-                
+
         self.rotType = keyVarFact(
             keyword = "RotType",
             converters = _cnvRotType,
             description = "Type of rotation",
         )
-        
+
         self.rotPos = pvtVarFact(
             keyword = "RotPos",
             naxes = 1,
             description = "Rotation angle",
         )
-        
+
         self.rotExists = keyVarFact(
             keyword = "RotExists",
             converters = RO.CnvUtil.asBool,
             description = "Type of rotation",
             isLocal = True,
         )
-        
+
         self.boresight = pvtVarFact(
             keyword = "Boresight",
             naxes = 2,
             description = "Boresight position (inst x,y)",
         )
-        
+
         self.calibOff = pvtVarFact(
             keyword = "CalibOff",
             naxes = 3,
             description = "Calibration offset (az, alt, rot)",
         )
-        
+
         self.guideOff = pvtVarFact(
             keyword = "GuideOff",
             naxes = 3,
             description = "Guiding offset (az, alt, rot)",
         )
-        
+
         # time
 
         self.tai = keyVarFact(
@@ -204,16 +207,16 @@ class _Model (object):
             refreshCmd = "show time", # can't use archived data!
             description = "TAI time (MJD sec)",
         )
-        
+
         self.utcMinusTAI = keyVarFact(
             keyword = "UTC_TAI",
             nval = 1,
             converters = RO.CnvUtil.asFloatOrNone,
             description = "UTC time - TAI time (sec)",
         )
-        
+
         # slew info; do not try to refresh these keywords
-        
+
         self.moveItems = keyVarFact(
             keyword = "MoveItems",
             nval = 1,
@@ -235,60 +238,59 @@ The value is a string containing the following characters, each of which is eith
 """,
             allowRefresh = False,
         )
-        
+
         self.slewDuration = keyVarFact(
             keyword="SlewDuration",
             converters=RO.CnvUtil.asFloatOrNone,
             description = "Duration of the slew that is beginning (sec)",
             allowRefresh = False,
         )
-        
+
         self.slewEnd = keyVarFact(
             keyword = "SlewEnd",
             nval = 0,
             description = "Slew ended",
             allowRefresh = False,
         )
-        
+
         self.slewSuperseded = keyVarFact(
             keyword = "SlewSuperseded",
             nval = 0,
             description = "Slew superseded",
             allowRefresh = False,
         )
-        
+
         # computed information about the object
-        
+
         self.objInstAng = pvtVarFact(
             keyword = "ObjInstAng",
             naxes = 1,
             description = "angle from inst x to obj user axis 1 (e.g. RA)",
         )
-        
+
         self.spiderInstAng = pvtVarFact(
             keyword = "SpiderInstAng",
             naxes = 1,
             description = "angle from inst x to dir. of increasing az",
         )
-        
+
         keyVarFact.setKeysRefreshCmd()
-        
+
         # information about the axes
-        
+
         self.tccStatus = keyVarFact(
             keyword = "TCCStatus",
             nval = 2,
             converters = str,
             description = "What the TCC thinks the axes are doing",
         )
-        
+
         self.axisCmdState = keyVarFact(
             keyword = "AxisCmdState",
             nval = 3,
             converters = str,
             description = "What the TCC has told the azimuth, altitude and rotator to do",
         )
-        self.axisCmdState.addIndexedCallback(self._updRotExists, ind = 2)
 
         self.axisErrCode = keyVarFact(
             keyword = "AxisErrCode",
@@ -331,7 +333,7 @@ The value is a string containing the following characters, each of which is eith
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Rotator limits: min pos, max pos, vel, accel, jerk",
         )
-        
+
         self.rotOffsetScale = keyVarFact(
             keyword = "RotOffsetScale",
             nval = 2,
@@ -343,8 +345,7 @@ The value is a string containing the following characters, each of which is eith
         # the entry for each axis consists of:
         # current position, velocity, time, status word
         #
-        # the rotator does not have a refresh command
-        # because it may not exist
+        # the rotator does not have a refresh command because it may not exist
         self.ctrlStatusSet = [
             keyVarFact(
                 keyword = "%sStat" % axisName,
@@ -355,9 +356,9 @@ The value is a string containing the following characters, each of which is eith
                 refreshOptional = (axisName == self.axisNames[-1]),
             ) for axisName in self.axisNames
         ]
-        
+
         # instrument data
-        
+
         self.instName = keyVarFact(
             keyword = "Inst",
             converters = str,
@@ -369,7 +370,7 @@ The value is a string containing the following characters, each of which is eith
             converters = str,
             description = "Name of current instrument position",
         )
-        
+
         self.ipConfig = keyVarFact(
             keyword = "IPConfig",
             converters = str,
@@ -382,7 +383,8 @@ guide camera is available
 guider mechanical controller is available
 """,
         )
-        
+        self.ipConfig.addIndexedCallback(self._updRotExists)
+
         self.instFocus = keyVarFact(
             keyword = "InstFocus",
             nval = 1,
@@ -410,16 +412,17 @@ guider mechanical controller is available
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Scale of current instrument (unbinned pixels/deg)",
         )
-        
+
         self.rotInstXYAng = keyVarFact(
             keyword = "RotInstXYAng",
             nval = 3,
             converters = RO.CnvUtil.asFloatOrNone,
-            description = "Position of the center of the instrument rotator in instrument coordinate frame (x, y deg) and angle of instrument rotator x axis in instrument coordinate frame (deg).",
+            description = "Position of the center of the instrument rotator in instrument coordinate frame (x, y deg) " +
+                "and angle of instrument rotator x axis in instrument coordinate frame (deg).",
         )
-        
+
         # guider data
-        
+
         self.gimCtr = keyVarFact(
             keyword = "GImCtr",
             nval = 2,
@@ -440,7 +443,7 @@ guider mechanical controller is available
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Scale of current guider (unbinned pixels/deg)",
         )
-        
+
         self.gcFocus = keyVarFact(
             keyword = "GCFocus",
             nval = 1,
@@ -462,14 +465,117 @@ guider mechanical controller is available
             description = "Nominal position for guide camera focus actuator (um).",
         )
 
+        self.ptErrProbe = keyVarFact(
+            keyword = "PtErrProbe",
+            nval = 1,
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "Guide probe to use for pointing error data collection; 0 if none.",
+        )
+
+        self.gProbeInfo = keyVarFact(
+            keyword = "GProbeInfo",
+            converters = (
+                RO.CnvUtil.asIntOrNone,
+                RO.CnvUtil.asBool,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            description = """Information about one guide probe:
+            - guide probe number (1...N)
+            - exists?
+            - x center (pixels)
+            - y center (pixels)
+            - min x (pixels)
+            - min y (pixels)
+            - max x (pixels)
+            - max y (pixels)
+            - x position of center of guide probe w.r.t. rotator (deg)
+            - y position of center of guide probe w.r.t. rotator (deg)
+            - angle from probe image x to rotator x (deg)
+            """,
+            allowRefresh = False,
+        )
+        self.gProbeDict = OrderedDict() # dict of guide probe number: GuideProbe object; based on GProbeInfo keyword
+        self.gProbeInfo.addCallback(self._updGProbeDict)
+
         # miscellaneous
-        
+
+        self.ptCorr = keyVarFact(
+            keyword = "PtCorr",
+            converters = (
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            description = """Measured pointing error in a form suitable for guiding
+            (thus, relative to current guide and calibration offsets).
+            All values are in the pointing frame, which is the rotator frame rotated such that x = az
+            - az pointing correction on the sky (deg)
+            - alt pointing correction on the sky (deg)
+            - x position in pointing frame (deg)
+            - y position in pointing frame (deg)
+            """,
+            allowRefresh = False,
+        )
+
+        self.ptData = keyVarFact(
+            keyword = "PtData",
+            converters = (
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            description = """Measured pointing error in a form suitable for pointing model data
+            - az desired physical position (deg)
+            - alt desired physical position (deg)
+            - az current mount position (deg)
+            - alt current mount position (deg)
+            """,
+            allowRefresh = False,
+        )
+
+        self.ptRefStar = keyVarFact(
+            keyword = "PtRefStar",
+            converters = (
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                str,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            description = """Information about a pointing reference star:
+            - equatorial position (deg)
+            - polar position (deg)
+            - parallax (arcsec)
+            - equatorial proper motion (dEquatAng/dt as arcsec/year)
+            - polar proper motion (arcsec/year)
+            - radial velocity (km/sec, positive receding)
+            - coordinate system name
+            - coordinate system date
+            - magnitude
+            """,
+            allowRefresh = False,
+        )
+
         self.secFocus = keyVarFact(
             keyword = "SecFocus",
             converters = RO.CnvUtil.asFloatOrNone,
             description = "User-defined focus offset",
         )
-        
+
         # mirrors
 
         self.secActMount = keyVarFact(
@@ -485,17 +591,17 @@ guider mechanical controller is available
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Commanded mount position",
         )
-        
+
         self.secDesOrient = keyVarFact(
             keyword = "SecDesOrient",
-            nval = 5,
+            nval = (5,6),
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Desired orientation (piston, x_tilt, y_tilt, x_trans, y_trans)",
         )
 
         self.secOrient = keyVarFact(
             keyword = "SecOrient",
-            nval = 5,
+            nval = (5,6),
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Actual orientation (piston, x_tilt, y_tilt, x_trans, y_trans)",
         )
@@ -505,7 +611,7 @@ guider mechanical controller is available
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Age of most recent computation of desired orientation, in sec."
         )
-        
+
         self.secStatus = keyVarFact(
             keyword = "SecStatus",
             nval = (1, 6),
@@ -530,14 +636,14 @@ guider mechanical controller is available
 
         self.tertDesOrient = keyVarFact(
             keyword = "TertDesOrient",
-            nval = 5,
+            nval = (5,6),
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Desired orientation (piston, x_tilt, y_tilt, x_trans, y_trans)",
         )
 
         self.tertOrient = keyVarFact(
             keyword = "TertOrient",
-            nval = 5,
+            nval = (5, 6),
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Actual orientation (piston, x_tilt, y_tilt, x_trans, y_trans)",
         )
@@ -547,7 +653,7 @@ guider mechanical controller is available
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Age of most recent computation of desired orientation, in sec."
         )
-        
+
         self.tertStatus = keyVarFact(
             keyword = "TertStatus",
             nval = (1, 6),
@@ -556,7 +662,7 @@ guider mechanical controller is available
         )
 
         # guiding state; do not try to refresh
-        
+
         self.guidePrep = keyVarFact(
             keyword = "GuidePrep",
             nval = 0,
@@ -570,21 +676,42 @@ guider mechanical controller is available
             description = "Guiding begins",
             allowRefresh = False,
         )
-        
+
         keyVarFact.setKeysRefreshCmd()
         pvtVarFact.setKeysRefreshCmd()
 
-    def _updRotExists(self, rotCmdState, isCurrent, **kargs):
-        #print "TCCModel._updRotExists(%s, %s)" % (rotCmdState, isCurrent)
-        if rotCmdState == None:
-            rotExists = True
-            isCurrent = False
-        else:
-            rotExists = (rotCmdState.lower() != "notavailable")
+    def _updRotExists(self, ipConfig, isCurrent, **kargs):
+        """Call when the TCC outputs ipConfig and use to set self.rotExists
+        """
+        if not ipConfig:
+            return
+        hasRotChar = ipConfig[0]
+        rotExists = (hasRotChar.lower() == "t")
         if (rotExists, isCurrent) != self.rotExists.getInd(0):
             self.rotExists.set((rotExists,), isCurrent)
         #print "TCCModel._updRotExists: rotExists=%s, isCurrent=%s" % tuple(self.rotExists.getInd(0))
 
+    def _updGProbeDict(self, valueList, isCurrent, **kargs):
+        """Call when the TCC outputs gProbeInfo and use to update self.gProbeDict
+        """
+        if valueList[0] is None:
+            return
+        guideProbe = GuideProbe(valueList)
+        if guideProbe.number == 1:
+            self.gProbeDict = OrderedDict()
+        self.gProbeDict[guideProbe.number] = guideProbe
+
+class GuideProbe(object):
+    """Information about one guide probe
+    """
+    def __init__(self, valueList):
+        self.number = valueList[0]
+        self.exists = valueList[1]
+        self.ctrXY = (valueList[2], valueList[3])
+        self.minXY = (valueList[4], valueList[5])
+        self.maxXY = (valueList[6], valueList[7])
+        self.gp_rot_xy = (valueList[8], valueList[9])
+        self.rot_gim_ang = valueList[10]
 
 if __name__ ==  "__main__":
     # confirm compilation
