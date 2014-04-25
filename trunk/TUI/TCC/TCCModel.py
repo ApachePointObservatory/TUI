@@ -533,12 +533,14 @@ guider mechanical controller is available
                 RO.CnvUtil.asFloatOrNone,
                 RO.CnvUtil.asFloatOrNone,
                 RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
             ),
             description = """Measured pointing error in a form suitable for pointing model data
             - az desired physical position (deg)
             - alt desired physical position (deg)
             - az current mount position (deg)
             - alt current mount position (deg)
+            - rot physical angle (deg)
             """,
             allowRefresh = False,
         )
