@@ -44,7 +44,7 @@ class _Model (object):
         statusKeyFactory = RO.KeyVariable.KeyVarFactory(
             actor = self.actor,
             converters = (asBool, str, str, asFloatOrNone, asFloatOrNone, asFloatOrNone),
-            nval = 6,
+            nval = (6,7), # leave room for an extra value Jon is adding
             dispatcher = self.dispatcher,
             description="""Status about a stage. Sent once at the start of a move
                 and at least once at the end of a move. Fields are:
