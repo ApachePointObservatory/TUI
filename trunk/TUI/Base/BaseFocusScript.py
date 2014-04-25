@@ -140,6 +140,7 @@ History:
 2012-02-16 ROwen    Bug fix: BaseFocusScript.isFinalExposureWanted used undefined variable doRestoreBoresight;
                     fixed by adding a method doRestoreBoresight.
                     Changed to not log diagnostic information when sr.ScriptError is raised.
+2014-04-22 ROwen    Updated to use instInfo.centroidActor. Removed a few unused imports.
 """
 import inspect
 import traceback
@@ -155,8 +156,6 @@ import TUI.TUIModel
 import TUI.TCC.TCCModel
 import TUI.Inst.ExposeModel
 import TUI.Guide.GuideModel
-from TUI.Inst.ExposeStatusWdg import ExposeStatusWdg
-from TUI.Inst.ExposeInputWdg import ExposeInputWdg
 
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -217,6 +216,7 @@ class StarMeas(object):
         self.ampl = ampl
         self.fwhm = fwhm
     
+    @classmethod
     def fromStarKey(cls, starKeyData):
         """Create an instance from star keyword data.
         """
@@ -226,7 +226,6 @@ class StarMeas(object):
             ampl = starKeyData[14],
             xyPos = starKeyData[2:4],
         )
-    fromStarKey = classmethod(fromStarKey)
 
 def makeStarData(
     typeChar = "f",
@@ -1200,7 +1199,6 @@ class BaseFocusScript(object):
             focusIncr = self.focusIncrWdg.getNum()
             if focusIncr < self.MinFocusIncr:
                 raise self.sr.ScriptError("focus increment too small (< %s %s)" % (self.MinFocusIncr, MicronStr))
-            numExpPerFoc = 1
             self.focDir = (endFocPos > startFocPos)
             
             extremeFocPos = Extremes(startFocPos)
@@ -1645,12 +1643,10 @@ class ImagerFocusScript(BaseFocusScript):
         - helpURL: URL of help file
         - debug: if True, run in debug mode, which uses fake data and does not communicate with the hub.
         """
-        # this is a hack for now
-        gcamActor = {
-            "nicfps": "nfocus",
-            "spicam": "sfocus",
-        }[instName.lower()]
         self.exposeModel = TUI.Inst.ExposeModel.getModel(instName)
+        gcamActor = self.exposeModel.instInfo.centroidActor
+        if not gcamActor:
+            raise RuntimeError("Instrument %r has no centroidActor")
         BaseFocusScript.__init__(self,
             sr = sr,
             gcamActor = gcamActor,

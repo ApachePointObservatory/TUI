@@ -90,33 +90,33 @@ class _GCamInfo:
 # dictionary of instrument information
 # instrument names must be lowercase
 _GCamInfoDict = {
-    "gcam": _GCamInfo(
-        imSize = (1024, 1024),
-        defBinFac = 3,
+    "dcam": _GCamInfo(
+        imSize = (512, 512),
+        isSlitViewer = True,
     ),
     "ecam": _GCamInfo(
         imSize = (512, 512),
         isSlitViewer = True,
     ),
-    "dcam": _GCamInfo(
-        imSize = (512, 512),
-        isSlitViewer = True,
-    ),
-    "nfocus":_GCamInfo(
+    "gcam": _GCamInfo(
         imSize = (1024, 1024),
-        defExpTime = 6,
-    ),
-    "afocus":_GCamInfo(
-        imSize = (1024, 1024),
-    ),
-    "sfocus":_GCamInfo(
-        imSize = (2048, 2048),
+        defBinFac = 3,
     ),
     "tcam":_GCamInfo(
         imSize = (1024, 1024),
         isSlitViewer = True,
         defBinFac = 2,
-    )
+    ),
+    "afocus":_GCamInfo(
+        imSize = (1024, 1024),
+    ),
+    "nfocus":_GCamInfo(
+        imSize = (1024, 1024),
+        defExpTime = 6,
+    ),
+    "sfocus":_GCamInfo(
+        imSize = (2048, 2048),
+    ),
 }
 
 # cache of guide camera models

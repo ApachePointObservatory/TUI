@@ -57,8 +57,8 @@ Notes:
 2007-05-22 ROwen    Added SPIcam.
 2007-07-27 ROwen    Set min exposure time for SPIcam to 0.76 seconds.
 2008-03-14 ROwen    Added information for TripleSpec.
-                    Added instName and actor arguments to _ExpInfo class.
-2008-03-25 ROwen    Split actor into instActor and exposeActor in _ExpInfo class.
+                    Added instName and actor arguments to _InstInfo class.
+2008-03-25 ROwen    Split actor into instActor and exposeActor in _InstInfo class.
                     Changed instrument name TripleSpec to TSpec.
 2008-04-23 ROwen    Get expState from the cache (finally) but null out the times.
                     Modified expState so durations can be None or 0 for unknown (was just 0).
@@ -74,7 +74,7 @@ Notes:
 2009-05-04 ROwen    Added maxNumExp to instInfo and set it to 99999 for Agile.
 2009-05-06 ROwen    Modified to use Get Every preference instead of Auto Get.
 2009-07-09 ROwen    Removed unused import of os (found by pychecker).
-2010-09-20 ROwen    Added canPauseSequece to _ExpInfo.
+2010-09-20 ROwen    Added canPauseSequece to _InstInfo.
                     Added Stop button to Agile.
 2010-09-21 ROwen    Changed canPause to canPauseExposure similarly for canStop and canAbort.
                     Added canStopSeq and renamed canPauseSequence to canPauseSeq.
@@ -88,7 +88,7 @@ Notes:
                     Changed all classes into modern style classes.
 2013-07-10 ROwen    Removed Shack-Hartmann.
 """
-__all__ = ['getModel']
+__all__ = ['getModel', "GuiderActorNameDict"]
 
 import Tkinter
 import RO.Alg
@@ -101,7 +101,7 @@ import RO.StringUtil
 import TUI.TUIModel
 import FileGetter
 
-class _ExpInfo(object):
+class _InstInfo(object):
     """Exposure information for a camera
     
     Inputs:
@@ -125,6 +125,9 @@ class _ExpInfo(object):
     - defOverscan: default overscan in x, y; None if cannot set overscan; ignored if canWindow False
     - playExposureEnds: play ExposureEnds sound when appropriate;
         set False if time is short between ending one exposure and beginning the next
+    - canImage: if True then can take imaging data
+    - guiderActor: actor name of guider, or None if none
+    - centroidActor: actor to centroid and find stars on an image (must be None if if canImage is False)
     
     Also sets fields:
     - exposeActor = <instActor>Expose
@@ -148,6 +151,9 @@ class _ExpInfo(object):
         canWindow = False,
         defOverscan = None,
         playExposureEnds = True,
+        canImage = False,
+        guiderActor = None,
+        centroidActor = None,
     ):
         self.instName = str(instName)
         if len(imSize) != 2:
@@ -189,6 +195,11 @@ class _ExpInfo(object):
             except Exception:
                 raise RuntimeError("defOverscan=%r; must be None or a pair of integers" % (defOverscan,))
         self.playExposureEnds = bool(playExposureEnds)
+        self.canImage = bool(canImage)
+        self.guiderActor = guiderActor
+        if centroidActor is not None and not self.canImage:
+            raise RuntimeError("centroidActor must be None if instrument canImage false")
+        self.centroidActor = centroidActor
 
     def getNumCameras(self):
         return len(self.camNames)
@@ -198,10 +209,10 @@ def _makeInstInfoDict():
     """Generate instInfo dictionary and exposure model dictionary
     
     Returns:
-    * instInfoDict: a dictionary if instName.lower(): _ExpInfo
+    * instInfoDict: a dictionary if instName.lower(): _InstInfo
     """
     _InstInfoList = (
-        _ExpInfo(
+        _InstInfo(
             instName = "agile",
             imSize = (1024, 1024),
             minExpTime = 0.3,
@@ -213,26 +224,33 @@ def _makeInstInfoDict():
             canWindow = True,
             defOverscan = (27, 0),
             playExposureEnds = False,
+            canImage = True,
+            centroidActor = "afocus",
         ),
-        _ExpInfo(
+        _InstInfo(
             instName = "DIS",
             imSize = (2048, 1028),
             minExpTime = 1, 
             camNames = ("blue", "red"),
+            canImage = True,
+            guiderActor = "dcam",
         ),
-        _ExpInfo(
+        _InstInfo(
             instName = "Echelle",
             imSize = (2048, 2048),
+            guiderActor = "ecam",
         ),
-        _ExpInfo(
+        _InstInfo(
             instName = "GIFS",
             imSize = (1024, 1024),
             minExpTime = 0.1,
             canPauseExp = False,
             canStopExp = False,
             canAbortExp = False,
+            canImage = True,
+            guiderActor = "gcam",
         ),
-        _ExpInfo(
+        _InstInfo(
             instName = "NICFPS",
             imSize = (1024, 1024),
             minExpTime = 0,
@@ -240,19 +258,27 @@ def _makeInstInfoDict():
             canPauseExp = False,
             canStopExp = False,
             canAbortExp = False,
+            canImage = True,
+            centroidActor = "nfocus",
+            guiderActor = "gcam",
         ),
-        _ExpInfo(
+        _InstInfo(
             instName = "SPIcam",
             minExpTime = 0.76,
             imSize = (2048, 2048),
+            canImage = True,
+            centroidActor = "sfocus",
+            guiderActor = "gcam",
         ),
-        _ExpInfo(
+        _InstInfo(
             instName = "TSpec",
             imSize = (2048, 1024),
             minExpTime = 0.75,
             expTypes = ("object", "flat", "dark"),
             canPauseExp = False,
             canStopExp = False,
+            canImage = False,
+            guiderActor = "tcam",
         ),
     )
     
@@ -261,12 +287,17 @@ def _makeInstInfoDict():
         instInfoDict[instInfo.instName.lower()] = instInfo
     return instInfoDict
 
-# dictionary of instName.lower(): _ExpInfo
+# dictionary of instName.lower(): _InstInfo
 _InstInfoDict = _makeInstInfoDict()
 
 # cache of instName: model; filled as needed
 _modelDict = {}
 
+GuiderActorNameDict = {
+    "gcam": "NA2 Guider",
+    "dcam": "DIS Slitviewer",
+    "tcam": "TSpec Slitviewer",
+}
 
 class _BoolPrefVarCont(object):
     """Class to set a Tkinter.BooleanVar from a RO.Pref boolean preference variable.
