@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+   <title>TUI:Scripts:Built In Scripts:Telescope:Pointing Data</title>
+</head>
+<body>
+
+<h2><a href="../../index.html">TUI</a>:<a href="../index.html">Scripts</a>:<a href="index.html">Built In Scripts</a>:Telescope:Pointing Data</h2>
+
+<p>The Telescope:Pointing Data script takes set of pointing error measurements of pointing reference stars across the sky. It logs the results to a data file which can be used to fit a pointing model.
+
+<h3>Controls</h3>
+
+<ul>
+    <li><b>Az/Alt Grid</b>: select the grid of az/alt points. The script slews to a pointing reference star near each point in turn. A few grids are built in. Additional grids are looked for in TUIAdditions/Grids/*.dat (and the menu is rebuilt each time you click on it, so you can add or change script files while TUI is running).
+    <li><b>Num Exp</b>: the number of exposures to take of each pointing reference star. After each exposure the pointing is corrected (by updating the Calibration offset). The pointing error of the final exposure is logged to the pointing data file. 1 should usually suffice, but it is worth experimenting with 2 to see if it increases the accuracy of the pointing model.
+    <li><b>Exp Time</b>: exposure time (sec).
+    <li><b>Bin Factor</b>: bin factor
+    <li><b>Centroid Radius</b>: centroid radius, in arcsec. This is used if Num Exp > 1 for all measurements after the first one (the first one uses the "findstars" command, which does not use a centroid radius). It should be large enough to include the star and some sky around it. Pointing reference stars should be reasonably well isolated, so there is usually no need to worry about including extra stars.
+</ul>
+
+<h3>Operation</h3>
+
+<p>Select an az/alt grid, adjust any other settings as desired, then push Start. For each point in the az/alt grid the script will find and slew to a nearby pointing reference star, measure the star, write the pointing error to a data file whose path is displayed, and correct the pointing error.
+
+<p>The graph shows the grid of az/alt points. While a star near a grid point is being measured, that grid point is shown as a large blue star. Once the star has been measured, the grid point is a small green star, or a red X if the star could not be measured. Note that the graph does <b>not</b> show the positions of the pointing reference stars (to avoid clutter) nor the measured error (because TPOINT does this so much more better).
+
+<p>The data file can be read by TPOINT and used to fit a pointing model. You will also want access to the the current pointing model (to get the terms we use, and to see how much pointing has changed). You can get that from tcc35m-1-p in tccdata/telmod.dat.
+
+</body>
+</html>

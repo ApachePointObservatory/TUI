@@ -17,18 +17,6 @@ ax.quiver(theta, r, dr * cos(theta) - dt * sin (theta), dr * sin(theta) + dt * c
 
 
 @todo:
-- Major graph improvements:
-    - Show a faint line showing the order of the points.
-    - When a star has been measured indicate it in some way. I think:
-        - Show ref star position instead of grid position.
-        - Show ref star position in green if measurement successful, red if measurement failed.
-        - Update connecting lines
-- Add a log window that reports each step as taken; keep updating status for a star
-    until data is measured and logged for it, then onto the next line,
-    or else only add a line after the star is fully measured or fails (easier, but less informative).
-- Add a display of star N of N while running (could just add "N of" to the numStars widget);
-    also indicate measurement M of M for each star.
-- Add an exposure timer?
 - Handle binning, and windowing to speed up exposures.
     I propose common code with the focus scripts, and handling multiple instruments identically
     (i.e. either one focus scripts and one pointing data script per instrument,
@@ -37,11 +25,9 @@ ax.quiver(theta, r, dr * cos(theta) - dt * sin (theta), dr * sin(theta) + dt * c
     Meanwhile much of this code is borrowed directly from BaseFocusScript,
     even though some of it is not a perfect fit.
 - Handle instruments, not just guiders
-- Add a help page and link to it
 
 History:
-2014-04-21 ROwen    Start tinkering
-2014-04-25 ROwen    Major improvements: supports any guider and may even work.
+2014-04-28 ROwen
 """
 import collections
 import glob
@@ -49,6 +35,7 @@ import os
 
 import numpy
 import matplotlib
+import matplotlib.colors
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import Tkinter
 
@@ -67,9 +54,10 @@ import TUI.TCC.UserModel
 import TUI.Inst.ExposeModel
 import TUI.Guide.GuideModel
 
-WindowName = "Misc.Get Pointing Data"
-
 MeanLat = 32.780361 # latitude of telescope (deg)
+
+Debug = False
+HelpURL = "Scripts/BuiltInScripts/PointingData.html"
 
 # Dictionary of instrument position: TPOINT rotator name
 # See TPOINT manual section 4.5.2 "Option records" for the codes
@@ -79,16 +67,6 @@ InstPosRotDict = dict(
     na2 = "ROTL",
     tr2 = "ROTTEL",    
 )
-
-def addWindow(tlSet):
-    """Create the window for TUI.
-    """
-    tlSet.createToplevel(
-        name = WindowName,
-        defGeom = "400x400+434+22",
-        wdgFunc = ScriptClass,
-        defVisible = True,
-    )
 
 class InstActors(object):
     def __init__(self, instName, exposeActor, guideActor):
@@ -107,8 +85,8 @@ class ScriptClass(object):
         """
         self.sr = sr
         sr.master.winfo_toplevel().resizable(True, True)
-        sr.debug = True
-        self.azAltList = []
+        sr.debug = Debug
+        self.azAltList = None
         self._nextPointTimer = Timer()
         self._gridDirs = getGridDirs()
         self.tccModel = TUI.TCC.TCCModel.getModel()
@@ -117,7 +95,7 @@ class ScriptClass(object):
         self.actorData = collections.OrderedDict()
         self.maxFindAmpl = 30000
         self.defRadius = 5.0
-        self.helpURL = None
+        self.helpURL = HelpURL
         defBinFactor = 3
         finalBinFactor = None
         if defBinFactor == None:
@@ -204,6 +182,13 @@ class ScriptClass(object):
         )
         gr.gridWdg(self.centroidRadWdg.label, self.centroidRadWdg, "arcsec")
 
+        self.dataPathWdg = RO.Wdg.StrLabel(
+            master = ctrlFrame,
+            anchor = "w",
+            helpText = "path to pointing data file",
+        )
+        self.dataPathWdg.grid(row=10, column=0, columnspan=6, sticky="ew")
+
         self.tccModel.instName.addIndexedCallback(self._setInstName, callNow=True)
 
         if sr.debug:
@@ -213,13 +198,8 @@ class ScriptClass(object):
         """Call when the TCC reports a new instName
         """
         if instName is None:
-            if not self.sr.isExecuting():
-                guiderName = "(none)"
-                self.gcamActor = None
-                self.guideModel = None
+            return
 
-        # some variant of the following will probably be wanted, once I unify the code with focus scripts
-        #...
         if self.sr.isExecuting():
             self.sr.showMsg(
                 "Instrument changed from %r to %r while running" % (self.exposeModel.instName, instName),
@@ -235,8 +215,7 @@ class ScriptClass(object):
                 "No model for instrument %r" % (instName,),
                 severity = RO.Constants.sevWarning,
             )
-        else:
-            guiderActor = None
+            return
 
         instInfo = self.exposeModel.instInfo
         guiderActor = instInfo.guiderActor
@@ -282,21 +261,28 @@ class ScriptClass(object):
         if not gridName:
             return
         gridPath = self._gridDict[gridName]
+        azList = []
+        altList = []
         with open(gridPath, "rU") as gridFile:
-            azAltList = []
             for i, line in enumerate(gridFile):
                 line = line.strip()
                 if not line or line[0] in ("#", "!"):
                     continue
                 try:
                     az, alt = [float(val) for val in line.split()]
-                    azAltList.append((az, alt))
+                    azList.append(az)
+                    altList.append(alt)
                 except Exception:
                     self.sr.showMsg("Cannot parse line %s as az alt: %r\n" % (i+1, line),
                         severity = RO.Constants.sevWarning, isTemp=True)
-        self.azAltList = azAltList
-        self.numStarsWdg.set("%s stars" % (len(self.azAltList),))
-        self.azAltGraph.plotAzAltPoints(azAltList)
+        numPoints = len(azList)
+        if len(azList) != len(altList):
+            raise RuntimeError("Bug: az and alt list have different length")
+        self.azAltList = numpy.zeros([numPoints], dtype=self.azAltGraph.DType)
+        self.azAltList["az"] = azList
+        self.azAltList["alt"] = altList
+        self.numStarsWdg.set("%s stars" % (numPoints,))
+        self.azAltGraph.plotAzAltPoints(self.azAltList)
 
     def enableCmdBtns(self, doEnable):
         """Enable or disable command buttons (e.g. Expose and Sweep).
@@ -308,7 +294,7 @@ class ScriptClass(object):
         """
         self.initAll()
 
-        if not self.azAltList:
+        if self.azAltList is None:
             raise ScriptError("No az/alt grid selected")
         
         self.recordUserParams()
@@ -342,6 +328,7 @@ class ScriptClass(object):
         currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
         ptDataName = "ptdata_%s.dat" % (currDateStr,)
         ptDataPath = os.path.join(ptDataDir, ptDataName)
+        self.dataPathWdg.set(ptDataPath)
         numEntries = 0
         with open(ptDataPath, "w") as ptDataFile:
             headerStrList = self.getHeaderStrList(currDateStr)
@@ -350,39 +337,59 @@ class ScriptClass(object):
                 ptDataFile.write("\n")
             ptDataFile.flush()
 
-            for az, alt in self.azAltList[:]:
-                # use a copy in case somebody alters the list while running, though that should not be possible
-                yield sr.waitCmd(
-                    actor = "tcc",
-                    cmdStr = "track %0.7f, %0.7f obs/pterr=(find, refSlew)" % (az, alt),
-                    keyVars = (self.tccModel.ptRefStar,),
-                )
-                cmdVar = sr.value
-                ptRefStarValues = cmdVar.getLastKeyVarData(self.tccModel.ptRefStar, ind=None)
-                if not ptRefStarValues:
-                    if not sr.debug:
-                        raise ScriptError("No pointing reference star found")
-                    else:
-                        ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
-                self.ptRefStar = PtRefStar(ptRefStarValues)
-                numExp = self.numExpWdg.getNum()
-                for expInd in range(numExp):
-                    if expInd == 0:
-                        yield self.waitFindStar(firstOnly=True)
-                    else:
-                        yield self.waitCentroid()
-                    starMeas = sr.value
-                    if starMeas.xyPos is None:
-                        break
+            for i, rec in enumerate(self.azAltList):
+                try:
+                    self.numStarsWdg.set("%s of %s stars" % (i + 1, len(self.azAltList)))
+                    az = rec["az"]
+                    alt = rec["alt"]
+                    self.azAltList["state"][i] = self.azAltGraph.Measuring
+                    self.azAltGraph.plotAzAltPoints(self.azAltList)
 
-                    yield self.waitComputePtErr(starMeas)
-                    ptErr = sr.value
-
-                    # correct relative error (using current calib and guide offsets)
                     yield sr.waitCmd(
                         actor = "tcc",
-                        cmdStr = "offset calib %s, %s" % (ptErr.ptErr[0], ptErr.ptErr[1])
+                        cmdStr = "track %0.7f, %0.7f obs/pterr=(find, refSlew)" % (az, alt),
+                        keyVars = (self.tccModel.ptRefStar,),
+                        checkFail = False,
                     )
+                    cmdVar = sr.value
+                    if cmdVar is None or cmdVar.didFail():
+                        raise ScriptError("Slew to pointing reference star failed")
+                    ptRefStarValues = cmdVar.getLastKeyVarData(self.tccModel.ptRefStar, ind=None)
+                    if not ptRefStarValues:
+                        if not sr.debug:
+                            raise ScriptError("No pointing reference star found")
+                        else:
+                            ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
+                    self.ptRefStar = PtRefStar(ptRefStarValues)
+                    numExp = self.numExpWdg.getNum()
+                    for expInd in range(numExp):
+                        if expInd == 0:
+                            yield self.waitFindStar(firstOnly=True)
+                        else:
+                            yield self.waitCentroid()
+                        starMeas = sr.value
+                        if not starMeas.xyPos:
+                            raise ScriptError()
+
+                        yield self.waitComputePtErr(starMeas)
+                        ptErr = sr.value
+                        if not ptErr:
+                            raise ScriptError()
+
+                        # correct relative error (using current calib and guide offsets)
+                        yield sr.waitCmd(
+                            actor = "tcc",
+                            cmdStr = "offset calib %s, %s" % (ptErr.ptErr[0], ptErr.ptErr[1]),
+                            checkFail = False,
+                        )
+                        cmdVar = sr.value
+                        if cmdVar is None or cmdVar.didFail():
+                            raise ScriptError("Offset command failed")
+                except ScriptError, e:
+                    self.showMsg(str(e), severity=RO.Constants.sevWarning)
+                    self.azAltList["state"][i] = self.azAltGraph.Failed
+                    self.azAltGraph.plotAzAltPoints(self.azAltList)
+                    continue
 
                 # log pointing error
                 # do this after the last measurement of the star, so we have only one entry per star
@@ -390,7 +397,10 @@ class ScriptClass(object):
                 ptDataFile.write(ptErr.getPtDataStr())
                 ptDataFile.write("\n")
                 ptDataFile.flush()
+                self.azAltList["state"][i] = self.azAltGraph.Measured
+                self.azAltGraph.plotAzAltPoints(self.azAltList)
                 numEntries += 1
+
 
     def getHeaderStrList(self, currDateStr):
         """Return TPOINT data file header as a list of strings
@@ -717,6 +727,13 @@ class AzAltGraph(Tkinter.Frame):
     az 0 deg is down, 90 deg is right
     alt 90 deg is in the center
     """
+    DType = [("az", float), ("alt", float), ("state", int)]
+    Unmeasured = 0
+    Measuring = 1
+    Measured = 2
+    Failed = -1
+    AllStates = (Unmeasured, Measuring, Measured, Failed)
+
     def __init__(self, master):
         Tkinter.Frame.__init__(self, master)
         plotFig = matplotlib.figure.Figure(figsize=(6, 6), frameon=False)
@@ -736,14 +753,40 @@ class AzAltGraph(Tkinter.Frame):
 
     def plotAzAltPoints(self, azAltPoints):
         """Plot az/alt points
+
+        Inputs:
+        - azAltPoints: data in the form of a numpy array with named columns for az, alt and state,
+            where state is one of Unmeasured, Measuring, Measured or Failed
+            (use self.DType to construct the array)
         """
         self.axis.clear()
 
+        markerDict = {
+            self.Unmeasured: dict(marker="o", markeredgecolor="black", fillstyle="none", markersize=3),
+            self.Measuring: dict(marker="*", markeredgecolor="blue", markerfacecolor="blue", markersize=9),
+            self.Measured: dict(marker="*", markeredgecolor="green", markerfacecolor="green", markersize=7),
+            self.Failed: dict(marker="x", markeredgecolor="red", markersize=7),
+        }
+
         # convert az, alt to r, theta, where r is 0 in the middle and theta is 0 right, 90 up
-        az, alt = zip(*azAltPoints)
-        r = numpy.subtract(90, alt)
-        theta = numpy.deg2rad(numpy.subtract(az, 90))
-        self.axis.plot(theta, r, linestyle="none", marker="o", markersize=2)
+        for state in self.AllStates:
+            markerArgs = markerDict[state]
+            az = numpy.compress(azAltPoints["state"] == state, azAltPoints["az"])
+            alt = numpy.compress(azAltPoints["state"] == state, azAltPoints["alt"])
+
+            r = numpy.subtract(90, alt)
+            theta = numpy.deg2rad(numpy.subtract(az, 90))
+            self.axis.plot(theta, r, linestyle="", **markerArgs)
+
+
+        # plot connecting lines
+        # az = azAltPoints["az"]
+        # alt = azAltPoints["alt"]
+
+        # r = numpy.subtract(90, alt)
+        # theta = numpy.deg2rad(numpy.subtract(az, 90))
+        # self.axis.plot(theta, r, linestyle="-", linewidth=0.1, color="blue")
+
         self._setLimits()
         self.figCanvas.draw()
 
