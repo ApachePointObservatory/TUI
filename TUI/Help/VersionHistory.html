@@ -15,7 +15,7 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>2.2.0+ 2014-04-28</h3>
+<h3>2.2.0+ 2014-04-29</h3>
 
 <p>Visible changes:
 <ul>
@@ -29,6 +29,11 @@
     <li>GIFSModel allows an extra value for various stage keywords, since Jon is adding one.
 </ul>
 
+<p>Bug fixes:
+<ul>
+    <li>ScriptRunner's value field was set to None by pause/resume, thus losing the returned value.
+</ul>
+
 <h3>2.2.0 2014-03-14</h3>
 
 <p>Visible changes:
@@ -40,7 +45,7 @@
     <li>Improved compatibility with MacOS 10.9: the application now runs in 32-bit mode, though you should still manually disable app nap.
 </ul>
 
-<p>Bug fix:
+<p>Bug fixes:
 <ul>
     <li>CmdVar objects were sending the command "None" when aborted, due to careless casting. Fixed by changing the default from None to "" in CmdVar and ScriptRunner, and by also testing for None in CmdVar when casting (for backwards compatibility, though no code in TUI specifies None).
 </ul>
