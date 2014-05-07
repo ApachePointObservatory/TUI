@@ -28,6 +28,7 @@ ax.quiver(theta, r, dr * cos(theta) - dt * sin (theta), dr * sin(theta) + dt * c
 
 History:
 2014-04-28 ROwen
+2014-05-07 ROwen    Change graph to show E left (like the Sky window) and use 15 degree alt lines.
 """
 import collections
 import glob
@@ -109,7 +110,7 @@ class ScriptClass(object):
         self.finalBinFactor = finalBinFactor
 
         self.azAltGraph = AzAltGraph(master=sr.master)
-        self.azAltGraph.grid(row=0, column=0)
+        self.azAltGraph.grid(row=0, column=0, sticky="news")
         sr.master.grid_rowconfigure(0, weight=1)
         sr.master.grid_columnconfigure(0, weight=1)
 
@@ -130,7 +131,7 @@ class ScriptClass(object):
             postCommand = self._fillGridsMenu,
             helpText = "az/alt grid",
         )
-        gr.gridWdg("Az/Alt Grid", self.gridWdg)
+        gr.gridWdg("Grid", self.gridWdg)
         self.numStarsWdg = RO.Wdg.StrLabel(
             master = ctrlFrame,
             anchor = "w",
@@ -736,7 +737,7 @@ class AzAltGraph(Tkinter.Frame):
 
     def __init__(self, master):
         Tkinter.Frame.__init__(self, master)
-        plotFig = matplotlib.figure.Figure(figsize=(6, 6), frameon=False)
+        plotFig = matplotlib.figure.Figure(figsize=(5, 5), frameon=False)
         self.figCanvas = FigureCanvasTkAgg(plotFig, self)
         self.figCanvas.get_tk_widget().grid(row=0, column=0, sticky="news")
         self.grid_rowconfigure(0, weight=1)
@@ -747,9 +748,10 @@ class AzAltGraph(Tkinter.Frame):
     def _setLimits(self):
         """Update plot limits; must be done for every call to plotAzAltPoints
         """
-        self.axis.set_xticklabels(['90', '135', '180', '-135', '-90', '-45', '0', '45'])
+        self.axis.set_xticklabels(['-90', '-135', 'N 180', '135', 'E 90', '45', '0', '-45'])
         self.axis.set_ylim(0, 90)
-        self.axis.set_yticklabels([]) # ['80', '', '60', '', '40', '', '20', '', '0'])
+        self.axis.set_yticks((0, 15, 30, 45, 60, 75, 90))
+        self.axis.set_yticklabels([]) # ['75', '60', '45', '15', '0'])
 
     def plotAzAltPoints(self, azAltPoints):
         """Plot az/alt points
@@ -775,7 +777,7 @@ class AzAltGraph(Tkinter.Frame):
             alt = numpy.compress(azAltPoints["state"] == state, azAltPoints["alt"])
 
             r = numpy.subtract(90, alt)
-            theta = numpy.deg2rad(numpy.subtract(az, 90))
+            theta = numpy.deg2rad(numpy.subtract(270, az))
             self.axis.plot(theta, r, linestyle="", **markerArgs)
 
 
@@ -788,30 +790,6 @@ class AzAltGraph(Tkinter.Frame):
         # self.axis.plot(theta, r, linestyle="-", linewidth=0.1, color="blue")
 
         self._setLimits()
-        self.figCanvas.draw()
-
-    def plotErrors(self, azAltPoints, errPoints=()):
-        """Plot error data
-
-        Inputs:
-        - azAltPoints: az,alt points at which errors were measured
-        - errPoints: az,alt error at each az, alt point
-        """
-        if len(errPoints) != len(azAltPoints):
-            raise RuntimeError("len(azAltPoints) = %s != %s = len(errPoints)" % (len(azAltPoints), len(errPoints)))
-
-        # convert az, alt to r, theta, where r is 0 in the middle and theta is 0 right, 90 up
-        az, alt = zip(*azAltPoints)
-        r = numpy.subtract(90, alt)
-        theta = numpy.deg2rad(numpy.subtract(az, 90))
-
-        # quiver on a polar plot takes these strange arguments: theta, r, dx, dy
-        sinAz = numpy.sin(numpy.deg2rad(az))
-        cosAz = numpy.cos(numpy.deg2rad(az))
-        azErr, altErr = zip(*errPoints)
-        xErr = (cosAz * azErr) - (sinAz * altErr)
-        yErr = (sinAz * azErr) + (cosAz * altErr)
-        self.axis.quiver(theta, r, xErr, yErr, width=0.005)
         self.figCanvas.draw()
 
 
