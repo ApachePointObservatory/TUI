@@ -165,11 +165,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             sysName = "%sConfig" % (self.InstName,),
             userPresetsDict = self.tuiModel.userPresetsDict,
             inputCont = self.inputCont,
-            text = "Presets",
             helpText = "use and manage named presets",
             helpURL = self.HelpPrefix + "Presets",
         )
         self.gridder.gridWdg(
+            "Presets",
             cfgWdg = self.presetsWdg,
         )
 
@@ -321,7 +321,7 @@ class StageControls(object):
         """
         isMoving = valueList[0]
         currPos = valueList[1]
-        moveDuration = valueList[5]
+        moveDuration = valueList[6]
         self.currWdg.set(currPos, isCurrent=isCurrent)
         if isMoving and moveDuration > 0:
             self.progressBar.start(value=moveDuration, newMax=moveDuration)

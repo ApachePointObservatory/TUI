@@ -241,11 +241,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             sysName = "%sConfig" % (self.InstName,),
             userPresetsDict = self.tuiModel.userPresetsDict,
             inputCont = self.inputCont,
-            text = "Presets",
             helpText = "use and manage named presets",
             helpURL = self.HelpPrefix + "Presets",
         )
         self.gridder.gridWdg(
+            "Presets",
             cfgWdg = self.configWdg,
             colSpan = 2,
         )

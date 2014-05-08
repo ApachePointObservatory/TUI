@@ -15,12 +15,14 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>2.2.0+ 2014-04-29</h3>
+<h3>2.3.0b1 2014-05-08</h3>
 
 <p>Visible changes:
 <ul>
+    <li>Updated for non-backwards-compatible changes to GIFS.
+    <li>The Presets menus now shows the name of the preset in config half of the instrument window, if a named preset matches the selected configuration. If more than one named preset matches, the first match is shown. There is no similar display in the status half of the instrument window (because it would require too much code). However, you can see the preset that corresponds to the current state of the instrument by pressing the Current button.
     <li>TUI logs are now stored in a subdirectory "tui_logs" and each log starts with a time stamp and TUI version.
-    <li>Added a script Telescope: Pointing Data to collect pointing data. However, this script requires the new TCC, so it will not be generally useful until the switch (scheduled for August).
+    <li>Added a script Telescope: Pointing Data to collect pointing data. However, this script requires the new TCC, so it will not be usable until the switch (scheduled for August).
 </ul>
 
 <p>Internal changes:
