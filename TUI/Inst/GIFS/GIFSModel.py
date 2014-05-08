@@ -44,16 +44,17 @@ class _Model (object):
         statusKeyFactory = RO.KeyVariable.KeyVarFactory(
             actor = self.actor,
             converters = (asBool, str, str, asFloatOrNone, asFloatOrNone, asFloatOrNone),
-            nval = (6,7), # leave room for an extra value Jon is adding
+            nval = 7,
             dispatcher = self.dispatcher,
             description="""Status about a stage. Sent once at the start of a move
-                and at least once at the end of a move. Fields are:
+                and at least once at the end of a move. All positions are in motor steps. Fields are:
                 * is moving?
                 * current name or position
                 * commanded name or position
                 * commanded position as a number
                 * position error = measured - commanded position;
                   when starting a move this is the negative of the distance to be moved
+                * focus offset
                 * estimated time to arrive (sec) (0 when not moving)
             """,
         )

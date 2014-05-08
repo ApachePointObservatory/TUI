@@ -555,7 +555,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             ) for ii in range(4)
         ]
 #       self.model.ccdUBWindow.addCallback(self._setCCDWindowWdgDef)
-        wdgSet = gr.gridWdg (
+        gr.gridWdg (
             label = "Window",
             dataWdg = ccdWindowCurrWdgSet[0:2],
             cfgWdg = self.ccdWindowUserWdgSet[0:2],
@@ -587,7 +587,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
                 helpURL = self.HelpPrefix + "ImageSize",
             ) for ii in range(2)
         ]
-        wdgSet = gr.gridWdg (
+        gr.gridWdg (
             label = "Image Size",
             dataWdg = self.ccdImageSizeCurrWdgSet,
             cfgWdg = self.ccdImageSizeUserWdgSet,
@@ -721,11 +721,11 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             sysName = "%sConfig" % (self.InstName,),
             userPresetsDict = self.tuiModel.userPresetsDict,
             inputCont = self.inputCont,
-            text = "Presets",
             helpText = "use and manage named presets",
             helpURL = self.HelpPrefix + "Presets",
         )
         self.gridder.gridWdg(
+            "Presets",
             cfgWdg = self.configWdg,
             colSpan = 2,
         )
