@@ -91,6 +91,7 @@ class ScriptClass(object):
         self._nextPointTimer = Timer()
         self._gridDirs = getGridDirs()
         self.tccModel = TUI.TCC.TCCModel.getModel()
+        self.exposeModel = None
         self.gcamActor = None
         self.guideModel = None
         self.actorData = collections.OrderedDict()
@@ -201,12 +202,16 @@ class ScriptClass(object):
         if instName is None:
             return
 
-        if self.sr.isExecuting():
+        if self.exposeModel:
+            print "self.exposeModel.instName=%r" % (self.exposeModel.instName,)
+        print "instName=%r" % (instName,)
+
+        if self.sr.isExecuting() and self.exposeModel and self.exposeModel.instName.lower() != instName.lower():
             self.sr.showMsg(
                 "Instrument changed from %r to %r while running" % (self.exposeModel.instName, instName),
                 severity = RO.Constants.sevError,
             )
-            self.cancel()
+            self.sr.cancel()
 
         try:
             self.exposeModel = TUI.Inst.ExposeModel.getModel(instName)
@@ -317,7 +322,7 @@ class ScriptClass(object):
             ptErrProbe = self.tccModel.ptErrProbe.getInd(0)[0]
             if ptErrProbe in (0, None):
                 raise ScriptError("Invalid pointing error probe %s; must be >= 1" % (ptErrProbe,))
-            guideProbe = self.tccModel.guideProbeDict.get(ptErrProbe)
+            guideProbe = self.tccModel.gProbeDict.get(ptErrProbe)
             if guideProbe is None:
                 raise ScriptError("No data for pointing error probe %s" % (ptErrProbe,))
             if not guideProbe.exists:
@@ -348,7 +353,7 @@ class ScriptClass(object):
 
                     yield sr.waitCmd(
                         actor = "tcc",
-                        cmdStr = "track %0.7f, %0.7f obs/pterr=(find, refSlew)" % (az, alt),
+                        cmdStr = "track %0.7f, %0.7f obs/pterr" % (az, alt),
                         keyVars = (self.tccModel.ptRefStar,),
                         checkFail = False,
                     )
@@ -387,7 +392,7 @@ class ScriptClass(object):
                         if cmdVar is None or cmdVar.didFail():
                             raise ScriptError("Offset command failed")
                 except ScriptError, e:
-                    self.showMsg(str(e), severity=RO.Constants.sevWarning)
+                    self.sr.showMsg(str(e), severity=RO.Constants.sevWarning)
                     self.azAltList["state"][i] = self.azAltGraph.Failed
                     self.azAltGraph.plotAzAltPoints(self.azAltList)
                     continue
