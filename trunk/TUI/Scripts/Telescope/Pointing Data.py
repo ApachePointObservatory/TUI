@@ -440,7 +440,7 @@ class ScriptClass(object):
         if instPos is None:
             raise ScriptError("Instrument position unknown")
         tpointRotCode = InstPosRotDict.get(instPos.lower(), "")
-        optionList = ["AZALT"]
+        optionList = ["ALTAZ"]
         if tpointRotCode:
             optionList.append(tpointRotCode)
 
@@ -449,11 +449,13 @@ class ScriptClass(object):
         if len(meanLatDMS) != 3:
             raise ScriptError("Bug: MeanLat=%r split into %r, not 3 fields" % (MeanLat, meanLatDMS))
 
+        optionStr = "\n".join(": %s" % val for val in optionList)
+
         headerStrList = (
             "! Caption record:",
             "APO 3.5M Pointing Data " + currDateStr,
-            "! Option record: AZALT followed by rotator code, if applicable",
-            " ".join(optionList),
+            "! Option record: ALTAZ followed by rotator code, if applicable",
+            optionStr,
             "! Run parameters: telescope latitude deg min sec",
             meanLatDMSStr,
             "! Pointing data (TPOINT format #4):",
