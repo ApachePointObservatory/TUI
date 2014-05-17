@@ -29,6 +29,7 @@ ax.quiver(theta, r, dr * cos(theta) - dt * sin (theta), dr * sin(theta) + dt * c
 History:
 2014-04-28 ROwen
 2014-05-07 ROwen    Change graph to show E left (like the Sky window) and use 15 degree alt lines.
+2014-05-15 ROwen    Many bug fixes.
 """
 import collections
 import glob
@@ -110,6 +111,9 @@ class ScriptClass(object):
             self.dispBinFactor = self.defBinFactor
         self.finalBinFactor = finalBinFactor
 
+        self.gcamActor = "gcam"
+        self.guideModel = TUI.Guide.GuideModel.getModel("gcam")
+
         self.azAltGraph = AzAltGraph(master=sr.master)
         self.azAltGraph.grid(row=0, column=0, sticky="news")
         sr.master.grid_rowconfigure(0, weight=1)
@@ -122,7 +126,7 @@ class ScriptClass(object):
             anchor = "w",
             helpText = "Guider that will be used to measure pointing error",
         )
-        gr.gridWdg(False, self.guiderNameWdg, colSpan=2, sticky="ew")
+#        gr.gridWdg(False, self.guiderNameWdg, colSpan=2, sticky="ew")
         self._gridDict = dict()
         self.gridWdg = RO.Wdg.OptionMenu(
             master = ctrlFrame,
@@ -191,7 +195,7 @@ class ScriptClass(object):
         )
         self.dataPathWdg.grid(row=10, column=0, columnspan=6, sticky="ew")
 
-        self.tccModel.instName.addIndexedCallback(self._setInstName, callNow=True)
+        # self.tccModel.instName.addIndexedCallback(self._setInstName, callNow=True)
 
         if sr.debug:
             self.tccModel.instName.set(["DIS"],)
@@ -201,10 +205,6 @@ class ScriptClass(object):
         """
         if instName is None:
             return
-
-        if self.exposeModel:
-            print "self.exposeModel.instName=%r" % (self.exposeModel.instName,)
-        print "instName=%r" % (instName,)
 
         if self.sr.isExecuting() and self.exposeModel and self.exposeModel.instName.lower() != instName.lower():
             self.sr.showMsg(
@@ -298,6 +298,7 @@ class ScriptClass(object):
     def run(self, sr):
         """Take a set of pointing data
         """
+        self._setGrid()
         self.initAll()
 
         if self.azAltList is None:
@@ -328,7 +329,7 @@ class ScriptClass(object):
             if not guideProbe.exists:
                 raise ScriptError("Pointing error probe %s is disabled" % (ptErrProbe,))
             self.ptErrProbe = ptErrProbe
-            self.relStarPos = guideProbe.ctrXY[:]
+            self.relStarPos = [guideProbe.ctrXY[i] / float(self.binFactor) for i in range(2)]
 
         # open log file and write header
         currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
@@ -353,7 +354,7 @@ class ScriptClass(object):
 
                     yield sr.waitCmd(
                         actor = "tcc",
-                        cmdStr = "track %0.7f, %0.7f obs/pterr" % (az, alt),
+                        cmdStr = "track %0.7f, %0.7f obs/pterr/rottype=object/rotang=0" % (az, alt),
                         keyVars = (self.tccModel.ptRefStar,),
                         checkFail = False,
                     )
@@ -367,6 +368,7 @@ class ScriptClass(object):
                         else:
                             ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
                     self.ptRefStar = PtRefStar(ptRefStarValues)
+                    yield sr.waitMS(4000) # let the slew settle
                     numExp = self.numExpWdg.getNum()
                     for expInd in range(numExp):
                         if expInd == 0:
@@ -385,7 +387,7 @@ class ScriptClass(object):
                         # correct relative error (using current calib and guide offsets)
                         yield sr.waitCmd(
                             actor = "tcc",
-                            cmdStr = "offset calib %s, %s" % (ptErr.ptErr[0], ptErr.ptErr[1]),
+                            cmdStr = "offset/computed calib %s, %s" % (-ptErr.ptErr[0], -ptErr.ptErr[1]),
                             checkFail = False,
                         )
                         cmdVar = sr.value
@@ -439,12 +441,14 @@ class ScriptClass(object):
         return headerStrList
 
     def waitComputePtErr(self, starMeas):
+        measPosUnbinned = [starMeas.xyPos[i] * self.binFactor for i in range(2)]
         yield self.sr.waitCmd(
             actor = "tcc",
-            cmdStr = "PtCorr %0.6f, %0.6f, %s=%s GuideProbe=%s" % (
+            cmdStr = "PtCorr %0.6f, %0.6f %s=%s %0.2f, %0.2f GImage=%s" % (
                 self.ptRefStar.pos[0], self.ptRefStar.pos[1],
                 self.ptRefStar.coordSysName,
                 self.ptRefStar.coordSysDate,
+                measPosUnbinned[0], measPosUnbinned[1],
                 self.ptErrProbe
             ),
             keyVars = (self.tccModel.ptCorr, self.tccModel.ptData),
@@ -609,7 +613,7 @@ class ScriptClass(object):
         Otherwise sets self.sr.value to None.
         """
         centroidCmdStr = "centroid on=%0.1f,%0.1f cradius=%0.1f %s" % \
-            (self.relStarPos[0], self.relStarPos[1], self.centroidRadPix, self.formatExposeArgs())
+            (self.relStarPos[0], self.relStarPos[1], self.centroidRadPix, self.formatExposeArgs(doWindow=False))
         self.doTakeFinalImage = True
         yield self.sr.waitCmd(
            actor = self.gcamActor,
