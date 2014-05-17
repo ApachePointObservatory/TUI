@@ -17,7 +17,9 @@ ax.quiver(theta, r, dr * cos(theta) - dt * sin (theta), dr * sin(theta) + dt * c
 
 
 @todo:
-- Handle binning, and windowing to speed up exposures.
+- Use windowing to speed up centroid exposures.
+    At present doWindow=True is broken because of missing variables.
+
     I propose common code with the focus scripts, and handling multiple instruments identically
     (i.e. either one focus scripts and one pointing data script per instrument,
     or else a single focus script and a single pointing data script, each of which supports all instruments)
@@ -30,6 +32,8 @@ History:
 2014-04-28 ROwen
 2014-05-07 ROwen    Change graph to show E left (like the Sky window) and use 15 degree alt lines.
 2014-05-15 ROwen    Many bug fixes.
+2014-05-16 ROwen    Added Min and Max Mag support.
+                    Most input parameters can be changed on the fly.
 """
 import collections
 import glob
@@ -136,14 +140,28 @@ class ScriptClass(object):
             postCommand = self._fillGridsMenu,
             helpText = "az/alt grid",
         )
-        gr.gridWdg("Grid", self.gridWdg)
+        gr.gridWdg("Grid", self.gridWdg, colSpan=5, sticky="w")
         self.numStarsWdg = RO.Wdg.StrLabel(
             master = ctrlFrame,
             anchor = "w",
             helpText = "number of stars in the grid",
         )
-        gr.gridWdg(False, self.numStarsWdg, colSpan=2, sticky="ew")
+        gr.gridWdg(None, self.numStarsWdg, colSpan=2, sticky="ew")
+        self.minMagWdg = RO.Wdg.FloatEntry(
+            master = ctrlFrame,
+            defValue = 7.0,
+            helpText = "minimum magnitude (max brightness)",
+        )
+        gr.gridWdg("Min Mag", self.minMagWdg)
+        self.maxMagWdg = RO.Wdg.FloatEntry(
+            master = ctrlFrame,
+            defValue = 10.0,
+            helpText = "maximum magnitude (min brightness)",
+        )
+        gr.gridWdg("Max Mag", self.maxMagWdg)
+
         gr.startNewCol()
+        gr.setNextRow(1)
         self.numExpWdg = RO.Wdg.IntEntry(
             master = ctrlFrame,
             label = "Num Exp",
@@ -304,8 +322,6 @@ class ScriptClass(object):
         if self.azAltList is None:
             raise ScriptError("No az/alt grid selected")
         
-        self.recordUserParams()
-
         ptDataDir = os.path.join(RO.OS.getDocsDir(), "ptdata")
         if not os.path.exists(ptDataDir):
             sr.showMsg("Creating directory %r" % (ptDataDir,))
@@ -313,11 +329,11 @@ class ScriptClass(object):
         if not os.path.isdir(ptDataDir):
             raise ScriptError("Could not create directory %r" % (ptDataDir,))
 
-        # set self.relStarPos to center of pointing error probe
+        # set self.guideProbeCtrXY to center of pointing error probe
         # (the name is a holdover from BaseFocusScript; the field is the location to centroid stars)
         yield sr.waitCmd("tcc", "show inst/full") # make sure we have current guide probe info
         if sr.debug:
-            self.relStarPos = [512, 512]
+            self.guideProbeCtrXY = [512, 512]
             self.ptErrProbe = 1
         else:
             ptErrProbe = self.tccModel.ptErrProbe.getInd(0)[0]
@@ -329,7 +345,7 @@ class ScriptClass(object):
             if not guideProbe.exists:
                 raise ScriptError("Pointing error probe %s is disabled" % (ptErrProbe,))
             self.ptErrProbe = ptErrProbe
-            self.relStarPos = [guideProbe.ctrXY[i] / float(self.binFactor) for i in range(2)]
+            self.guideProbeCtrXY = guideProbe.ctrXY[:]
 
         # open log file and write header
         currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
@@ -352,9 +368,13 @@ class ScriptClass(object):
                     self.azAltList["state"][i] = self.azAltGraph.Measuring
                     self.azAltGraph.plotAzAltPoints(self.azAltList)
 
+                    minMag = self.getEntryNum(self.minMagWdg)
+                    maxMag = self.getEntryNum(self.maxMagWdg)
+
                     yield sr.waitCmd(
                         actor = "tcc",
-                        cmdStr = "track %0.7f, %0.7f obs/pterr/rottype=object/rotang=0" % (az, alt),
+                        cmdStr = "track %0.7f, %0.7f obs/pterr/rottype=object/rotang=0/magRange=(%s, %s)" % \
+                            (az, alt, minMag, maxMag),
                         keyVars = (self.tccModel.ptRefStar,),
                         checkFail = False,
                     )
@@ -368,9 +388,10 @@ class ScriptClass(object):
                         else:
                             ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
                     self.ptRefStar = PtRefStar(ptRefStarValues)
-                    yield sr.waitMS(4000) # let the slew settle
+                    yield sr.waitMS(3000) # let the big slew settle
                     numExp = self.numExpWdg.getNum()
                     for expInd in range(numExp):
+                        self.recordExpParams()
                         if expInd == 0:
                             yield self.waitFindStar(firstOnly=True)
                         else:
@@ -570,7 +591,7 @@ class ScriptClass(object):
         self.cmdMode = None
         self.expTime = None
         self.absStarPos = None
-        self.relStarPos = None
+        self.guideProbeCtrXY = None
         self.binFactor = None
         self.window = None # LL pixel is 0, UL pixel is included
 
@@ -583,11 +604,12 @@ class ScriptClass(object):
 
         self.enableCmdBtns(False)
     
-    def recordUserParams(self):
+    def recordExpParams(self):
         """Record user-set parameters relating to exposures
         
         Set the following instance variables:
         - expTime
+        - binFactor
         - centroidRadPix
         """
         self.expTime = self.getEntryNum(self.expTimeWdg)
@@ -612,8 +634,10 @@ class ScriptClass(object):
         If the centroid is found, sets self.sr.value to the FWHM.
         Otherwise sets self.sr.value to None.
         """
+        ctrPos = [self.guideProbeCtrXY[i] / float(self.binFactor) for i in range(2)]
+
         centroidCmdStr = "centroid on=%0.1f,%0.1f cradius=%0.1f %s" % \
-            (self.relStarPos[0], self.relStarPos[1], self.centroidRadPix, self.formatExposeArgs(doWindow=False))
+            (ctrPos[0], ctrPos[1], self.centroidRadPix, self.formatExposeArgs(doWindow=False))
         self.doTakeFinalImage = True
         yield self.sr.waitCmd(
            actor = self.gcamActor,
@@ -623,7 +647,7 @@ class ScriptClass(object):
         )
         cmdVar = self.sr.value
         if self.sr.debug:
-            starData = makeStarData("c", self.relStarPos)
+            starData = makeStarData("c", self.guideProbeCtrXY)
         else:
             starData = cmdVar.getKeyVarData(self.guideModel.star)
         if starData:
