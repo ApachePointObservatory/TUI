@@ -32,8 +32,6 @@ History:
 2014-04-28 ROwen
 2014-05-07 ROwen    Change graph to show E left (like the Sky window) and use 15 degree alt lines.
 2014-05-15 ROwen    Many bug fixes.
-2014-05-16 ROwen    Added Min and Max Mag support.
-                    Most input parameters can be changed on the fly.
 """
 import collections
 import glob
@@ -345,7 +343,7 @@ class ScriptClass(object):
             if not guideProbe.exists:
                 raise ScriptError("Pointing error probe %s is disabled" % (ptErrProbe,))
             self.ptErrProbe = ptErrProbe
-            self.guideProbeCtrXY = guideProbe.ctrXY[:]
+            self.relStarPos = [guideProbe.ctrXY[i] / float(self.binFactor) for i in range(2)]
 
         # open log file and write header
         currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
@@ -373,8 +371,7 @@ class ScriptClass(object):
 
                     yield sr.waitCmd(
                         actor = "tcc",
-                        cmdStr = "track %0.7f, %0.7f obs/pterr/rottype=object/rotang=0/magRange=(%s, %s)" % \
-                            (az, alt, minMag, maxMag),
+                        cmdStr = "track %0.7f, %0.7f obs/pterr/rottype=object/rotang=0" % (az, alt),
                         keyVars = (self.tccModel.ptRefStar,),
                         checkFail = False,
                     )
@@ -388,7 +385,7 @@ class ScriptClass(object):
                         else:
                             ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
                     self.ptRefStar = PtRefStar(ptRefStarValues)
-                    yield sr.waitMS(3000) # let the big slew settle
+                    yield sr.waitMS(4000) # let the slew settle
                     numExp = self.numExpWdg.getNum()
                     for expInd in range(numExp):
                         self.recordExpParams()
@@ -639,7 +636,7 @@ class ScriptClass(object):
         ctrPos = [self.guideProbeCtrXY[i] / float(self.binFactor) for i in range(2)]
 
         centroidCmdStr = "centroid on=%0.1f,%0.1f cradius=%0.1f %s" % \
-            (ctrPos[0], ctrPos[1], self.centroidRadPix, self.formatExposeArgs(doWindow=False))
+            (self.relStarPos[0], self.relStarPos[1], self.centroidRadPix, self.formatExposeArgs(doWindow=False))
         self.doTakeFinalImage = True
         yield self.sr.waitCmd(
            actor = self.gcamActor,
