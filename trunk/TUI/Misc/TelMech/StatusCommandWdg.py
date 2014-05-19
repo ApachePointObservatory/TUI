@@ -32,6 +32,7 @@ History:
 2012-11-13 ROwen    Bug fix: the individual device widges were being mishandled for show/hide.
                     This caused an incorrect display and TUI would freeze when showing devices.
                     Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
+2014-05-19 ROwen    Made detection of a running tertiary rotation command more robust.
 """
 import numpy
 import Tkinter
@@ -229,14 +230,14 @@ class StatusCommandWdg (Tkinter.Frame):
         )
         self.tertRotApplyWdg.grid(row=self.row, column=self.col)
         self.row += 1
-        self.tertRotRestoreWdg = RO.Wdg.Button(
+        self.tertRotCurrWdg = RO.Wdg.Button(
             master = self,
-            text = "Restore",
+            text = "Current",
             callFunc = self.doTertRotRestore,
-            helpText = "Restore tertiary menu to current rotation",
+            helpText = "Show current tertiary rotation",
             helpURL = _HelpURL,
         )
-        self.tertRotRestoreWdg.grid(row=self.row, column=self.col)
+        self.tertRotCurrWdg.grid(row=self.row, column=self.col)
         self.row += 1
         self.model.tertRot.addIndexedCallback(self.updateTertRot)
         
@@ -570,6 +571,14 @@ class StatusCommandWdg (Tkinter.Frame):
             cmdStr = "louvers all open",
             wdg = self.louversOpenWdg,
         )
+
+    def isTertRotCmdRunning(self):
+        """Return True if a tertiary rotation command is running
+        """
+        for cmdVar in self.pendingCmds:
+            if not cmdVar.isDone() and cmdVar.cmdStr.startswith("tertrot"):
+                return True
+        return False
     
     def doTertRotApply(self, wdg=None):
         """Apply tertiary rotation command"""
@@ -606,13 +615,16 @@ class StatusCommandWdg (Tkinter.Frame):
             self.tertRotEnable()
     
     def tertRotEnable(self, wdg=None):
-        """Enable or disable tertiary rotation buttons"""
+        """Enable or disable tertiary rotation Apply and Restore buttons
+
+        Note: the Tert Rot option menu is handled separately.
+        """
         isDefault = self.tertRotWdg.isDefault()
-        cmdRunning = not self.tertRotWdg.getEnable()
+        cmdRunning = self.isTertRotCmdRunning()
 #        print "tertRotEnable; isDefault=%s, cmdRunning=%s" % (isDefault, cmdRunning)
         enableBtns = not isDefault and not cmdRunning
         self.tertRotApplyWdg.setEnable(enableBtns)
-        self.tertRotRestoreWdg.setEnable(enableBtns)
+        self.tertRotCurrWdg.setEnable(enableBtns)
     
     def updateCovers(self, value, isCurrent, keyVar=None):
         """Handle covers keyword data"""
@@ -645,13 +657,9 @@ class StatusCommandWdg (Tkinter.Frame):
 #        print "_doCmd(catInfo=%r, devName=%r, ctrlWdg=%r)" % (catInfo, devName, ctrlWdg)
 
         boolVal = ctrlWdg.getBool()
-        stateStr = catInfo.getStateStr(boolVal)
-
-        # execute the command
         verbStr = catInfo.getVerbStr(boolVal)
         cmdStr = "%s %s %s" % (catInfo.catName, devName, verbStr)
         cmdStr = cmdStr.lower()
-        
         self.startCmd(cmdStr = cmdStr, wdg=ctrlWdg)
     
     def startNewColumn(self):

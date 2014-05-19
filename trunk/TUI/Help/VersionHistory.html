@@ -15,11 +15,17 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>2.3.0b1+ 2014-05-15</h3>
+<h3>2.3.0b2 2014-05-19</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Added a 20-point grid for the Telescope: Pointing Data script.
+</ul>
 
 <p>Bug fixes:
 <ul>
-    <li>Fixed errors in the script Telescope: Pointing Data.
+    <li>Enclosure window tertiary rotation was unusable. This was due to a bug in RO.Wdg.OptionMenu and a crude way of detecting that a tertiary rotation command was currently executing, both of which I fixed.
+    <li>Fixed errors in the script Telescope: Pointing Data. Warning: it does not work with Num Exp > 1 (it acts as if it is centroiding in the wrong location) and needs some cleanup.
 </ul>
 
 <h3>2.3.0b1 2014-05-08</h3>
