@@ -32,6 +32,7 @@ History:
 2014-04-28 ROwen
 2014-05-07 ROwen    Change graph to show E left (like the Sky window) and use 15 degree alt lines.
 2014-05-15 ROwen    Many bug fixes.
+2014-05-19 ROwen    Changed saved azimuth to TPOINT convention.
 """
 import collections
 import glob
@@ -62,6 +63,8 @@ MeanLat = 32.780361 # latitude of telescope (deg)
 
 Debug = False
 HelpURL = "Scripts/BuiltInScripts/PointingData.html"
+
+EntryWidth = 6
 
 # Dictionary of instrument position: TPOINT rotator name
 # See TPOINT manual section 4.5.2 "Option records" for the codes
@@ -130,33 +133,61 @@ class ScriptClass(object):
         )
 #        gr.gridWdg(False, self.guiderNameWdg, colSpan=2, sticky="ew")
         self._gridDict = dict()
+        gridFrame = Tkinter.Frame(ctrlFrame)
         self.gridWdg = RO.Wdg.OptionMenu(
-            master = ctrlFrame,
+            master = gridFrame,
             # don't set a label, as this will be displayed instead of the current value
             callFunc = self._setGrid,
             items = (),
             postCommand = self._fillGridsMenu,
             helpText = "az/alt grid",
+            helpURL = self.helpURL,
         )
-        gr.gridWdg("Grid", self.gridWdg, colSpan=5, sticky="w")
+        self.gridWdg.pack(side="left")
         self.numStarsWdg = RO.Wdg.StrLabel(
-            master = ctrlFrame,
+            master = gridFrame,
             anchor = "w",
             helpText = "number of stars in the grid",
+            helpURL = self.helpURL,
         )
-        gr.gridWdg(None, self.numStarsWdg, colSpan=2, sticky="ew")
+        self.numStarsWdg.pack(side="left")
+        gr.gridWdg("Grid", gridFrame, colSpan=5, sticky="w")
         self.minMagWdg = RO.Wdg.FloatEntry(
             master = ctrlFrame,
             defValue = 7.0,
+            width = EntryWidth,
             helpText = "minimum magnitude (max brightness)",
+            helpURL = self.helpURL,
         )
         gr.gridWdg("Min Mag", self.minMagWdg)
         self.maxMagWdg = RO.Wdg.FloatEntry(
             master = ctrlFrame,
             defValue = 10.0,
+            width = EntryWidth,
             helpText = "maximum magnitude (min brightness)",
+            helpURL = self.helpURL,
         )
         gr.gridWdg("Max Mag", self.maxMagWdg)
+
+        self.rotTypeWdg = RO.Wdg.OptionMenu(
+            master = ctrlFrame,
+            items = ("Object", "Horizon", "Mount"),
+            defValue = "Object",
+            helpText = "rotation type",
+            helpURL = self.helpURL,
+        )
+        gr.gridWdg("Rot Type", self.rotTypeWdg)
+
+        self.settleTimeWdg = RO.Wdg.FloatEntry(
+            master = ctrlFrame,
+            defValue = 0.0,
+            minValue = 0.0,
+            defFormat = "%.1f",
+            width = EntryWidth,
+            helpText = "settling time after slewing to a new star (sec)",
+            helpURL = self.helpURL,
+        )
+        gr.gridWdg("Settling Time", self.settleTimeWdg, "sec  ")
 
         gr.startNewCol()
         gr.setNextRow(1)
@@ -165,7 +196,9 @@ class ScriptClass(object):
             label = "Num Exp",
             defValue = 1,
             minValue = 1,
+            width = EntryWidth,
             helpText = "number of exposures (and corrections) per star",
+            helpURL = self.helpURL,
         )
         gr.gridWdg(self.numExpWdg.label, self.numExpWdg)
         self.expTimeWdg = RO.Wdg.FloatEntry(
@@ -173,10 +206,12 @@ class ScriptClass(object):
             label = "Exp Time",
             defValue = 5.0,
             minValue = 0,
+            defFormat = "%.1f",
+            width = EntryWidth,
             helpText = "exposure time",
+            helpURL = self.helpURL,
         )
         gr.gridWdg(self.expTimeWdg.label, self.expTimeWdg, "sec")
-        ctrlFrame.grid(row=1, column=0, sticky="w")
 
         self.binFactorWdg = RO.Wdg.IntEntry(
             master = ctrlFrame,
@@ -185,6 +220,7 @@ class ScriptClass(object):
             maxValue = 1024,
             defValue = self.defBinFactor or 1,
             defMenu = "Default",
+            width = EntryWidth,
             callFunc = self.updBinFactor,
             helpText = "Bin factor (for rows and columns)",
             helpURL = self.helpURL,
@@ -199,22 +235,41 @@ class ScriptClass(object):
             maxValue = 1024,
             defValue = self.defRadius,
             defMenu = "Default",
+            width = EntryWidth,
             helpText = "Centroid radius; don't skimp",
             helpURL = self.helpURL,
         )
         gr.gridWdg(self.centroidRadWdg.label, self.centroidRadWdg, "arcsec")
 
         self.dataPathWdg = RO.Wdg.StrLabel(
-            master = ctrlFrame,
+            master = sr.master,
             anchor = "w",
             helpText = "path to pointing data file",
         )
-        self.dataPathWdg.grid(row=10, column=0, columnspan=6, sticky="ew")
+        self.dataPathWdg.grid(row=2, column=0, sticky="ew")
+
+        ctrlFrame.grid(row=1, column=0, sticky="w")
 
         # self.tccModel.instName.addIndexedCallback(self._setInstName, callNow=True)
+        self.tccModel.rotExists.addIndexedCallback(self._updRotExists, callNow=True)
 
         if sr.debug:
             self.tccModel.instName.set(["DIS"],)
+
+    def _updRotExists(self, rotExists, isCurrent, **kwargs):
+        if not isCurrent:
+            return
+        currDefault = self.rotTypeWdg.getDefault()
+        if rotExists:
+            newItems = ("Object", "Horizon", "Mount")
+            newDefault = "Object"
+        else:
+            newItems = ("None",)
+            newDefault = "None"
+
+        self.rotTypeWdg.setItems(newItems)
+        if currDefault not in newItems:
+            self.rotTypeWdg.setDefault(newDefault, showDefault=True)
 
     def _setInstName(self, instName, *args, **kwargs):
         """Call when the TCC reports a new instName
@@ -303,7 +358,7 @@ class ScriptClass(object):
         self.azAltList = numpy.zeros([numPoints], dtype=self.azAltGraph.DType)
         self.azAltList["az"] = azList
         self.azAltList["alt"] = altList
-        self.numStarsWdg.set("%s stars" % (numPoints,))
+        self.numStarsWdg.set(" %s stars" % (numPoints,))
         self.azAltGraph.plotAzAltPoints(self.azAltList)
 
     def enableCmdBtns(self, doEnable):
@@ -345,6 +400,8 @@ class ScriptClass(object):
             self.ptErrProbe = ptErrProbe
             self.relStarPos = [guideProbe.ctrXY[i] / float(self.binFactor) for i in range(2)]
 
+        print "self.guideProbeCtrXY=", self.guideProbeCtrXY
+
         # open log file and write header
         currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
         ptDataName = "ptdata_%s.dat" % (currDateStr,)
@@ -360,7 +417,7 @@ class ScriptClass(object):
 
             for i, rec in enumerate(self.azAltList):
                 try:
-                    self.numStarsWdg.set("%s of %s stars" % (i + 1, len(self.azAltList)))
+                    self.numStarsWdg.set(" %s of %s stars" % (i + 1, len(self.azAltList)))
                     az = rec["az"]
                     alt = rec["alt"]
                     self.azAltList["state"][i] = self.azAltGraph.Measuring
@@ -368,10 +425,12 @@ class ScriptClass(object):
 
                     minMag = self.getEntryNum(self.minMagWdg)
                     maxMag = self.getEntryNum(self.maxMagWdg)
+                    rotType = self.rotTypeWdg.getString()
 
                     yield sr.waitCmd(
                         actor = "tcc",
-                        cmdStr = "track %0.7f, %0.7f obs/pterr/rottype=object/rotang=0" % (az, alt),
+                        cmdStr = "track %0.7f, %0.7f obs/pterr/rottype=%s/rotang=0/magRange=(%s, %s)" % \
+                            (az, alt, rotType, minMag, maxMag),
                         keyVars = (self.tccModel.ptRefStar,),
                         checkFail = False,
                     )
@@ -385,7 +444,9 @@ class ScriptClass(object):
                         else:
                             ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
                     self.ptRefStar = PtRefStar(ptRefStarValues)
-                    yield sr.waitMS(4000) # let the slew settle
+                    settleTime = self.settleTimeWdg.getNumOrNone()
+                    if settleTime:
+                        yield sr.waitMS(settleTime * 1000)
                     numExp = self.numExpWdg.getNum()
                     for expInd in range(numExp):
                         self.recordExpParams()
@@ -456,7 +517,12 @@ class ScriptClass(object):
             "! Run parameters: telescope latitude deg min sec",
             meanLatDMSStr,
             "! Pointing data (TPOINT format #4):",
-            "! az_desired_phys alt_desired_phys az_mount alt_mount rot_phys (all in deg)",
+            "!",
+            "! All angles are in degrees",
+            "! Azimuth uses the convention: N=0, E=90 (unlike the TCC, which uses S=0, E=90)",
+            "!",
+            "!  Desired Phys            Actual Mount          Rot Phys",
+            "! Az          Alt         Az          Alt",
         )
         return headerStrList
 
@@ -464,7 +530,7 @@ class ScriptClass(object):
         measPosUnbinned = [starMeas.xyPos[i] * self.binFactor for i in range(2)]
         yield self.sr.waitCmd(
             actor = "tcc",
-            cmdStr = "PtCorr %0.6f, %0.6f %s=%s %0.2f, %0.2f GImage=%s" % (
+            cmdStr = "ptcorr %0.6f, %0.6f %s=%s %0.2f, %0.2f GImage=%s" % (
                 self.ptRefStar.pos[0], self.ptRefStar.pos[1],
                 self.ptRefStar.coordSysName,
                 self.ptRefStar.coordSysDate,
@@ -583,10 +649,7 @@ class ScriptClass(object):
         self.focDir = None
         self.currBoreXYDeg = None
         self.begBoreXYDeg = None
-        self.instScale = None
         self.arcsecPerPixel = None
-        self.instCtr = None
-        self.instLim = None
         self.cmdMode = None
         self.expTime = None
         self.absStarPos = None
@@ -594,12 +657,10 @@ class ScriptClass(object):
         self.binFactor = None
         self.window = None # LL pixel is 0, UL pixel is included
 
-        # data from tcc tinst:I_NA2_DIS.DAT 18-OCT-2006
+        # data from tcc tinst:IP_NA2.DAT; value measured 2011-07-21
         # this is a hack; get from tccModel once we support multiple instruments
-        self.instScale = [-12066.6, 12090.5] # unbinned pixels/deg
-        self.instCtr = [240, 224]
-        self.instLim = [0, 0, 524, 511]
-        self.arcsecPerPixel = 3600.0 * 2 / (abs(self.instScale[0]) + abs(self.instScale[1]))
+        self.gprobeScale = [26629.4, 25808.4]
+        self.arcsecPerPixel = 3600.0 * 2 / (abs(self.gprobeScale[0]) + abs(self.gprobeScale[1]))
 
         self.enableCmdBtns(False)
     
@@ -613,6 +674,7 @@ class ScriptClass(object):
         """
         self.expTime = self.getEntryNum(self.expTimeWdg)
         self.binFactor = self.dispBinFactor
+        self.guideProbeCtrBinned = [self.guideProbeCtrXY[i] / self.binFactor for i in range(2)]
         centroidRadArcSec = self.getEntryNum(self.centroidRadWdg)
         self.centroidRadPix = centroidRadArcSec / (self.arcsecPerPixel * self.binFactor)
 
@@ -633,10 +695,9 @@ class ScriptClass(object):
         If the centroid is found, sets self.sr.value to the FWHM.
         Otherwise sets self.sr.value to None.
         """
-        ctrPos = [self.guideProbeCtrXY[i] / float(self.binFactor) for i in range(2)]
-
         centroidCmdStr = "centroid on=%0.1f,%0.1f cradius=%0.1f %s" % \
-            (self.relStarPos[0], self.relStarPos[1], self.centroidRadPix, self.formatExposeArgs(doWindow=False))
+            (self.guideProbeCtrBinned[0], self.guideProbeCtrBinned[1],
+             self.centroidRadPix, self.formatExposeArgs(doWindow=False))
         self.doTakeFinalImage = True
         yield self.sr.waitCmd(
            actor = self.gcamActor,
@@ -814,12 +875,12 @@ class AzAltGraph(Tkinter.Frame):
 
 
         # plot connecting lines
-        # az = azAltPoints["az"]
-        # alt = azAltPoints["alt"]
+        az = azAltPoints["az"]
+        alt = azAltPoints["alt"]
 
-        # r = numpy.subtract(90, alt)
-        # theta = numpy.deg2rad(numpy.subtract(az, 90))
-        # self.axis.plot(theta, r, linestyle="-", linewidth=0.1, color="blue")
+        r = numpy.subtract(90, alt)
+        theta = numpy.deg2rad(numpy.subtract(270, az))
+        self.axis.plot(theta, r, linestyle="-", linewidth=0.4, color="gray")
 
         self._setLimits()
         self.figCanvas.draw()
@@ -889,16 +950,16 @@ class PtErr(object):
         """Return pointing model data in a form suitable for TPOINT
 
         Format is the following values, space-separated, all in deg:
-        - az desired physical position
+        - az desired physical position, using the modern TPOINT convention (N=90, E=0)
         - alt desired physical position
-        - az mount position
+        - az mount position, using the modern TPOINT convention (N=90, E=0)
         - alt mount position
         - rot physical angle
         """
-        return "%0.6f %0.6f %0.6f %0.6f %0.5f" % (
-            self.desPhysPos[0],
+        return "%11.6f %11.6f %11.6f %11.6f %10.5f" % (
+            180 - self.desPhysPos[0],
             self.desPhysPos[1],
-            self.mountPos[0],
+            180 - self.mountPos[0],
             self.mountPos[1],
             self.rotPhys,
         )
