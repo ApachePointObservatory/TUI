@@ -12,7 +12,17 @@
 <h3>Controls</h3>
 
 <ul>
-    <li><b>Az/Alt Grid</b>: select the grid of az/alt points. The script slews to a pointing reference star near each point in turn. A few grids are built in. Additional grids are looked for in TUIAdditions/Grids/*.dat (and the menu is rebuilt each time you click on it, so you can add or change script files while TUI is running).
+    <li><b>Az/Alt Grid</b>: select the grid of az/alt points. The script slews to a pointing reference star near each point in turn. A few grids are built in. Additional grids are looked for in <a href="../TUIAdditions.html">TUIAdditions</a>/Grids/*.dat (and the menu is rebuilt each time you click on it, so you can add, delete or modify grid files while TUI is running). You may generate additional grids using the MakeGrid application or by hand. The format of grid files is one line per point: az alt (decimal degrees, no comma separating them). Lines starting with # or ! and blank lines are ignored. Leading and trailing whitespace is also ignored. For example:
+    <pre>
+! azimuth   altitude
+!  (deg)      (deg)
+    91.02     51.43
+   126.52     15.08
+...</pre>
+    <li><b>Min Mag</b>: minimum magnitude (maximum brightness) of pointing reference star.
+    <li><b>Max Mag</b>: maximum magnitude (minimum brightness) of pointing reference star.
+    <li><b>Rot Type</b>: rotation type (rotation angle is always 0).
+    <li><b>Settling Time</b>: wait time after each slew to a new pointing reference star (sec) to give the axes additional time to settle. Normally this should be 0 (if the axis controllers and TCC tune block are properly set), but if guider images show signs that the axes have not settled, try increasing it.
     <li><b>Num Exp</b>: the number of exposures to take of each pointing reference star. After each exposure the pointing is corrected (by updating the Calibration offset). The pointing error of the final exposure is logged to the pointing data file. 1 should usually suffice, but it is worth experimenting with 2 to see if it increases the accuracy of the pointing model.
     <li><b>Exp Time</b>: exposure time (sec).
     <li><b>Bin Factor</b>: bin factor

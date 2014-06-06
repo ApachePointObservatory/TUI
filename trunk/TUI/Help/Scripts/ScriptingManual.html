@@ -264,12 +264,12 @@ class ScriptClass(object):
 
 <h2><a name="WhereToPutScripts"></a>Where To Put Scripts</h2>
 
-<p>To make a script show up in the Scripts menu, put it into the Scripts directory (or a subdirectory) in the shared or local version of <a href="TUIAdditions.html">TUIAdditions</a>. If the directory TUIAdditions or TUIAdditions/Scripts doesn't exist, create it. Some details:
+<p>To make a script show up in the Scripts menu, put it into <a href="TUIAdditions.html">TUIAdditions</a>/Scripts (or a subdirectory of that). If <a href="TUIAdditions.html">TUIAdditions</a> or <a href="TUIAdditions.html">TUIAdditions</a>/Scripts doesn't exist, create it. Details:
 
 <ul>
-	<li>Any subdirectory hierarchy in a Scripts folder will be reflected in the submenu hierarchy in the Scripts menu.
+	<li>The name of the script in TUI's Scripts menu is set its path relative to TUIAdditions/Scripts, for example script file <code>TUIAdditions/Scripts/NICFPS/Dither/foo.py</code> will show up under Scripts as <code>NICFPS&gt;Dither&gt;foo</code>.
 	<li>The Scripts menu is rebuilt whenever it is selected, so changes show up automatically.
-	<li>Please be careful when naming your scripts. User scripts hide identically-named shared scripts, and both hide built-in scripts. For a script name collision to occur, both scripts must have the same subdirectory path (relative to Scripts) and the same file name.
+	<li>Please be careful when naming your scripts. User scripts hide shared scripts with the same path (relative to TUIAdditions/Scripts), and both hide built-in scripts.
 </ul>
 
 <h2><a name="Debugging"></a>Debugging</h2>
