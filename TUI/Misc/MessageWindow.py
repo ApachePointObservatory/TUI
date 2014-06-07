@@ -27,9 +27,9 @@ History:
 2012-11-14 ROwen    Fix an issue where the message was rejected due to being unicode.
 2012-11-29 ROwen    Remove fix from 2012-11-14; it was not in the right location.
 2012-11-30 ROwen    Removed fix for demo mode; it's inside RO now.
-2014-06-06 ROwen    Made _fixFocus more robust; it now handles all navigation characters
-                    and some characters that are unsafe for event_generate by passing them to the upper pane.
-                    It also prints out more useful information if event_generate fails.
+2014-06-07 ROwen    Made _fixFocus more robust; it supports navigation keys in the upper pane,
+                    blocks more characters from event_generate when switching to the lower pane,
+                    and prints more useful information if event_generate fails.
 """
 import sys
 
@@ -127,25 +127,25 @@ class MessageWdg(Tkinter.Frame):
     def _fixFocus(self, evt):
         """Call when the user types a character into the output pane.
 
-        Enter the character into the input pane and switch the focus,
-        unless the character is useful in the upper pane (e.g. arrow keys)
-        or might cause trouble if used in event_generate ("Escape" or "??").
+        If the key is a navigation key, passes it through to the upper pane.
+        Otherwise it switches focus to the lower pane, and if the key appears to be a character,
+        passes the key event to the lower pane.
         """
-        if evt.keysym in frozenset(("Escape", "Home", "End", "Prior", "Next", "Up", "Down", "Left", "Right", "Super_L", "??")):
+        if evt.keysym in frozenset(("Home", "End", "Prior", "Next", "Up", "Down", "Left", "Right")):
             return
 
         self.inText.focus_set()
-        if evt.keysym not in frozenset(("Return", "Linefeed", "Tab")):
+        if evt.keysym not in frozenset(("Escape", "Backspace", "Delete", "Return", "Linefeed", "Tab", "Enter", "KP_Enter", "??")):
             try:
                 self.inText.event_generate(
                     "<KeyPress>",
                     keysym = evt.keysym,  
                     keycode = evt.keycode,
                 )
-                return "break"
             except Exception as e:
                 sys.stderr.write("_fixFocus event_generate failed; evt.keysym=%r; evt.keycode=%r: %s\n" % \
                     (evt.keysym, evt.keycode, strFromException(e)))
+        return "break"
         
     def doSend(self, *args, **kargs):
         # obtain the message and clear the display
