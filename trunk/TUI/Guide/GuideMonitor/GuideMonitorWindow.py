@@ -14,6 +14,7 @@ History:
 2010-12-10 ROwen    Reduced the memory leak by increasing updateInterval from its default value of 1.8 sec
                     to 20 seconds. Return to the default value again once the matplotlib bug is fixed.
 2010-12-23 ROwen    Modified to use new version of StripChartWdg.
+2014-06-06 ROwen    Fix a traceback caused by unknown tccModel.guideOff.
 """
 import math
 import Tkinter
@@ -118,6 +119,8 @@ class GuideMonitorWdg(Tkinter.Frame):
             return
 
         guideOffPVTList = self.tccModel.guideOff.get()[0]
+        if None in guideOffPVTList:
+            return
         guideOffArcSecList = [pvt.getPos() * RO.PhysConst.ArcSecPerDeg for pvt in guideOffPVTList]
         currAlt = self.tccModel.axePos.getInd(1)[0]
         if currAlt == None:
@@ -160,7 +163,6 @@ class GuideMonitorWdg(Tkinter.Frame):
 
 if __name__ == "__main__":
     import TestData
-    import RO.Wdg
 
     addWindow(TestData.tuiModel.tlSet)
     TestData.tuiModel.tlSet.makeVisible(WindowName)
