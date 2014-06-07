@@ -27,11 +27,16 @@ History:
 2012-11-14 ROwen    Fix an issue where the message was rejected due to being unicode.
 2012-11-29 ROwen    Remove fix from 2012-11-14; it was not in the right location.
 2012-11-30 ROwen    Removed fix for demo mode; it's inside RO now.
+2014-06-06 ROwen    Made _fixFocus more robust; it now handles all navigation characters
+                    and some characters that are unsafe for event_generate by passing them to the upper pane.
+                    It also prints out more useful information if event_generate fails.
 """
-import urllib
+import sys
+
 import Tkinter
 import RO.KeyVariable
 import RO.Wdg
+from RO.StringUtil import strFromException
 import TUI.TUIModel
 import TUI.PlaySound
 
@@ -121,21 +126,31 @@ class MessageWdg(Tkinter.Frame):
     
     def _fixFocus(self, evt):
         """Call when the user types a character into the output pane.
-        Enter the character into the input pane and switch the focus.
+
+        Enter the character into the input pane and switch the focus,
+        unless the character is useful in the upper pane (e.g. arrow keys)
+        or might cause trouble if used in event_generate ("Escape" or "??").
         """
+        if evt.keysym in frozenset(("Escape", "Home", "End", "Prior", "Next", "Up", "Down", "Left", "Right", "Super_L", "??")):
+            return
+
         self.inText.focus_set()
-        if evt.keysym not in ("Return", "Linefeed", "Tab"):
-            self.inText.event_generate(
-                "<KeyPress>",
-                keysym = evt.keysym,  
-                keycode = evt.keycode,
-            )
-        return "break"
+        if evt.keysym not in frozenset(("Return", "Linefeed", "Tab")):
+            try:
+                self.inText.event_generate(
+                    "<KeyPress>",
+                    keysym = evt.keysym,  
+                    keycode = evt.keycode,
+                )
+                return "break"
+            except Exception as e:
+                sys.stderr.write("_fixFocus event_generate failed; evt.keysym=%r; evt.keycode=%r: %s\n" % \
+                    (evt.keysym, evt.keycode, strFromException(e)))
         
     def doSend(self, *args, **kargs):
         # obtain the message and clear the display
         # note that the message is always \n-terminated
-        rawStr =  self.inText.get("0.0", "end")[:-1]
+        rawStr = self.inText.get("0.0", "end")[:-1]
         msgStr = encodeMsg(rawStr)
 #       print "sending %r encoded as %r" % (rawStr, msgStr)
         self.inText.delete("0.0", "end")
