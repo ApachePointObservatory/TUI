@@ -102,7 +102,7 @@ class ScriptClass(object):
         self.guideModel = None
         self.actorData = collections.OrderedDict()
         self.maxFindAmpl = 30000
-        self.defRadius = 5.0
+        self.defRadius = 15.0
         self.helpURL = HelpURL
         defBinFactor = 3
         finalBinFactor = None
@@ -154,7 +154,7 @@ class ScriptClass(object):
         gr.gridWdg("Grid", gridFrame, colSpan=5, sticky="w")
         self.minMagWdg = RO.Wdg.FloatEntry(
             master = ctrlFrame,
-            defValue = 7.0,
+            defValue = 4.0,
             width = EntryWidth,
             helpText = "minimum magnitude (max brightness)",
             helpURL = self.helpURL,
@@ -162,7 +162,7 @@ class ScriptClass(object):
         gr.gridWdg("Min Mag", self.minMagWdg)
         self.maxMagWdg = RO.Wdg.FloatEntry(
             master = ctrlFrame,
-            defValue = 10.0,
+            defValue = 6.0,
             width = EntryWidth,
             helpText = "maximum magnitude (min brightness)",
             helpURL = self.helpURL,
@@ -180,7 +180,7 @@ class ScriptClass(object):
 
         self.settleTimeWdg = RO.Wdg.FloatEntry(
             master = ctrlFrame,
-            defValue = 0.0,
+            defValue = 4.0,
             minValue = 0.0,
             defFormat = "%.1f",
             width = EntryWidth,
@@ -397,10 +397,8 @@ class ScriptClass(object):
                 raise ScriptError("No data for pointing error probe %s" % (ptErrProbe,))
             if not guideProbe.exists:
                 raise ScriptError("Pointing error probe %s is disabled" % (ptErrProbe,))
+            self.guideProbeCtrXY = guideProbe.ctrXY[:]
             self.ptErrProbe = ptErrProbe
-            self.relStarPos = [guideProbe.ctrXY[i] / float(self.binFactor) for i in range(2)]
-
-        print "self.guideProbeCtrXY=", self.guideProbeCtrXY
 
         # open log file and write header
         currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
@@ -450,10 +448,7 @@ class ScriptClass(object):
                     numExp = self.numExpWdg.getNum()
                     for expInd in range(numExp):
                         self.recordExpParams()
-                        if expInd == 0:
-                            yield self.waitFindStar(firstOnly=True)
-                        else:
-                            yield self.waitCentroid()
+                        yield self.waitFindStar(firstOnly=True)
                         starMeas = sr.value
                         if not starMeas.xyPos:
                             raise ScriptError()
@@ -568,7 +563,6 @@ class ScriptClass(object):
         Inputs:
         - isFinal: if True then return parameters for final exposure
         """
-        #print "defBinFactor=%r, binFactor=%r" % (self.defBinFactor, self.binFactor)
         binFactor = self.getBinFactor(isFinal=isFinal)
         if binFactor == None:
             return ""
