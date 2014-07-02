@@ -16,6 +16,7 @@ Also, if these are easy to figure out:
 History:
 2006-03-10 ROwen
 2010-03-10 ROwen    Bug fix: Save As was not working (tkFileDialog.asksaveasfile returns a file, not a path).
+2014-07-01 ROwen       Copied Elena's "tui wait <timeSec>" support from STUI.
 """
 import os
 import Tkinter
@@ -179,10 +180,23 @@ class ScriptClass(object):
             sr.showMsg("Executing: %s" % (line,))
             self.textWdg["state"] = "disabled"
             actor, cmdStr = line.split(None, 1)
-            yield sr.waitCmd(
-                actor = actor,
-                cmdStr = cmdStr,
-            )
+            if actor.lower() != "tui":
+                yield sr.waitCmd(
+                    actor = actor,
+                    cmdStr = cmdStr,
+                )
+            else:
+                params = cmdStr.split()
+                if len(params)==0:
+                    raise sr.ScriptError("No tui command specified")
+                
+                if params[0].lower() == "wait":
+                    if len(params) != 2:
+                        raise sr.ScriptError("tui wait requires one parameter: time (in sec)")
+                    waitSec = float(params[1])
+                    yield sr.waitMS(waitSec * 1000)
+                else: 
+                    raise sr.ScriptError("Unreconized tui command: %r" % (cmdStr,))                 
     
     def end(self, sr):
         if not sr.didFail():
