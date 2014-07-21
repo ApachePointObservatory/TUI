@@ -18,6 +18,7 @@ ax.quiver(theta, r, dr * cos(theta) - dt * sin (theta), dr * sin(theta) + dt * c
 
 @todo:
 - Do NOT erase stars to skip on start (but do erase stars to retry).
+- Test unattended mode with missing stars.
 - Use windowing to speed up centroid exposures.
     At present doWindow=True is broken because of missing variables.
 
@@ -63,7 +64,7 @@ import TUI.Guide.GuideModel
 
 MeanLat = 32.780361 # latitude of telescope (deg)
 
-Debug = True
+Debug = False
 HelpURL = "Scripts/BuiltInScripts/PointingData.html"
 
 EntryWidth = 6
@@ -103,19 +104,19 @@ class ListOfIntEntry(RO.Wdg.StrEntry):
         Remove duplicates and 0, sort and display with one space between each int
         """
         currStrVal = self.var.get()
-        self.intSet = self.setFromStr(currStrVal)
-        neatStrVal = self.strFromSet(self.intSet)
+        self.intSet = self.intsFromStr(currStrVal)
+        neatStrVal = self.strFromInts(self.intSet)
         if currStrVal != neatStrVal:
             self.var.set(neatStrVal)
 
-    def strFromSet(self, intSet):
+    def strFromInts(self, intSet):
         """Return a formatted string from a collection of integers
 
         Warning: does not check that intSet contains only integers
         """
         return " ".join(str(val) for val in sorted(intSet))
 
-    def setFromStr(self, intListStr):
+    def intsFromStr(self, intListStr):
         """Return a set of positive integers from a string of space-separated integers
 
         Raise RuntimeError for values that cannot be cast to int
@@ -124,19 +125,24 @@ class ListOfIntEntry(RO.Wdg.StrEntry):
         intSet = set(int(val) for val in intListStr.split() if int(val) > 0)
         return intSet
 
+    def set(self, val):
+        intSet = self.intsFromStr(val)
+        self.intSet = intSet
+        RO.Wdg.StrEntry.set(self, val)
+
     def addInt(self, intVal):
         """Add an integer value to the currently displayed values
         """
-        newValSet = self.intSet | set((intVal,))
-        if newValSet != self.intSet:
-            self.set(self.strFromSet(newValSet))
+        newIntSet = self.intSet | set((intVal,))
+        if newIntSet != self.intSet:
+            self.set(self.strFromInts(newIntSet))
 
     def removeInt(self, intVal):
         """Remove an integer value from the current displayed values; do nothing if in absent
         """
-        newValSet = self.intSet - set((intVal,))
-        if newValSet != self.intSet:
-            self.set(self.strFromSet(newValSet))
+        newIntSet = self.intSet - set((intVal,))
+        if newIntSet != self.intSet:
+            self.set(self.strFromInts(newIntSet))
 
 
 class ScriptClass(object):
@@ -313,7 +319,7 @@ class ScriptClass(object):
             master = btnFrame,
             text = "Attended Mode",
             defValue = True,
-            helpText = "pause now if a star cannot be measured?",
+            helpText = "pause if a star cannot be measured?",
             helpURL = self.helpURL,
         )
         self.attendedModeWdg.grid(row=0, column=0, sticky="")
@@ -455,8 +461,12 @@ class ScriptClass(object):
                 gridDict[gridName] = gridPath
         return gridDict
 
-    def _setGrid(self, wdg=None):
+    def _setGrid(self, wdg=None, clearSkipRetryWdg=True):
         """Set a particular grid based on the selected name in self.gridWdg
+
+        Inputs:
+        - wdg: ignored (allows use as a widget callback)
+        - clearSkipRetryWdg: if True then clear starsToSkipWdg and starsToRetryWdg
         """
         gridName = self.gridWdg.getString()
         if not gridName:
@@ -484,20 +494,22 @@ class ScriptClass(object):
         self.azAltList["alt"] = altList
         self.numStarsWdg.set(" %s stars" % (numPoints,))
         self.azAltGraph.plotAzAltPoints(self.azAltList)
-        self.starsToSkipWdg.set("")
-        self.starsToRetryWdg.set("")
+        if clearSkipRetryWdg:
+            self.starsToSkipWdg.set("")
+            self.starsToRetryWdg.set("")
 
     def doSkipCurrStar(self):
         """Skip current star
         """
         if self.currStarNum > 0 and self.sr.isExecuting():
             self.starsToSkipWdg.addInt(self.currStarNum)
+            self.starsToRetryWdg.removeInt(self.currStarNum)
 
     def doRetryMissing(self):
         """Set starsToRetryWdg to all missing stars except those starsToSkipWdg
         """
-        starsToAdd = self.missingStarsWdg.intSet - self.skipCurrStarWdg.intSet
-        self.starsToRetryWdg.set(self.starsToRetryWdg.strFromSet(starsToAdd))
+        starsToAdd = self.missingStarsWdg.intSet - self.starsToSkipWdg.intSet
+        self.starsToRetryWdg.set(self.starsToRetryWdg.strFromInts(starsToAdd))
 
     def enableWdg(self, sr):
         """Enable or disable widgets, as appropriate
@@ -516,55 +528,6 @@ class ScriptClass(object):
         canEdit = isPaused or not isExecuting
         self.starsToSkipWdg.setEnable(canEdit)
         self.starsToRetryWdg.setEnable(canEdit)
-
-    def run(self, sr):
-        """Take a set of pointing data
-        """
-        self._setGrid()
-        self.initAll()
-
-        if self.azAltList is None:
-            raise ScriptError("No az/alt grid selected")
-        
-        ptDataDir = os.path.join(RO.OS.getDocsDir(), "ptdata")
-        if not os.path.exists(ptDataDir):
-            sr.showMsg("Creating directory %r" % (ptDataDir,))
-            os.mkdir(ptDataDir)
-        if not os.path.isdir(ptDataDir):
-            raise ScriptError("Could not create directory %r" % (ptDataDir,))
-
-        # set self.guideProbeCtrXY to center of pointing error probe
-        # (the name is a holdover from BaseFocusScript; the field is the location to centroid stars)
-        yield sr.waitCmd("tcc", "show inst/full") # make sure we have current guide probe info
-        if sr.debug:
-            self.guideProbeCtrXY = [512, 512]
-            self.ptErrProbe = 1
-        else:
-            ptErrProbe = self.tccModel.ptErrProbe.getInd(0)[0]
-            if ptErrProbe in (0, None):
-                raise ScriptError("Invalid pointing error probe %s; must be >= 1" % (ptErrProbe,))
-            guideProbe = self.tccModel.gProbeDict.get(ptErrProbe)
-            if guideProbe is None:
-                raise ScriptError("No data for pointing error probe %s" % (ptErrProbe,))
-            if not guideProbe.exists:
-                raise ScriptError("Pointing error probe %s is disabled" % (ptErrProbe,))
-            self.guideProbeCtrXY = guideProbe.ctrXY[:]
-            self.ptErrProbe = ptErrProbe
-
-        # open log file and write header
-        currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
-        ptDataName = "ptdata_%s.dat" % (currDateStr,)
-        ptDataPath = os.path.join(ptDataDir, ptDataName)
-        self.dataPathWdg.set(ptDataPath)
-        with open(ptDataPath, "w") as ptDataFile:
-            headerStrList = self.getHeaderStrList(currDateStr)
-            for headerStr in headerStrList:
-                ptDataFile.write(headerStr)
-                ptDataFile.write("\n")
-            ptDataFile.flush()
-
-            for starNum in self.starNumIter():
-                yield self.waitMeasureOneStar(starNum=starNum, ptDataFile=ptDataFile)
 
     def getHeaderStrList(self, currDateStr):
         """Return TPOINT data file header as a list of strings
@@ -717,6 +680,59 @@ class ScriptClass(object):
         centroidRadArcSec = self.getEntryNum(self.centroidRadWdg)
         self.centroidRadPix = centroidRadArcSec / (self.arcsecPerPixel * self.binFactor)
 
+    def run(self, sr):
+        """Take a set of pointing data
+        """
+        self._setGrid(clearSkipRetryWdg=False)
+        self.initAll()
+
+        if self.azAltList is None:
+            raise ScriptError("No az/alt grid selected")
+        
+        ptDataDir = os.path.join(RO.OS.getDocsDir(), "ptdata")
+        if not os.path.exists(ptDataDir):
+            sr.showMsg("Creating directory %r" % (ptDataDir,))
+            os.mkdir(ptDataDir)
+        if not os.path.isdir(ptDataDir):
+            raise ScriptError("Could not create directory %r" % (ptDataDir,))
+
+        # set self.guideProbeCtrXY to center of pointing error probe
+        # (the name is a holdover from BaseFocusScript; the field is the location to centroid stars)
+        yield sr.waitCmd("tcc", "show inst/full") # make sure we have current guide probe info
+        if sr.debug:
+            self.guideProbeCtrXY = [512, 512]
+            self.ptErrProbe = 1
+        else:
+            ptErrProbe = self.tccModel.ptErrProbe.getInd(0)[0]
+            if ptErrProbe in (0, None):
+                raise ScriptError("Invalid pointing error probe %s; must be >= 1" % (ptErrProbe,))
+            guideProbe = self.tccModel.gProbeDict.get(ptErrProbe)
+            if guideProbe is None:
+                raise ScriptError("No data for pointing error probe %s" % (ptErrProbe,))
+            if not guideProbe.exists:
+                raise ScriptError("Pointing error probe %s is disabled" % (ptErrProbe,))
+            self.guideProbeCtrXY = guideProbe.ctrXY[:]
+            self.ptErrProbe = ptErrProbe
+
+        # open log file and write header
+        currDateStr = isoDateTimeFromPySec(pySec=None, nDig=1)
+        ptDataName = "ptdata_%s.dat" % (currDateStr,)
+        ptDataPath = os.path.join(ptDataDir, ptDataName)
+        self.dataPathWdg.set(ptDataPath)
+        with open(ptDataPath, "w") as ptDataFile:
+            headerStrList = self.getHeaderStrList(currDateStr)
+            for headerStr in headerStrList:
+                ptDataFile.write(headerStr)
+                ptDataFile.write("\n")
+            ptDataFile.flush()
+
+            for starNum in self.starNumIter():
+                if starNum is None:
+                    # pausing
+                    yield
+                else:
+                    yield self.waitMeasureOneStar(starNum=starNum, ptDataFile=ptDataFile)
+
     def starNumIter(self):
         """Return number of next star to measure (starNum = grid index + 1)
 
@@ -725,15 +741,27 @@ class ScriptClass(object):
         """
         indIter = iter(range(len(self.azAltList)))
         while True:
-            retryStarSet = self.starsToRetryWdg.intSet - self.starsToSkipWdg.intSet
-            if retryStarSet:
-                yield sorted(retryStarSet)[0]
-            else:
-                nextStarNum = indIter.next() + 1
-                if nextStarNum in self.starsToSkipWdg.intSet:
-                    self.missingStarsWdg.addInt(nextStarNum)
-                    continue
-                yield nextStarNum
+            try:
+                retryStarSet = self.starsToRetryWdg.intSet - self.starsToSkipWdg.intSet
+                if retryStarSet:
+                    retryStarList = sorted(retryStarSet)
+                    nextStarNum = retryStarList.pop(0)
+                    self.starsToRetryWdg.removeInt(nextStarNum)
+                    yield nextStarNum
+                else:
+                    nextStarNum = indIter.next() + 1
+                    if nextStarNum in self.starsToSkipWdg.intSet:
+                        self.sr.showMsg("Skipping star %d" % (nextStarNum,))
+                        self.missingStarsWdg.addInt(nextStarNum)
+                        continue
+                    yield nextStarNum
+            except StopIteration:
+                hasMissingStars = bool(self.missingStarsWdg.intSet - self.starsToSkipWdg.intSet)
+                if not self.attendedModeWdg.getBool() and hasMissingStars:
+                    yield self.sr.waitPause("Some stars missing; paused to allow retry",
+                        severity=RO.Constants.sevWarning)
+                else:
+                    raise
 
     def updBinFactor(self, *args, **kargs):
         """Called when the user changes the bin factor"""
@@ -942,11 +970,15 @@ class ScriptClass(object):
                 if not sr.debug:
                     raise ScriptError("No pointing reference star found")
                 else:
+                    if self.currStarNum % 2 == 0:
+                        raise ScriptError("In debug mode every other star is failed")
                     ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
             self.ptRefStar = PtRefStar(ptRefStarValues)
             settleTime = self.settleTimeWdg.getNumOrNone()
             if settleTime:
-                yield sr.waitMS(settleTime * 1000)
+                if settleTime > 0.05:
+                    sr.showMsg("Waiting %0.1f sec for settling" % (settleTime,))
+                yield sr.waitSec(settleTime)
             numExp = self.numExpWdg.getNum()
             for expInd in range(numExp):
                 self.recordExpParams()
@@ -976,6 +1008,8 @@ class ScriptClass(object):
             self.azAltGraph.plotAzAltPoints(self.azAltList)
             if self.attendedModeWdg.getBool():
                 self.starsToRetryWdg.addInt(starNum)
+                yield self.sr.waitPause("Star %s failed; paused so you can retry" % (starNum,),
+                    severity = RO.Constants.sevWarning)
             return
 
         # log pointing error
