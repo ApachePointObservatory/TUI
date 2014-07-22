@@ -29,7 +29,7 @@ WindowName = "TCC.Mirror Status"
 NumSecAxes = 5
 NumTertAxes = 3
 
-_HelpURL = "Telescope/MirrorStatus.html"
+_HelpURL = "Telescope/MirrorStatusWin.html"
 
 def addWindow(tlSet):
     """Create the window for TUI.
