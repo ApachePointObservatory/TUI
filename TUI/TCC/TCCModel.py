@@ -50,6 +50,7 @@ or register ROWdg widgets to automatically display updating values.
 2011-07-14 ROwen    Added ipConfig, gcFocus, gcFocusLim, gcNomFocus, instFocus, rotInstXYAng and rotOffsetScale;
                     all of these except ipConfig and gcFocus are new in TCC 2.15.0.
 2014-04-23 ROwen    Added gProbeDict
+2014-07-21 ROwen    Added <mir>DesEncMount and <mir>EncMount.
 """
 from collections import OrderedDict
 
@@ -614,6 +615,22 @@ guider mechanical controller is available
             description = "Age of most recent computation of desired orientation, in sec."
         )
 
+        self.secEncMount = keyVarFact(
+            keyword = "SecDesEncMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Desired encoder length based on desired orientation (actuator microsteps); " + \
+                "for actuators without an encoder, this will be commanded mount",
+        )
+
+        self.secDesEncMount = keyVarFact(
+            keyword = "SecEncMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Measured encoder length (actuator microsteps); " + \
+                "for actuators without an encoder, this will be commanded mount",
+        )
+
         self.secStatus = keyVarFact(
             keyword = "SecStatus",
             nval = (1, 6),
@@ -654,6 +671,22 @@ guider mechanical controller is available
             keyword = "TertOrientAge",
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Age of most recent computation of desired orientation, in sec."
+        )
+
+        self.tertDesEncMount = keyVarFact(
+            keyword = "TertDesEncMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Desired encoder length based on desired orientation (actuator microsteps); " + \
+                "for actuators without an encoder, this will be commanded mount",
+        )
+
+        self.tertEncMount = keyVarFact(
+            keyword = "TertEncMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Measured encoder length (actuator microsteps); " + \
+                "for actuators without an encoder, this will be commanded mount",
         )
 
         self.tertStatus = keyVarFact(
