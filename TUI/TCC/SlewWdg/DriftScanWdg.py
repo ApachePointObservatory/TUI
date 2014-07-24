@@ -33,8 +33,7 @@ import RO.Wdg
 import TUI.TCC.UserModel
 
 # constants
-_MaxVel = 3.0 * 3600.0 # arcsec
-_VelFieldWidth = 9 # enough for -X:XX:XX.X
+_VelFieldWidth = 7
 _AngFieldWidth = 6
 _LabelWidth = 8 # enough for "Vel Long"
 
@@ -70,7 +69,6 @@ class DriftScanWdg(RO.Wdg.InputContFrame):
             sticky = "",
         )
         
-        
         # axes widgets
         # the labels vary as the coordinate system changes
         # so keep track of them as widgets
@@ -83,25 +81,21 @@ class DriftScanWdg(RO.Wdg.InputContFrame):
             )
             self.axesLabelSet.append(labelWdg)
             
-            unitsVar = Tkinter.StringVar()
-            
-            wdg = RO.Wdg.DMSEntry (self,
-                -_MaxVel, _MaxVel,
+            wdg = RO.Wdg.FloatEntry(
+                master = self,
+                minValue = 0,
                 defValue = 0,
-                helpURL = _HelpPrefix + "XY",
+                defFormat = "%.1f",
                 width = _VelFieldWidth,
-                isRelative = True,
-                omitExtraFields = True,
-                unitsVar = unitsVar,
-                unitsSuffix = "/sec",
                 callFunc = self._axesChanged,
+                helpURL = _HelpPrefix + "XY",
             )
             self.axesWdgSet.append(wdg)
             
             gr.gridWdg (
                 label = labelWdg,
                 dataWdg = wdg,
-                units = unitsVar,
+                units = "\"/hr",
             )
 
         # separator widget; the units label makes the units column
@@ -112,28 +106,17 @@ class DriftScanWdg(RO.Wdg.InputContFrame):
         )
         
         # velocity widget
-        unitsVar = Tkinter.StringVar()
-        self.velWdg = RO.Wdg.DMSEntry (self,
-            0.0, _MaxVel,
-            helpURL = _HelpPrefix + "VelAngle",
-            isRelative = True,
-            omitExtraFields = True,
+        self.velWdg = RO.Wdg.FloatEntry(
+            master = self,
+            minValue = 0,
+            defFormat = "%.1f",
             width = _VelFieldWidth,
-            unitsVar = unitsVar,
-            unitsSuffix = "/sec",
             callFunc = self._velAngChanged,
-            helpText = "Total scan velocity"
+            helpText = "Total scan velocity (arcsec/hour)",
+            helpURL = _HelpPrefix + "VelAngle",
         )
 
-        gr.gridWdg(
-            label = Tkinter.Label(self,
-                text = "Vel",
-                anchor = "e",
-                width = _LabelWidth,
-            ),
-            dataWdg = self.velWdg,
-            units = unitsVar,
-        )
+        gr.gridWdg("Vel", self.velWdg, "\"/hr")
         
         # angle widget
         self.angleWdg = RO.Wdg.FloatEntry (self,
@@ -168,10 +151,11 @@ class DriftScanWdg(RO.Wdg.InputContFrame):
             wdgList = inputCont.getWdgList()
             if not inputCont.allEnabled():
                 return ''
-            valList = [wdg.getNum() / 3600.0 for wdg in wdgList]
+            # convert from arcsec/hour to deg/sec
+            valList = [wdg.getNum() / (3600.0 * 3600) for wdg in wdgList]
             if valList == [0.0, 0.0]:
                 return ''
-            return '/%s=(%.6f, %.6f)' % (name, valList[0], valList[1])
+            return '/%s=(%0.9f, %0.9f)' % (name, valList[0], valList[1])
 
         self.inputCont = RO.InputCont.WdgCont (
             name = "ScanVelocity",
@@ -194,9 +178,9 @@ class DriftScanWdg(RO.Wdg.InputContFrame):
         for ind in range(2):
             axisStr = posLabels[ind]
             self.axesLabelSet[ind]["text"] = "Vel %s" % (axisStr,)
-            self.axesWdgSet[ind].helpText = "%s component of scan velocity" % (axisStr,)
+            self.axesWdgSet[ind].helpText = "%s component of scan velocity (arcsec/hour)" % (axisStr,)
         self.angleWdg.helpText = \
-            "Tangent angle: 0 = increasing %s; 90 = increasing %s" % \
+            "Tangent angle: 0 = increasing %s; 90 = increasing %s (deg)" % \
             tuple(posLabels)
     
     def _axesChanged (self, *args):
