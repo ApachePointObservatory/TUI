@@ -83,7 +83,6 @@ class DriftScanWdg(RO.Wdg.InputContFrame):
             
             wdg = RO.Wdg.FloatEntry(
                 master = self,
-                minValue = 0,
                 defValue = 0,
                 defFormat = "%.1f",
                 width = _VelFieldWidth,
