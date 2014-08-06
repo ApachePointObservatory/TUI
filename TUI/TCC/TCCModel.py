@@ -615,6 +615,14 @@ guider mechanical controller is available
             description = "Age of most recent computation of desired orientation, in sec."
         )
 
+        self.secDesEncMount = keyVarFact(
+            keyword = "SecEncMount",
+            nval = (1, 6),
+            converters = RO.CnvUtil.asFloatOrNone,
+            description = "Measured encoder length (actuator microsteps); " + \
+                "for actuators without an encoder, this will be commanded mount",
+        )
+
         self.secEncMount = keyVarFact(
             keyword = "SecDesEncMount",
             nval = (1, 6),
@@ -623,12 +631,22 @@ guider mechanical controller is available
                 "for actuators without an encoder, this will be commanded mount",
         )
 
-        self.secDesEncMount = keyVarFact(
-            keyword = "SecEncMount",
-            nval = (1, 6),
-            converters = RO.CnvUtil.asFloatOrNone,
-            description = "Measured encoder length (actuator microsteps); " + \
-                "for actuators without an encoder, this will be commanded mount",
+        self.secState = keyVarFact(
+            keyword = "SecState",
+            converters = (
+                str,
+                RO.CnvUtil.asIntOrNone,
+                RO.CnvUtil.asIntOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            description = """Mirror controller state:
+                - state string, such as: "Done", "Homing", "Moving" or "Failed",
+                - iteration
+                - max iterations
+                - remaining duration (sec)
+                - total duration (sec)
+                """,
         )
 
         self.secStatus = keyVarFact(
@@ -687,6 +705,24 @@ guider mechanical controller is available
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Measured encoder length (actuator microsteps); " + \
                 "for actuators without an encoder, this will be commanded mount",
+        )
+
+        self.tertState = keyVarFact(
+            keyword = "TertState",
+            converters = (
+                str,
+                RO.CnvUtil.asIntOrNone,
+                RO.CnvUtil.asIntOrNone,
+                RO.CnvUtil.asFloatOrNone,
+                RO.CnvUtil.asFloatOrNone,
+            ),
+            description = """Mirror controller state:
+                - state string, such as: "Done", "Homing", "Moving" or "Failed",
+                - iteration
+                - max iterations
+                - remaining duration (sec)
+                - total duration (sec)
+                """,
         )
 
         self.tertStatus = keyVarFact(

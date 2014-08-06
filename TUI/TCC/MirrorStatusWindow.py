@@ -19,6 +19,7 @@
                     measured encoder length and desired encoder length.
                     Added help text and a status bar to dispay it.
                     Removed some unused variables.
+2014-08-06 ROwen    Added mirror state, including a countdown timer.
 """
 import Tkinter
 import RO.Wdg
@@ -86,7 +87,8 @@ class MirrorStatusWdg (Tkinter.Frame):
         # for each mirror, create a set of widgets find the associated keyvar
         for numAxes, niceName, keyPrefix, helpText in orientNumLabelPrefixHelpList:
             keyVarName = "%sOrient" % (keyPrefix,)
-            orientWdgSet = [RO.Wdg.FloatLabel(self,
+            orientWdgSet = [RO.Wdg.FloatLabel(
+                    master = self,
                     precision = prec,
                     width = width,
                     helpText = "%s (%s)" % (helpText, keyVarName,),
@@ -100,6 +102,75 @@ class MirrorStatusWdg (Tkinter.Frame):
 
             orientVar = getattr(tccModel, keyVarName)
             orientVar.addROWdgSet(orientWdgSet)
+
+        # divider
+        gr.gridWdg(
+            label = False,
+            dataWdg = Tkinter.Frame(self, height=1, bg="black"),
+            colSpan = len(orientColInfo) + 1,
+            sticky = "ew",
+        )
+
+        #
+        # display mirror state
+        #
+
+        statusLabelPrefixHelpList = (
+            ("Sec state", "sec", "secondary state"),
+            ("Tert state", "tert", "tertiary state"),
+        )
+        for niceName, keyPrefix, helpText in statusLabelPrefixHelpList:
+            fullHelpText = "%s (%s)" % (helpText, keyVarName)
+            keyVarName = "%sState" % (keyPrefix,)
+            stateFrame = Tkinter.Frame(self)
+
+            stateWdg = RO.Wdg.StrLabel(
+                master = stateFrame,
+                helpText = fullHelpText,
+                helpURL = _HelpURL,
+            )
+            stateWdg.grid(row=0, column=0)
+            timerWdg = RO.Wdg.TimeBar(
+                master = stateFrame,
+                barLength = 50,
+            )
+            timerWdg.grid(row=0, column=1)
+            timerWdg.grid_remove() # only show when needed
+            gr.gridWdg(
+                label = niceName,
+                dataWdg = stateFrame,
+                colSpan = 4,
+                sticky = "w",
+                helpText = fullHelpText,
+            )
+
+            def setState(valueList, isCurrent, keyVar=None, stateWdg=stateWdg, timerWdg=timerWdg):
+                if valueList[0] is None:
+                    stateWdg.set(None)
+                    timerWdg.grid_remove()
+                    timerWdg.clear()
+                else:
+                    severity = dict(
+                        Done = RO.Constants.sevNormal,
+                        Moving = RO.Constants.sevWarning,
+                        Homing = RO.Constants.sevWarning,
+                        Failed = RO.Constants.sevError,
+                        NotHomed = RO.Constants.sevError,
+                    ).get(valueList[0], RO.Constants.sevWarning)
+                    if valueList[1]:
+                        stateStr = "%s: iter %s of %s" % (valueList[0], valueList[1], valueList[2])
+                    else:
+                        stateStr = valueList[0]
+                    stateWdg.set(stateStr, severity = severity)
+
+                    if isCurrent and valueList[4] > 0:
+                        timerWdg.start(value = valueList[3], newMax = valueList[4])
+                        timerWdg.grid()
+                    else:
+                        timerWdg.grid_remove()
+                        timerWdg.clear()
+            stateVar = getattr(tccModel, keyVarName)
+            stateVar.addCallback(setState)
 
         # divider
         gr.gridWdg(
@@ -171,12 +242,14 @@ if __name__ == "__main__":
         "SecOrient": (105.26, -55.01, -0.95, -0.15, 21.05),
         "SecEncMount": (725572., 356301., 671032., 54332, 32112),
         "SecDesEncMount": (725509., 356327., 679956., 54385, 32154),
+        "SecState": ("Moving", 2, 5, 25, 32),
 
         "TertDesOrient": (205.16, 54.99, 0.90, 0.35, -21.15),
         "TertCmdMount": (825528, 456362, 771055),
         "TertOrient": (205.26, 55.01, 0.95, 0.15, -21.05),
         "TertEncMount": (825587, 456318, 771009),
         "TertDesEncMount": (825511, 456373, 771033),
+        "TertState": ("Done", 0, 0, 0, 0),
     }
     msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
     kd.dispatch(msgDict)
