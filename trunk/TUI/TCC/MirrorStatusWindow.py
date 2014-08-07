@@ -19,7 +19,7 @@
                     measured encoder length and desired encoder length.
                     Added help text and a status bar to dispay it.
                     Removed some unused variables.
-2014-08-06 ROwen    Added mirror state, including a countdown timer.
+2014-08-07 ROwen    Added mirror state, including a countdown timer.
 """
 import Tkinter
 import RO.Wdg
@@ -145,30 +145,30 @@ class MirrorStatusWdg (Tkinter.Frame):
             )
 
             def setState(valueList, isCurrent, keyVar=None, stateWdg=stateWdg, timerWdg=timerWdg):
+                """Callback for <mir>State; used to set state widgets for the appropriate mirror
+                """
+                severity = {
+                    "Done": RO.Constants.sevNormal,
+                    "Moving": RO.Constants.sevWarning,
+                    "Homing": RO.Constants.sevWarning,
+                    "Failed": RO.Constants.sevError,
+                    "NotHomed": RO.Constants.sevError,
+                    None: RO.Constants.sevWarning,
+                }.get(valueList[0], RO.Constants.sevWarning)
                 if valueList[0] is None:
-                    stateWdg.set(None)
+                    stateStr = "?"
+                elif valueList[1]:
+                    stateStr = "%s: iter %s of %s" % (valueList[0], valueList[1], valueList[2])
+                else:
+                    stateStr = valueList[0]
+                stateWdg.set(stateStr, severity = severity, isCurrent = isCurrent)
+
+                if isCurrent and valueList[4] > 0:
+                    timerWdg.start(value = valueList[3], newMax = valueList[4])
+                    timerWdg.grid()
+                else:
                     timerWdg.grid_remove()
                     timerWdg.clear()
-                else:
-                    severity = dict(
-                        Done = RO.Constants.sevNormal,
-                        Moving = RO.Constants.sevWarning,
-                        Homing = RO.Constants.sevWarning,
-                        Failed = RO.Constants.sevError,
-                        NotHomed = RO.Constants.sevError,
-                    ).get(valueList[0], RO.Constants.sevWarning)
-                    if valueList[1]:
-                        stateStr = "%s: iter %s of %s" % (valueList[0], valueList[1], valueList[2])
-                    else:
-                        stateStr = valueList[0]
-                    stateWdg.set(stateStr, severity = severity)
-
-                    if isCurrent and valueList[4] > 0:
-                        timerWdg.start(value = valueList[3], newMax = valueList[4])
-                        timerWdg.grid()
-                    else:
-                        timerWdg.grid_remove()
-                        timerWdg.clear()
             stateVar = getattr(tccModel, keyVarName)
             stateVar.addCallback(setState)
 
