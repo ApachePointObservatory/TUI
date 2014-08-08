@@ -616,7 +616,7 @@ guider mechanical controller is available
         )
 
         self.secDesEncMount = keyVarFact(
-            keyword = "SecEncMount",
+            keyword = "SecDesEncMount",
             nval = (1, 6),
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Measured encoder length (actuator microsteps); " + \
@@ -624,7 +624,7 @@ guider mechanical controller is available
         )
 
         self.secEncMount = keyVarFact(
-            keyword = "SecDesEncMount",
+            keyword = "SecEncMount",
             nval = (1, 6),
             converters = RO.CnvUtil.asFloatOrNone,
             description = "Desired encoder length based on desired orientation (actuator microsteps); " + \

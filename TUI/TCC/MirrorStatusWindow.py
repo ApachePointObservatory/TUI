@@ -237,18 +237,18 @@ if __name__ == "__main__":
     testFrame.pack()
 
     dataDict = {
-        "SecDesOrient": (105.16, -54.99, -0.90, -0.35, 21.15),
-        "SecCmdMount": (725528., 356362., 671055., 54300, 32150),
         "SecOrient": (105.26, -55.01, -0.95, -0.15, 21.05),
+        "SecDesOrient": (105.16, -54.99, -0.90, -0.35, 21.15),
         "SecEncMount": (725572., 356301., 671032., 54332, 32112),
         "SecDesEncMount": (725509., 356327., 679956., 54385, 32154),
+        "SecCmdMount": (725528., 356362., 671055., 54300, 32150),
         "SecState": ("Moving", 2, 5, 25, 32),
 
-        "TertDesOrient": (205.16, 54.99, 0.90, 0.35, -21.15),
-        "TertCmdMount": (825528, 456362, 771055),
         "TertOrient": (205.26, 55.01, 0.95, 0.15, -21.05),
+        "TertDesOrient": (205.16, 54.99, 0.90, 0.35, -21.15),
         "TertEncMount": (825587, 456318, 771009),
         "TertDesEncMount": (825511, 456373, 771033),
+        "TertCmdMount": (825528, 456362, 771055),
         "TertState": ("Done", 0, 0, 0, 0),
     }
     msgDict = {"cmdr":"me", "cmdID":11, "actor":"tcc", "msgType":":", "data":dataDict}
