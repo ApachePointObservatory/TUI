@@ -181,7 +181,7 @@ class MiscWdg (Tkinter.Frame):
             units = False,
             sticky = "w",
         )
-        self.tccModel.instName.addROWdg(self.instNameWdg)
+        self.tccModel.instName.addCallback(self.updateInstName)
         
         self.secFocusWdg = RO.Wdg.FloatLabel(
             master = self,
@@ -223,6 +223,13 @@ class MiscWdg (Tkinter.Frame):
         # allow the last+1 column to grow to fill the available space
         self.columnconfigure(gr.getMaxNextCol(), weight=1)
 
+    def updateInstName(self, *args, **kwargs):
+        instName, isCurrent = self.tccModel.instName.getInd(0)
+        if instName == "?":
+            severity = RO.Constants.sevError
+        else:
+            severity = RO.Constants.sevNormal
+        self.instNameWdg.set(instName, severity=severity, isCurrent=isCurrent)
     
     def updateClock(self):
         """Automatically update the time displays in this widget.
