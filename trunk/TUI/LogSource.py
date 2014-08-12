@@ -16,6 +16,7 @@ History:
 2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 2012-12-07 ROwen    Modified to use RO.Astro.Tm clock correction to show correct time for timestamp
                     even if user's clock is keeping TAI or is drifting.
+2014-08-09 ROwen    Added date to the timestamp string, as YYYY-MM-DD followed by a space.
 """
 import time
 import collections
@@ -95,7 +96,7 @@ class LogEntry(object):
         self.unixTime = time.time()
         currPythonSeconds = RO.Astro.Tm.getCurrPySec(self.unixTime)
         currTAITuple= time.gmtime(currPythonSeconds - RO.Astro.Tm.getUTCMinusTAI())
-        self.taiTimeStr = time.strftime("%H:%M:%S", currTAITuple)
+        self.taiTimeStr = time.strftime("%Y-%m-%d %H:%M:%S", currTAITuple)
         self.msgStr = msgStr
         self.actor = actor
         self.severity = severity

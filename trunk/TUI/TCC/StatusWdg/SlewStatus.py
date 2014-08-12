@@ -45,8 +45,8 @@ History:
 2006-04-27 ROwen    Bug fix: halted countdown timer prematurely for track/stop.
                     Changed a tests from if <x> == True: to if <x>: (thanks pychecker).
 2009-09-09 ROwen    Modified to use TestData.
+2014-08-08 ROwen    Removed obsolete warning "halting countdown timer due to AxisCmdState".
 """
-import sys
 import time
 import Tkinter
 import RO.CnvUtil
@@ -140,7 +140,8 @@ class SlewStatusWdg(Tkinter.Frame):
             self.progBar.pack(expand=True, fill="y")
             self.progBarVisible = True
         elif self.progBarVisible:
-            sys.stderr.write("Warning: halting countdown timer due to AxisCmdState\n")
+            # this is the usual way a slew is reported to have ended in the new TCC;
+            # axisCmdState is output before slewEnd
             self.doSlewEnd()
 
 if __name__ == "__main__":

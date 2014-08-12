@@ -1,4 +1,4 @@
-! azimuth/altitude grid; # points = 20
+! azimuth/altitude 20 point grid with altitude range 13-82 deg
  
 ! azimuth   altitude
 !  (deg)      (deg)

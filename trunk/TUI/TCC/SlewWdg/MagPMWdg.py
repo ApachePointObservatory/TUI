@@ -23,6 +23,7 @@ History:
 2012-10-16 ROwen    Bug fixes:
                     - The units for PM RA/Long were shown as sec/cent instead of "/cent
                     - _coordSysChanged was not being called so PM help was missing and labels were wrong
+2014-08-10 ROwen    Corrected units of distance from parsecs to au.
 """
 import Tkinter
 import RO.CoordSys
@@ -140,7 +141,7 @@ class MagPMWdg(RO.Wdg.InputContFrame):
                 helpURL = _HelpPrefix + "Distance",
                     width = _EntryWidth,
             ),
-            units = 'parsecs',
+            units = "au",
             cat = "geo",
         )
 
@@ -246,8 +247,6 @@ class MagPMWdg(RO.Wdg.InputContFrame):
         
 
 if __name__ == "__main__":
-    import CoordSysWdg
-
     root = RO.Wdg.PythonTk()
 
     def printOptions():

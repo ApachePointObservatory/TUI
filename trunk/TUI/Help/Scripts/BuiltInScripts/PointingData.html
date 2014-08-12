@@ -24,14 +24,10 @@
 
 <h3>Controls</h3>
 
+<p>You may change any parameter except Az/Alt Grid while the script is running; the new value will be used as soon as possible. For parameters you type (such as exposure time), you must type &lt;tab<&gt; or &lt;enter&gt; or click on a different field to save the new value; unfortunately there is no visual feedback indicating if a value has been saved. If you want to change several values at the same time, you may wish to pause the script while you make the changes.
+
 <ul>
-    <li><b>Az/Alt Grid</b>: select the grid of az/alt points. The script slews to a pointing reference star near each point in turn. A few grids are built in. Additional grids are looked for in <a href="../TUIAdditions.html">TUIAdditions</a>/Grids/*.dat (and the menu is rebuilt each time you click on it, so you can add, delete or modify grid files while TUI is running). You may generate additional grids using the MakeGrid application or by hand. The format of grid files is one line per point: az alt (decimal degrees, no comma separating them). Lines starting with # or ! and blank lines are ignored. Leading and trailing whitespace is also ignored. For example:
-    <pre>
-! azimuth   altitude
-!  (deg)      (deg)
-    91.02     51.43
-   126.52     15.08
-...</pre>
+    <li><b>Az/Alt Grid</b>: select the grid of az/alt points. The script slews to a pointing reference star near each point in turn.
     <li><b>Min Mag</b>: minimum magnitude (maximum brightness) of pointing reference star.
     <li><b>Max Mag</b>: maximum magnitude (minimum brightness) of pointing reference star.
     <li><b>Rot Type</b>: rotation type (rotation angle is always 0).
@@ -39,7 +35,7 @@
     <li><b>Num Exp</b>: the number of exposures to take of each pointing reference star. After each exposure the pointing is corrected (by updating the Calibration offset). The pointing error of the final exposure is logged to the pointing data file. 1 should usually suffice, but it is worth experimenting with 2 to see if it increases the accuracy of the pointing model.
     <li><b>Exp Time</b>: exposure time (sec).
     <li><b>Bin Factor</b>: bin factor
-    <li><b>Centroid Radius</b>: centroid radius, in arcsec. This is used if Num Exp > 1 for all measurements after the first one (the first one uses the "findstars" command, which does not use a centroid radius). It should be large enough to include the star and some sky around it. Pointing reference stars should be reasonably well isolated, so there is usually no need to worry about including extra stars.
+    <li><b>Centroid Radius</b>: centroid radius, in arcsec. It controls how many pixels are used to measure a star after it has been found (it does not affect star finding). It should be large enough to include the star and some sky around it.
     <li><b>Pause on Error</b>: controls the <a href="#Modes">mode of operation</a>.
     <li><b>Skip Current Star</b>: add the current star to <b>Stars to Skip</b>. This is useful if running in attended mode and you give up on the current star.
     <li><b>Retry All Stars</b>: add all stars from <b>Missing Stars</b> (except those in <b>Stars to Skip</b>) to <b>Stars to Retry</b>. This is useful if running in unattended mode and you want to retry all missing stars.
@@ -62,6 +58,18 @@
 <p>The graph shows the grid of az/alt points. While a star near a grid point is being measured, that grid point is shown as a large blue star. Once the star has been measured, the grid point is a small green star, or a red X if the star could not be measured. Note that the graph does <b>not</b> show the positions of the pointing reference stars (to avoid clutter) nor the measured error (because TPOINT does this so much more better).
 
 <p>The data file can be read by TPOINT and used to fit a pointing model. You will also want access to the the current pointing model (to get the terms we use, and to see how much pointing has changed). You can get that from tcc35m-1-p in tccdata/telmod.dat.
+
+<h3>Adding Az/Alt Grids</h3>
+
+<p>A few grids of az/alt points are built in. TUI looks for additional grids in <a href="../TUIAdditions.html">TUIAdditions</a>/Grids/*.dat. The Az/Alt Grid menu is rebuilt each time you click on it, so you can add, delete or modify grid files while TUI is running.
+
+<p>You may generate additional grids using the <a href="http://www.apo.nmsu.edu/35m_operations/TUI-images/makeGrid/">MakeGrid</a> application, or generate files by hand. The format of grid files is one line per point: az alt (decimal degrees, no comma separating them). Lines starting with # or ! and blank lines are ignored. Leading and trailing whitespace is also ignored. For example:
+    <pre>
+# azimuth   altitude
+#  (deg)      (deg)
+    91.02     51.43
+   126.52     15.08
+...</pre>
 
 </body>
 </html>
