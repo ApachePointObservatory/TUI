@@ -16,6 +16,10 @@ History:
 2004-02-04 ROwen    Modified _HelpURL to match minor help reorg.
 2009-09-09 ROwen    Modified to use TestData.
 2010-11-04 ROwen    Tweaked help URLs.
+2014-08-15 ROwen    Fixed coordinate system display:
+                    - Topocentric and Observed now show date as TAI, MJD, if provided (very unlikely)
+                    - The field is now long enough to avoid truncation
+                    Also removed special handling for objSys unknown, since it's not needed and never happens
 """
 import Tkinter
 import RO.CoordSys
@@ -35,7 +39,6 @@ _CoordSysHelpDict = {
     RO.CoordSys.Observed: "Observed az/alt: topocentric plus refraction correction",
     RO.CoordSys.Physical: "Physical az/alt; pos. of a perfect telescope",
     RO.CoordSys.Mount: "Mount az/alt: pos. sent to the axis controllers; no wrap",
-
 }
 
 _RotTypeHelpDict = {
@@ -103,7 +106,7 @@ class NetPosWdg (Tkinter.Frame):
 
         # coordinate system
         self.csysWdg = RO.Wdg.StrLabel(self,
-            width=13,
+            width=20,
             anchor="w",
             helpText = "Object coordinate system",
             helpURL = _HelpURL,
@@ -155,30 +158,27 @@ class NetPosWdg (Tkinter.Frame):
         """
         # print "TUI.TCC.StatusWdg.NetPosWdg._objSysChanged%r" % ((csysObjAndDate, isCurrent),)
         csysObj, csysDate = csysObjAndDate
-        csysValid = str(csysObj).lower() != "unknown"
         dateValid = csysDate != None
                 
-        if not csysValid:
-            self.setNoCoordSys()
-            return
-        
         if csysObj.dateIsYears():
             if not dateValid:
-                csysStr = "%s ?EPOCH?" % (csysObj,)
+                csysStr = "%s ?date?" % (csysObj,)
             elif csysDate != 0.0 or csysObj.hasEquinox():
-                csysStr = "%s  %s%.1f" % (csysObj, csysObj.datePrefix(), csysDate)
+                if round(csysDate) == csysDate:
+                    csysStr = "%s  %s%.0f" % (csysObj, csysObj.datePrefix(), csysDate)
+                else:
+                    csysStr = "%s  %s%.2f" % (csysObj, csysObj.datePrefix(), csysDate)
             else:
                 csysStr = str(csysObj)
-        elif csysObj.dateIsSidTime():
-            # typically the default date (<0 => now) is used
-            # but local apparent sidereal time may be specified
+        elif csysObj.dateIsSidTime(): # a lie, actually TAI (MJD, sec)
+            # almost always the default date (<0 => now) is used,
+            # but a date might conceivably be specified, in which case it is TAI (MJD, sec)
             if not dateValid:
-                csysStr = "%s ?ST?" % (csysObj,)
-            elif csysObjAndDate[1] < 0.0:
+                csysStr = "%s ?date?" % (csysObj,)
+            elif csysObjAndDate[1] == 0.0:
                 csysStr = str(csysObj)
             else:
-                dateHMS = RO.StringUtil.dmsStrFromDeg(csysDate, precision=0)
-                csysStr = "%s  %s hms" % (csysObj, dateHMS)
+                csysStr = "%s %0.1f"% (csysObj, csysDate)
         else:
             # no date
             csysStr = str(csysObj)
@@ -223,7 +223,7 @@ if __name__ == "__main__":
 
     dataList = (
         "ObjName='test object with a long name'",
-        "ObjSys=ICRS, 0",
+        "ObjSys=geo, 2014.352",
         "ObjNetPos=120.123450, 0.000000, 4494436859.66000, -2.345670, 0.000000, 4494436859.66000",
         "RotType=Obj",
         "RotPos=3.456789, 0.000000, 4494436895.07921",

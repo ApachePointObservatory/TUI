@@ -23,7 +23,7 @@ History:
 2012-10-16 ROwen    Bug fixes:
                     - The units for PM RA/Long were shown as sec/cent instead of "/cent
                     - _coordSysChanged was not being called so PM help was missing and labels were wrong
-2014-08-10 ROwen    Corrected units of distance from parsecs to au.
+2014-08-10 ROwen    Corrected displayed units of distance from parsecs to au.
 """
 import Tkinter
 import RO.CoordSys
