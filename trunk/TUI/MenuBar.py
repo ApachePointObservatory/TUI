@@ -41,6 +41,7 @@ History:
                     application menu have all entries added before setting the menu property of the toplevel.
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
 2012-11-29 ROwen    Bug fix on MacOS X: a duplicate Preferences menu was shown. Now supports cmd-comma.
+2014-08-15 ROwen    Bug fix: an error if no parentTL found was mis-generated.
 """
 import Tkinter
 import RO.Alg
@@ -79,7 +80,7 @@ class MenuBar(object):
         else:
             parentTL = self.tlSet.getToplevel(TUI.TCC.StatusWdg.StatusWindow.WindowName)
             if not parentTL:
-                raise RuntimeError("Could not find window %s" % (TCC.StatusWdg.StatusWindow.WindowName,))
+                raise RuntimeError("Could not find window %s" % (TUI.TCC.StatusWdg.StatusWindow.WindowName,))
         self.parentMenu = Tkinter.Menu(parentTL)
         
         self.tuiMenu = None
@@ -167,7 +168,7 @@ class MenuBar(object):
         # predefined windows: titles of windows
         # whose positions in the TUI menu are predefined
         predef = ["About %s" % (appName,), "Connect", "Preferences", "Downloads"]
-        predef = ["%s.%s" % (appName, name) for name in predef]
+        predef = ["%s.%s" % (appName, wtitle) for wtitle in predef]
 
         # add first batch of predefined entries
         self._addWindow("%s.About %s" % (appName, appName), mnu)
