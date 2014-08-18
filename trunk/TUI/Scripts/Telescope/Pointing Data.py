@@ -36,6 +36,7 @@ History:
 2014-05-15 ROwen    Many bug fixes.
 2014-05-19 ROwen    Changed saved azimuth to TPOINT convention.
 2014-07-19 ROwen    Added Attended Mode and associated controls.
+2014-08-17 ROwen    Update collimation after slewing to each pointing reference star, before taking the guide image.
 """
 import collections
 import glob
@@ -244,7 +245,7 @@ class ScriptClass(object):
 
         self.settleTimeWdg = RO.Wdg.FloatEntry(
             master = ctrlFrame,
-            defValue = 4.0 if not sr.debug else 0.0,
+            defValue = 0.0 if not sr.debug else 0.0,
             minValue = 0.0,
             defFormat = "%.1f",
             width = EntryWidth,
@@ -955,6 +956,8 @@ class ScriptClass(object):
             maxMag = self.getEntryNum(self.maxMagWdg)
             rotType = self.rotTypeWdg.getString()
 
+            # slew to the pointing reference star
+            # use checkFail=False for all commands so the script can continue with the next star
             yield sr.waitCmd(
                 actor = "tcc",
                 cmdStr = "track %0.7f, %0.7f obs/pterr/rottype=%s/rotang=0/magRange=(%s, %s)" % \
@@ -974,6 +977,18 @@ class ScriptClass(object):
                         raise ScriptError("In debug mode every other star is failed")
                     ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
             self.ptRefStar = PtRefStar(ptRefStarValues)
+
+            # update collimation
+            yield sr.waitCmd(
+                actor = "tcc",
+                cmdStr = "set focus=0/incr",
+                checkFail = False,
+            )
+            cmdVar = sr.value
+            if cmdVar is None or cmdVar.didFail():
+                raise ScriptError("Collimation update failed")
+
+            # wait for the settling time
             settleTime = self.settleTimeWdg.getNumOrNone()
             if settleTime:
                 if settleTime > 0.05:

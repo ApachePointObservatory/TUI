@@ -76,12 +76,12 @@ _HelpURL = "Telescope/StatusWin.html#Axes"
 ErrorBits = (
     ( 6, "Reverse limit switch"),
     ( 7, "Forward limit switch"),
-    (11, "Stop button"),
     (12, "Disable switch"),
     
     ( 8, "Overspeed limit"),
-    (14, "Motion error too large"),
     (19, "Motor current limit"),
+    (14, "Motion error"),
+    (11, "Stop button"),
 
     ( 2, "Reverse software limit"),
     ( 3, "Forward software limit"),
@@ -246,7 +246,7 @@ class AxisStatusWdg(Tkinter.Frame):
             if axis == 2:
                 self.rotUnitsLabel1 = unitsLabel1
                 self.rotUnitsLabel2 = unitsLabel2
-            wdgSet = gr.gridWdg (
+            gr.gridWdg (
                 label = self.tccModel.axisNames[axis],
                 dataWdg = (
                     self.axePosWdgSet[axis],
