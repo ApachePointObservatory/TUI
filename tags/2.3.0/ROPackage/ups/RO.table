@@ -1,0 +1,2 @@
+setupOptional("numpy") # work with full stacks that have python or minimal ones that use built-in python
+pathPrepend(PYTHONPATH, ${PRODUCT_DIR}/python)
