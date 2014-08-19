@@ -15,118 +15,38 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>2.3.0b10 2014-08-17</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Status window: reordered axis controller error bits, so: "motor current limit" and "motion error" are now shown before "stop button". (Unfortunately the "stop button" bit is used for too many things, and it was obscuring other, more useful information).
-    <li>Telescope: Pointing Data script: now command a collimation update after slewing to each pointing reference star. That gives the mirrors chance to home in better and makes sure any effect gravity has on the mirrors is properly taken into account.
-</ul>
-
-<h3>2.3.0b9 2014-08-15</h3>
-
-<p>Bug fixes:
-<ul>
-    <li>Status window: the coordinate system should no longer be truncated, and the date for Topocentric and Observed coordinates is now shown correctly for the new TCC (in the very unlikely event that somebody specifies a date).
-</ul>
-
-<h3>2.3.0b8 2014-08-12</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Log window: timestamps now includes the date.
-    <li>Slew Window: corrected displayed units of distance from parsecs to au (thanks to Russet for noticing).
-    <li>Corrected file names of built-in grids (az->alt) (thanks to Russet for noticing).
-    <li>Status window: the instrument name is red if the instrument is "?" (unknown).
-</ul>
-
-<p>Internal changes:
-<ul>
-    <li>Removed obsolete warning "halting countdown timer due to AxisCmdState" (the condition this was testing is now a normal condition).
-</ul>
-
-<h3>2.3.0b7 2014-08-08</h3>
-
-<p>Bug fixes:
-<ul>
-    <li>TCCModel.secEncMount and secDesEncMount keywords were swapped, causing the Mirror Status window to display the wrong information.
-</ul>
-
-<h3>2.3.0b6 2014-08-07</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Mirror Status window: added mirror state, including a countdown timer.
-</ul>
-
-<h3>2.3.0b5 2014-07-25</h3>
-
-<p>Bug fixes:
-<ul>
-    <li>The Drift Scan panel of the Slew window did not allow negative numbers in the RA and Dec fields.
-</ul>
-
-<h3>2.3.0b4 2014-07-24</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Mirror Status window: updated for new TCC: the mount section now shows measured encoder position, desired encoder position and commanded mount. Also added help strings and a manual page.
-    <li>The Drift Scan panel of the Slew window now uses units of arcsec/hour for velocity and sends more digits to the TCC. Note that the GUI displays the units as "/hr" and the " is hard to distinguish from the degree symbol, but the help string says "(arcsec/hour)" so I hope this will be sufficiently clear.
-    <li>Added a wait command to Run_Commands: <code>tcc wait <i>sec</i></code>. This is a copy of an enhancement to STUI by Elena Malanushenko.
-    <li>Telescope: Pointing Data script: now supports retrying missing stars (either when the star is first missed, in "attended" mode, or after all stars have been measured).
-    <li>Updated the installation instructions.
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li>Telescope: Pointing Data script: fixed various bugs and made it more robust when running with Num Exp > 1.
-</ul>
-
-<h3>2.3.0b3 2014-06-10</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Improved the Telescope: Pointing Data script: Settling Time is now a settable parameter and the grid graph now shows point order.
-    <li>Improved the scripting manual's description of where to put scripts.
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li>Message window: typing certain characters in the upper window would cause a traceback in the log. Also navigation keys now work correctly in the upper pane.
-</ul>
-
-<h3>2.3.0b2 2014-05-19</h3>
-
-<p>Visible changes:
-<ul>
-    <li>Added a 20-point grid for the Telescope: Pointing Data script.
-</ul>
-
-<p>Bug fixes:
-<ul>
-    <li>Enclosure window tertiary rotation was unusable. This was due to a bug in RO.Wdg.OptionMenu and a crude way of detecting that a tertiary rotation command was currently executing, both of which I fixed.
-    <li>Fixed errors in the script Telescope: Pointing Data. Warning: it does not work with Num Exp > 1 (it acts as if it is centroiding in the wrong location) and needs some cleanup.
-</ul>
-
-<h3>2.3.0b1 2014-05-08</h3>
+<h3>2.3.0 2014-08-18</h3>
 
 <p>Visible changes:
 <ul>
     <li>Updated for non-backwards-compatible changes to GIFS.
     <li>The Presets menus now shows the name of the preset in config half of the instrument window, if a named preset matches the selected configuration. If more than one named preset matches, the first match is shown. There is no similar display in the status half of the instrument window (because it would require too much code). However, you can see the preset that corresponds to the current state of the instrument by pressing the Current button.
     <li>TUI logs are now stored in a subdirectory "tui_logs" and each log starts with a time stamp and TUI version.
-    <li>Added a script Telescope: Pointing Data to collect pointing data. However, this script requires the new TCC, so it will not be usable until the switch (scheduled for August).
-</ul>
-
-<p>Internal changes:
-<ul>
-    <li>Updated the TCC model to include new keywords for the new TCC and to use a more robust method to determine if an instrument has a rotator.
-    <li>GIFSModel allows an extra value for various stage keywords, since Jon is adding one.
+    <li>Log window: timestamps now includes the date.
+    <li>Mirror Status window: updated for new TCC.
+    <li>Status window: reordered axis controller error bits, so: "motor current limit" and "motion error" are now shown before "stop button". (Unfortunately the "stop button" bit is used for too many things, and it was obscuring other, more useful information).
+    <li>Slew Window: corrected displayed units of distance from parsecs to au (thanks to Russet for noticing).
+    <li>The Drift Scan panel of the Slew window now uses units of arcsec/hour for velocity and sends more digits to the TCC. Note that the GUI displays the units as "/hr" and the " is hard to distinguish from the degree symbol, but the help string says "(arcsec/hour)" so I hope this will be sufficiently clear.
+    <li>Status window: the instrument name is red if the instrument is "?" (unknown).
+    <li>Added a script Telescope: Pointing Data to take pointing data.
+    <li>Added a wait command to Run_Commands: <code>tcc wait <i>sec</i></code>. This is a copy of an enhancement to STUI by Elena Malanushenko.
+    <li>Updated the installation instructions.
+    <li>Improved the scripting manual's description of where to put scripts.
 </ul>
 
 <p>Bug fixes:
 <ul>
+    <li>Enclosure window tertiary rotation was unusable. This was due to a bug in RO.Wdg.OptionMenu and a crude way of detecting that a tertiary rotation command was currently executing, both of which I fixed.
+    <li>Status window: the coordinate system should no longer be truncated, and the date for Topocentric and Observed coordinates is now shown correctly for the new TCC (in the very unlikely event that somebody specifies a date).
+    <li>Message window: typing certain characters in the upper window would cause a traceback in the log. Also navigation keys now work correctly in the upper pane.
     <li>ScriptRunner's value field was set to None by pause/resume, thus losing the returned value.
+</ul>
+
+<p>Internal changes:
+<ul>
+    <li>Removed obsolete warning "halting countdown timer due to AxisCmdState" (the condition this was testing is now a normal condition).
+    <li>Updated the TCC model to include new keywords for the new TCC and to use a more robust method to determine if an instrument has a rotator.
+    <li>GIFSModel allows an extra value for various stage keywords, since Jon is adding one.
 </ul>
 
 <h3>2.2.0 2014-03-14</h3>
