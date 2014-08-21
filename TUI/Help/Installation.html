@@ -78,6 +78,7 @@ Python ???   # must be at least 2.4; the current 2.x release is recommended
 &gt;&gt;&gt; import pygame.mixer
 &gt;&gt;&gt; pygame.mixer.init()
 </pre>
+
 <ul>
 	<li>If you don't already have them, download and install an X11 window server (such as xfree86), the associated libraries, and a window manager. Almost all unix installations already have the X11 window server and window manager, but some unix installations do not come with the X11 libraries.
 	
@@ -129,7 +130,7 @@ Python ???  # is this the new version you just installed? If not, did you specif
 
 	<li><a name="tuishellscript"></a>Create a shell script named "tui" on your normal binary path (e.g. /usr/local/bin), as follows:<pre>
 #!/bin/bash
-python <i>path_to_runtui</i>/runtui.py # the path depends on where you unpacked STUI
+python <i>path_to_runtui</i>/runtui.py # the path depends on where you unpacked TUI
 </pre>
 	<ul>
 		<li>The first line may have to be adapted to your environment.
@@ -144,7 +145,7 @@ python <i>path_to_runtui</i>/runtui.py # the path depends on where you unpacked 
 	
 	<li>Make sure environment variable NUMERIX is either not being set or is being set to "numpy".	
 
-	<ul>If you use tcsh then you probably have to type "rehash" before "tui" will work.
+	<li>If you use tcsh then you probably have to type "rehash" before "tui" will work.
 
 	<li>Test the basics:
 	<ul>
