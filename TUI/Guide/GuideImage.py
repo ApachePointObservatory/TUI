@@ -16,11 +16,11 @@ History:
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2011-07-27 ROwen    Updated for new location of HubModel.
 2012-08-01 ROwen    Updated for RO.Comm 3.0.
+2014-08-27 ROwen    Bug fix: changed httpGet.getErrMsg() to errMsg (thanks to John Parejko).
+                    and removed two unused imports.
 """
 import os
 import pyfits
-import sys
-import traceback
 import RO.StringUtil
 import TUI.TUIModel
 import TUI.Models
@@ -180,7 +180,7 @@ class BasicImage(object):
         if httpGet.state == httpGet.Done:
             self._setState(self.Downloaded)
         else:
-            self._setState(self.DownloadFailed, httpGet.getErrMsg())
+            self._setState(self.DownloadFailed, httpGet.errMsg)
             #print "%s download failed: %s" % (self, self.errMsg)
     
     def _setState(self, state, errMsg=None):
