@@ -10,6 +10,8 @@ import TUI.TUIModel
 import TUI.Version
 
 WindowName = "%s.Preferences" % (TUI.Version.ApplicationName,)
+_HelpURL = "TUIMenu/PreferencesWin.html"
+
 
 def addWindow(tlSet):
     tuiModel = TUI.TUIModel.getModel()
@@ -22,6 +24,7 @@ def addWindow(tlSet):
         visible = False,
         wdgFunc = RO.Alg.GenericCallback(
             RO.Prefs.PrefWdg.PrefWdg,
-            prefSet=tuiModel.prefs,
+            prefSet = tuiModel.prefs,
+            helpURL = _HelpURL,
         ),
     )

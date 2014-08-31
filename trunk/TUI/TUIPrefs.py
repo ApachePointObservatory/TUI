@@ -49,6 +49,7 @@ History:
 2012-07-10 ROwen    Added "Menu Font" preference. This fixes an issue in aqua Tcl/Tk 8.5
                     where menu items showed up in the "Misc Font"..
 2012-12-19 ROwen    Changed font preferences to be for font size only and simplifies the settings.
+2014-08-31 ROwen    Improved help string for Keep Guide Images
 """
 #import pychecker.checker
 import os
@@ -155,7 +156,7 @@ class TUIPrefs(PrefVar.PrefSet):
                 name = "Keep Guide Images",
                 category = "Exposures",
                 defValue = False,
-                helpText = "Keep guide images? (eats disk space!)",
+                helpText = "Keep all guide images, even after TUI quits? (eats disk space!)",
                 helpURL = _ExposuresHelpURL,
             ),
 
