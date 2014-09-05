@@ -1,1 +1,2 @@
+setupRequired(RO)
 pathPrepend(PYTHONPATH, ${PRODUCT_DIR})
