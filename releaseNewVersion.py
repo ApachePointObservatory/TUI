@@ -87,11 +87,18 @@ if status != 0:
 print "Copying RO repository to %r" % (exportPath,)
 
 cmdStr = "git archive --format=tar --prefix=RO/ HEAD python/RO | (cd %s && tar xf -)" % \
-    (exportPath,)
+    (exportRoot,)
 status = subprocess.call(cmdStr, shell=True, cwd=roPath)
 if status != 0:
     print "git archive failed!"
     sys.exit(1)
+
+# copy RO source into the output repo and delete the empty extra crap
+shutil.move(os.path.join(exportRoot, "RO", "python", "RO"), exportPath)
+os.removedirs(os.path.join(exportRoot, "RO"))
+
+print "PREMATURE EXIT"
+sys.exit(1)
 
 print "Zipping %r" % (exportPath,)
 status = subprocess.call(["zip", "-r", "-q", zipFileName, exportFileName], cwd=exportRoot)
