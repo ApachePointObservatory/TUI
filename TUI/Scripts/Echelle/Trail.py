@@ -14,6 +14,7 @@ History:
                     Improved handling of drift speed and range by eliminating
                     class attributes that matched the contents of widgets.
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
+2014-09-16 ROwen    Use waitNext=True for waitKeyVar to eliminate a tight loop that crashed TUI.
 """
 import Tkinter
 import RO.Wdg
@@ -292,8 +293,10 @@ class ScriptClass(object):
             # and integration already finished
             sr.showMsg("Ending %s; waiting for shutter" % (expCycleStr,))
             if not sr.debug:
+                waitNext = False # don't wait the first time
                 while True:
-                    yield sr.waitKeyVar(self.expModel.expState, ind=1, waitNext=False)
+                    yield sr.waitKeyVar(self.expModel.expState, ind=1, waitNext=waitNext)
+                    waitNext = True # wait after the first read
                     if sr.value.lower() != "integrating":
                         break
             else:

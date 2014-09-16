@@ -15,21 +15,23 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>2.3.0+ 2014-08-31</h3>
+<h3>2.3.1 2014-09-16</h3>
 
 <p>Visible changes:
 <ul>
     <li>Preferences: improved help string for Keep Guide Images. Also, the latest version of RO adds Help contextual menu to the three controls along the bottom (the other controls already had this feature).
 </ul>
 
-<p>Internal changes:
-<ul>
-    <li>Moved from svn to git and updated releaseNewVersion.py accordingly.
-</ul>
-
 <p>Bug fixes:
 <ul>
+    <li>Fixed TUI crashes in DIS:Drift and Echelle:Trail. (Both scripts had unwanted tight loops that made TUI unstable, at least on MacOS X).
     <li>Changed STUI to TUI in a few places and noted that "Disable App Nap" is not visible for all users on 10.9.
+</ul>
+
+<p>Internal changes:
+<ul>
+    <li>Moved from svn to git and updated releaseNewVersion.py and documentation accordingly.
+    <li>Added RO to the ups table for TUI (this only affects people who are using eups to manage TUI, which is rare for users, since source code releases already include RO).
 </ul>
 
 <h3>2.3.0 2014-08-18</h3>

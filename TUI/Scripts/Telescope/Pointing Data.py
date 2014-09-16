@@ -17,8 +17,6 @@ ax.quiver(theta, r, dr * cos(theta) - dt * sin (theta), dr * sin(theta) + dt * c
 
 
 @todo:
-- Do NOT erase stars to skip on start (but do erase stars to retry).
-- Test unattended mode with missing stars.
 - Use windowing to speed up centroid exposures.
     At present doWindow=True is broken because of missing variables.
 
@@ -37,6 +35,12 @@ History:
 2014-05-19 ROwen    Changed saved azimuth to TPOINT convention.
 2014-07-19 ROwen    Added Attended Mode and associated controls.
 2014-08-17 ROwen    Update collimation after slewing to each pointing reference star, before taking the guide image.
+2014-09-12 ROwen    Stop explicitly updating collimation after each slew, since the TCC now does that near the end of each slew.
+                    Broadcast status messages.
+                    Bug fix: default rotation type was changed whenever rotExists called back; now it is only set if rotExists changes.
+2014-09-15 ROwen    Always clear missing, retry and skip star lists when starting the script.
+                    Prevent entering too-large values in the skip and retry star lists.
+                    Add an extra check to prevent the grid being changed while running.
 """
 import collections
 import glob
@@ -94,10 +98,24 @@ class ListOfIntEntry(RO.Wdg.StrEntry):
     Attributes:
     - intSet: the current set of integers. Warning: this is only updated when editing is done;
         intSet will probably not match the current text while a user is editing the field!
+    - maxVal: maximum allowed value
     """
-    def __init__(self, *args, **kwargs):
-        RO.Wdg.StrEntry.__init__(self, *args, partialPattern = r"[ 0-9]*$", **kwargs)
+    def __init__(self, master, maxVal=0, **kwargs):
+        RO.Wdg.StrEntry.__init__(self, master, partialPattern = r"[ 0-9]*$", **kwargs)
         self.intSet = set()
+        self.maxVal = int(maxVal)
+
+    def setMaxVal(self, maxVal):
+        """Set a new maximum value; rejected if the field contains larger values
+
+        @throw ValueError if maxVal < current maximum value
+        """
+        maxVal = int(maxVal)
+        if self.intSet:
+            currMax = max(self.intSet)
+            if maxVal < currMax:
+                raise ValueError("desired max too small; %s < %s = curr max" % (maxVal, currMax))
+        self.maxVal = maxVal
 
     def neatenDisplay(self):
         """Neaten the display and update intSet
@@ -120,10 +138,12 @@ class ListOfIntEntry(RO.Wdg.StrEntry):
     def intsFromStr(self, intListStr):
         """Return a set of positive integers from a string of space-separated integers
 
-        Raise RuntimeError for values that cannot be cast to int
+        Raise ValueError for values that cannot be cast to int or if any values too large
         Non-positive integers are ingored
         """
         intSet = set(int(val) for val in intListStr.split() if int(val) > 0)
+        if intSet and max(intSet) > self.maxVal:
+            raise ValueError("%s > %s = max" % (max(intSet), self.maxVal))
         return intSet
 
     def set(self, val):
@@ -133,7 +153,11 @@ class ListOfIntEntry(RO.Wdg.StrEntry):
 
     def addInt(self, intVal):
         """Add an integer value to the currently displayed values
+
+        @throw ValueError if intVal too large
         """
+        if intVal > self.maxVal:
+            raise ValueError("%s larger than %s" % (intVal, self.maxVal))
         newIntSet = self.intSet | set((intVal,))
         if newIntSet != self.intSet:
             self.set(self.strFromInts(newIntSet))
@@ -202,7 +226,7 @@ class ScriptClass(object):
         self.gridWdg = RO.Wdg.OptionMenu(
             master = gridFrame,
             # don't set a label, as this will be displayed instead of the current value
-            callFunc = self._setGrid,
+            callFunc = self.setGrid,
             items = (),
             postCommand = self._fillGridsMenu,
             helpText = "az/alt grid",
@@ -237,7 +261,7 @@ class ScriptClass(object):
         self.rotTypeWdg = RO.Wdg.OptionMenu(
             master = ctrlFrame,
             items = ("Object", "Horizon", "Mount"),
-            defValue = "Object",
+            defValue = "Mount",
             helpText = "rotation type",
             helpURL = self.helpURL,
         )
@@ -393,10 +417,14 @@ class ScriptClass(object):
         currDefault = self.rotTypeWdg.getDefault()
         if rotExists:
             newItems = ("Object", "Horizon", "Mount")
-            newDefault = "Object"
+            newDefault = "Mount"
         else:
             newItems = ("None",)
             newDefault = "None"
+
+        if currDefault == newDefault:
+            # state of rotExists has not changed
+            return
 
         self.rotTypeWdg.setItems(newItems)
         if currDefault not in newItems:
@@ -461,43 +489,6 @@ class ScriptClass(object):
                 gridName = os.path.splitext(os.path.basename(gridPath))[0]
                 gridDict[gridName] = gridPath
         return gridDict
-
-    def _setGrid(self, wdg=None, clearSkipRetryWdg=True):
-        """Set a particular grid based on the selected name in self.gridWdg
-
-        Inputs:
-        - wdg: ignored (allows use as a widget callback)
-        - clearSkipRetryWdg: if True then clear starsToSkipWdg and starsToRetryWdg
-        """
-        gridName = self.gridWdg.getString()
-        if not gridName:
-            return
-        gridPath = self._gridDict[gridName]
-        azList = []
-        altList = []
-        with open(gridPath, "rU") as gridFile:
-            for i, line in enumerate(gridFile):
-                line = line.strip()
-                if not line or line[0] in ("#", "!"):
-                    continue
-                try:
-                    az, alt = [float(val) for val in line.split()]
-                    azList.append(az)
-                    altList.append(alt)
-                except Exception:
-                    self.sr.showMsg("Cannot parse line %s as az alt: %r\n" % (i+1, line),
-                        severity = RO.Constants.sevWarning, isTemp=True)
-        numPoints = len(azList)
-        if len(azList) != len(altList):
-            raise RuntimeError("Bug: az and alt list have different length")
-        self.azAltList = numpy.zeros([numPoints], dtype=self.azAltGraph.DType)
-        self.azAltList["az"] = azList
-        self.azAltList["alt"] = altList
-        self.numStarsWdg.set(" %s stars" % (numPoints,))
-        self.azAltGraph.plotAzAltPoints(self.azAltList)
-        if clearSkipRetryWdg:
-            self.starsToSkipWdg.set("")
-            self.starsToRetryWdg.set("")
 
     def doSkipCurrStar(self):
         """Skip current star
@@ -661,6 +652,8 @@ class ScriptClass(object):
         self.binFactor = None
         self.window = None # LL pixel is 0, UL pixel is included
         self.currStarNum = 0
+        for wdg in (self.missingStarsWdg, self.starsToSkipWdg, self.starsToRetryWdg):
+            wdg.set("")
 
         # data from tcc tinst:IP_NA2.DAT; value measured 2011-07-21
         # this is a hack; get from tccModel once we support multiple instruments
@@ -684,7 +677,6 @@ class ScriptClass(object):
     def run(self, sr):
         """Take a set of pointing data
         """
-        self._setGrid(clearSkipRetryWdg=False)
         self.initAll()
 
         if self.azAltList is None:
@@ -733,6 +725,45 @@ class ScriptClass(object):
                     yield
                 else:
                     yield self.waitMeasureOneStar(starNum=starNum, ptDataFile=ptDataFile)
+
+    def setGrid(self, wdg=None):
+        """Set a particular grid based on the selected name in self.gridWdg
+
+        Inputs:
+        - wdg: ignored (allows use as a widget callback)
+        """
+        if self.sr.isExecuting():
+            raise RuntimeError("Cannot change grid while running")
+
+        gridName = self.gridWdg.getString()
+        if not gridName:
+            return
+        gridPath = self._gridDict[gridName]
+        azList = []
+        altList = []
+        with open(gridPath, "rU") as gridFile:
+            for i, line in enumerate(gridFile):
+                line = line.strip()
+                if not line or line[0] in ("#", "!"):
+                    continue
+                try:
+                    az, alt = [float(val) for val in line.split()]
+                    azList.append(az)
+                    altList.append(alt)
+                except Exception:
+                    self.sr.showMsg("Cannot parse line %s as az alt: %r\n" % (i+1, line),
+                        severity = RO.Constants.sevWarning, isTemp=True)
+        numPoints = len(azList)
+        if len(azList) != len(altList):
+            raise RuntimeError("Bug: az and alt list have different length")
+        self.azAltList = numpy.zeros([numPoints], dtype=self.azAltGraph.DType)
+        self.azAltList["az"] = azList
+        self.azAltList["alt"] = altList
+        self.numStarsWdg.set(" %s stars" % (numPoints,))
+        self.azAltGraph.plotAzAltPoints(self.azAltList)
+        for wdg in (self.missingStarsWdg, self.starsToSkipWdg, self.starsToRetryWdg):
+            wdg.set("")
+            wdg.setMaxVal(numPoints)
 
     def starNumIter(self):
         """Return number of next star to measure (starNum = grid index + 1)
@@ -956,6 +987,14 @@ class ScriptClass(object):
             maxMag = self.getEntryNum(self.maxMagWdg)
             rotType = self.rotTypeWdg.getString()
 
+            # tell the world, but don't wait for this command to finish
+            sr.startCmd(
+                actor = "tcc",
+                cmdStr = 'broadcast/type=info "Pointing Data script slewing to star %s of %s"' % \
+                    (i + 1, len(self.azAltList)),
+                checkFail = False,
+            )
+
             # slew to the pointing reference star
             # use checkFail=False for all commands so the script can continue with the next star
             yield sr.waitCmd(
@@ -978,16 +1017,6 @@ class ScriptClass(object):
                     ptRefStarValues = (20, 80, 0, 0, 0, 0, "ICRS", 2000, 7)
             self.ptRefStar = PtRefStar(ptRefStarValues)
 
-            # update collimation
-            yield sr.waitCmd(
-                actor = "tcc",
-                cmdStr = "set focus=0/incr",
-                checkFail = False,
-            )
-            cmdVar = sr.value
-            if cmdVar is None or cmdVar.didFail():
-                raise ScriptError("Collimation update failed")
-
             # wait for the settling time
             settleTime = self.settleTimeWdg.getNumOrNone()
             if settleTime:
@@ -996,6 +1025,13 @@ class ScriptClass(object):
                 yield sr.waitSec(settleTime)
             numExp = self.numExpWdg.getNum()
             for expInd in range(numExp):
+                sr.startCmd(
+                    actor = "tcc",
+                    cmdStr = 'broadcast/type=info "Pointing Data script exposure %s of %s for star %s of %s"' % \
+                        (expInd + 1, numExp, i + 1, len(self.azAltList)),
+                    checkFail = False,
+                )
+
                 self.recordExpParams()
                 yield self.waitFindStar(firstOnly=True)
                 starMeas = sr.value
@@ -1017,6 +1053,13 @@ class ScriptClass(object):
                 if cmdVar is None or cmdVar.didFail():
                     raise ScriptError("Offset command failed")
         except ScriptError, e:
+            sr.startCmd(
+                actor = "tcc",
+                cmdStr = 'broadcast/type=warning "Pointing Data script failed to measure star %s of %s"' % \
+                    (i + 1, len(self.azAltList)),
+                checkFail = False,
+            )
+
             self.sr.showMsg(str(e), severity=RO.Constants.sevWarning)
             self.missingStarsWdg.addInt(starNum)
             self.azAltList["state"][i] = self.azAltGraph.Failed

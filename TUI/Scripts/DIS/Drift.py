@@ -16,6 +16,7 @@ History:
                     class attributes that matched the contents of widgets.
 2011-07-29 ROwen    Added support for drifting across slit.
 2012-11-14 ROwen    Stop using indicatoron=False for Checkbutton (indirectly via showName).
+2014-09-16 ROwen    Use waitNext=True for waitKeyVar to eliminate a tight loop that crashed TUI.
 """
 import Tkinter
 import RO.Wdg
@@ -67,7 +68,7 @@ class ScriptClass(object):
             expTypes = "object",
             helpURL = HelpURL,
         )
-        self.expWdg.numExpWdg.helpText = "# of exposures at each point"
+        self.expWdg.numExpWdg.helpText = "# of exposures during the drift"
         self.expWdg.grid(row=row, column=0, sticky="news")
         row += 1
         
@@ -182,8 +183,6 @@ class ScriptClass(object):
         # get drift info and related info
         # time is in seconds
         # distance is in arcsec (AS suffix) or degrees (no suffix)
-        expTime = self.expWdg.timeWdg.getNum()
-        
         if self.driftDirWdg.getBool():
             # along slit
             driftAxis = 0
@@ -257,8 +256,10 @@ class ScriptClass(object):
             
             # wait for integration to end and reading to begin
             if not sr.debug:
+                waitNext = False # don't wait the first time
                 while True:
-                    yield sr.waitKeyVar(self.expModel.expState, ind=1, waitNext=False)
+                    yield sr.waitKeyVar(self.expModel.expState, ind=1, waitNext=waitNext)
+                    waitNext = True # wait after the first read
                     if sr.value.lower() == "reading":
                         break
             else:

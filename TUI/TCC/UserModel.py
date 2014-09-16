@@ -9,6 +9,7 @@
 2003-11-07 ROwen    Modified _TkVar to not create a StringVar unless it'll be used.
 2004-03-03 ROwen    Changed userCat to userCatDict, a dictionary of catalogs.
 2004-07-21 ROwen    Modified for updated RO.AddCallback.
+2014-09-15 ROwen    Tweaked _doCallbacks to do nothing if callbacks disabled.
 """
 import Tkinter
 import RO.AddCallback
@@ -59,6 +60,8 @@ class _ObjVar(RO.AddCallback.BaseMixin):
             self.addCallback(callFunc, callNow)
     
     def _doCallbacks(self):
+        """Call callback functions with the contained object as the argument
+        """
         self._basicDoCallbacks(self._obj)
     
     def get(self):
@@ -83,8 +86,11 @@ class _TkVar(RO.AddCallback.TkVarMixin):
         RO.AddCallback.TkVarMixin.__init__(self, var, callFunc, callNow)
     
     def _doCallbacks(self, *args):
-        val = self._var.get()
-        self._basicDoCallbacks(val)
+        """Call callback functions with the contained value as the argument
+        """
+        if self.callbacksEnabled():
+            val = self._var.get()
+            self._basicDoCallbacks(val)
 
     def getVar(self):
         return self._var
