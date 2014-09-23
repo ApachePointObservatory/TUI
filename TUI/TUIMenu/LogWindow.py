@@ -70,7 +70,6 @@ History:
 """
 import bisect
 import re
-import time
 import Tkinter
 import RO.Alg
 import RO.StringUtil
@@ -501,7 +500,7 @@ class TUILogWdg(Tkinter.Frame):
                 fullFilterDescr,
                 isTemp = True,
             )
-        except Exception, e:
+        except Exception as e:
             miscFilterFunc = lambda x: False
             self.statusBar.setMsg(
                 str(e),
@@ -698,7 +697,7 @@ class TUILogWdg(Tkinter.Frame):
                 callFunc = self._cmdCallback,
                 dispatcher = self.dispatcher,
             )
-        except Exception, e:
+        except Exception as e:
             self.statusBar.setMsg(
                 RO.StringUtil.strFromException(e),
                 severity = RO.Constants.sevError,
@@ -799,7 +798,7 @@ class TUILogWdg(Tkinter.Frame):
             return
         try:
             actors = self.getActors(regExpList)
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.statusBar.setMsg(RO.StringUtil.strFromException(e), severity = RO.Constants.sevError, isTemp = True)
             TUI.PlaySound.cmdFailed()
             return
@@ -1120,7 +1119,6 @@ class TUILogWdg(Tkinter.Frame):
 
 
 if __name__ == '__main__':
-    import sys
     import random
     root = RO.Wdg.PythonTk()
     root.geometry("600x350")

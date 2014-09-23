@@ -52,7 +52,7 @@
 		<li><a href="http://numpy.scipy.org/">numpy</a>
 		<li><a href="https://pypi.python.org/pypi/Pillow">Pillow</a> or the older Python Image Library (PIL)
 		<li><a href="http://matplotlib.sourceforge.net/">matplotlib</a>
-		<li><a href="http://www.stsci.edu/resources/software_hardware/pyfits">pyfits</a>
+		<li><a href="http://www.astropy.org">astropy</a> (you can still use <a href="http://www.stsci.edu/resources/software_hardware/pyfits">pyfits</a>, instead, but this is deprecated and will stop working at some point).
 		<li><a href="http://www.pygame.org/">pygame</a>.mixer (optional but highly recommended because it is used to play sound cues)
 		<li><a href="http://pypi.python.org/pypi?:action=display&amp;name=RO">RO</a> (which can be installed via pip or managed via eups)
 	</ul>
@@ -74,7 +74,7 @@ Python ???   # must be at least 2.4; the current 2.x release is recommended
 &gt;&gt;&gt; import Tkinter
 &gt;&gt;&gt; root = Tkinter.Tk()
 &gt;&gt;&gt; import numpy
-&gt;&gt;&gt; import pyfits
+&gt;&gt;&gt; import astropy # or pyfits
 &gt;&gt;&gt; import Image
 &gt;&gt;&gt; import pygame.mixer
 &gt;&gt;&gt; pygame.mixer.init()
@@ -91,15 +91,15 @@ Python ???   # must be at least 2.4; the current 2.x release is recommended
 
 	<li>Pick a directory for the source code (any convenient directory you own). Unpack all source code packages in that directory and leave them there until all installation is done (this may make it easier for some of the packages to find necessary files in other packages).
 	
-	<li>Download and install <a href="http://tcl.tk/">tcl/tk</a>.
+	<li>Install <a href="http://tcl.tk/">tcl/tk</a>.
 	<ul>
 		<li>Any Tcl/Tk 8.3.x or 8.4.x ought to work, but the current release is recommended.
 		<li>Build and install tcl first, then tk, as per the README files.
 		<li>Generally the installers are smart and trouble free. However, you may get warnings of multiple versions of tcl headers or libraries when you install Tk. You can ignore these so long as they complain of files from the tcl source distribution matching the tcl you just installed.
 	</ul>
 	
-	<li>Download and install <a href="http://python.org/">Python</a>, if necessary.
-		<li>Version 2.4 or later is required. Most testing of TUI is done on version 2.5.x.
+	<li>Install <a href="http://python.org/">Python</a>, if necessary.
+		<li>Version 2.5 or later is required. Most testing of STUI is done on version 2.7.x.
 		<li>Usually it will just build, but always check the README first. In particular, if you are building on RedHat 9 and if you are using RedHat's built in Tcl/Tk, you will need to specify a special flag.
 
 	<li>Test your new Python and Tkinter:<pre>
@@ -115,17 +115,17 @@ Python ???  # is this the new version you just installed? If not, did you specif
 		<li>An excellent fallback (if you didn't already do this) is to install tcl/tk and python from source (as described above).
 	</ul>
 	
-	<li>Download and install <a href="http://numpy.scipy.org/">numpy</a>.
+	<li>Install <a href="http://numpy.scipy.org/">numpy</a>.
 	
-	<li>Download and install <a href="http://www.stsci.edu/resources/software_hardware/pyfits">pyfits</a> 1.1 or later (it must be compatible with numpy).
+	<li>Install <a href="http://www.astropy.org">astropy</a> (you can still use <a href="http://www.stsci.edu/resources/software_hardware/pyfits">pyfits</a>, instead, but this is deprecated).
 	
-	<li>Download and install <a href="http://www.pythonware.com/products/pil/">Python Imaging Library</a>. Build it with support for Tkinter, jpeglib and zlib support (zlib may be unnecessary but leave it out at your own risk). Read the README file carefully because this requires some precursor packages.
+	<li>Install <a href="https://pypi.python.org/pypi/Pillow">Pillow</a> or the older Python Imaging Library (PIL). Build it with support for Tkinter, jpeglib and zlib support (zlib may be unnecessary but leave it out at your own risk).
 	
-	<li>Download and install <a href="http://matplotlib.sourceforge.net/">matplotlib</a>. You must install a new enough version that it supports numpy (I would give specifics but I can't find the information at the matplotlib site). If you build matplotlib from source then you must install numpy and Tcl/Tk before building matplotlib so it will be built to work with those packages.
+	<li>Install <a href="http://matplotlib.sourceforge.net/">matplotlib</a>.
 
-	<li>Download and install <a href="http://www.pygame.org/">pygame</a>, making sure to build pygame.mixer. This is optional but strongly recommended; it is used to play sound cues. Note that pygame requires SDL (library and header files) and pygame.mixer requires SDL_Mixer.
+	<li>Install <a href="http://www.pygame.org/">pygame</a>, making sure to build pygame.mixer. This is optional but strongly recommended; it is used to play sound cues. Note that pygame requires SDL (library and header files) and pygame.mixer requires SDL_Mixer.
 	
-	<li>Download and install <a href="http://hea-www.harvard.edu/RD/ds9/">ds9 and xpa</a>. These are <a href="#ds9option">optional</a> but strongly recommended; they are used to display sicence images.
+	<li>Install <a href="http://hea-www.harvard.edu/RD/ds9/">ds9 and xpa</a>. These are <a href="#ds9option">optional</a> but strongly recommended; they are used to display sicence images.
 
 	<li>Download <a href="http://www.apo.nmsu.edu/35m_operations/TUI-images/">TUI Source</a> and unpack in some convenient directory.
 
@@ -207,6 +207,7 @@ python <i>path_to_runtui</i>/runtui.py # the path depends on where you unpacked 
 
 <h2><a name="History"></a>History</h2>
 <ul>
+	<li>2014-09-16 astropy is now supported, and preferred to pyfits.
 	<li>2014-09-05 Added a link to the git repository.
     <li>2014-06-17 Enhanced testing instructions. Simplified tuiscript instructions. Insist on Python 2.7.
     <li>2011-08-19 Updated instructions for Python older than 2.6: install simplejson, not json.

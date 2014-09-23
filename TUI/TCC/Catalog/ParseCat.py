@@ -162,7 +162,7 @@ class CatalogParser(object):
                     self._combineDicts(dataDict, optDict)
                     
                     objList.append(TUI.TCC.TelTarget.TelTarget(dataDict))
-            except Exception, e:
+            except Exception as e:
                 if isDefault:
                     raise RuntimeError(RO.StringUtil.strFromException(e))
                 else:

@@ -127,7 +127,7 @@ class OffsetWdg(Tkinter.Frame):
         self._offsetEnable(False)
         try:
             cmdStr = self.inputWdg.getCommand()
-        except ValueError, e:
+        except ValueError as e:
             self.statusBar.setMsg(
                 "Rejected: %s" % e,
                 severity = RO.Constants.sevError,

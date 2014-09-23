@@ -433,7 +433,7 @@ if __name__ == '__main__':
     def printCmds():
         try:
             cmdList = testFrame.getStringList()
-        except ValueError, e:
+        except ValueError as e:
             print "Command error:", e
             return
         if cmdList:

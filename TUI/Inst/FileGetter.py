@@ -11,8 +11,9 @@ of ExposeStatusWdg there are, to avoid downloading duplicate images.
 2011-07-21 ROwen    Renamed instModel to exposeModel for improved clarity.
 2011-07-27 ROwen    Updated for new location of HubModel.
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
+2014-09-17 ROwen    Bug fix: __all__ was mis-set.
 """
-__all__ = ['getModel']
+__all__ = ['FileGetter']
 
 import collections
 import os
@@ -79,7 +80,7 @@ class FileGetter (object):
                 elif not ds9Win.isOpen():
                     ds9Win.doOpen()
                 ds9Win.showFITSFile(httpGet.toPath)
-            except Exception, e:
+            except Exception as e:
                 self.tuiModel.logMsg(
                     msgStr = RO.StringUtil.strFromException(e),
                     severity = RO.Constants.sevError,

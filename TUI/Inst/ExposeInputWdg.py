@@ -363,7 +363,7 @@ class ExposeInputWdg (Tkinter.Frame):
                 startNum = startNum,
                 totNum = totNum,
             )
-        except (ValueError, TypeError), e:
+        except (ValueError, TypeError) as e:
             self._setEntryError(RO.StringUtil.strFromException(e))
             return None
     

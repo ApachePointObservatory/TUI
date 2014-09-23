@@ -24,7 +24,6 @@ History:
                     both called needMove with self.currOffset instead of self.begOffset.
 """
 import itertools
-import math
 import numpy
 import Tkinter
 import RO.Wdg
@@ -273,7 +272,7 @@ class ScriptClass(object):
 
             # Expose on object and sky at this dither point
             for i in range(2):
-                onSky = onSkyIter.next()
+                onSky = next(onSkyIter)
                 if onSky:
                     srcName = "Sky"
                 else:

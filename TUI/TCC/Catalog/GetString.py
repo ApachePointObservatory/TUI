@@ -102,7 +102,7 @@ if __name__ == '__main__':
     for astr in goodList:
         try:
             (data, ind) = getString(astr)
-        except Exception, e:
+        except Exception as e:
             print "error: getString(%s) failed with: %s" % (astr, e)
         else:
             if ind == None:
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     for astr in badList:
         try:
             (data, ind) = getString(astr)
-        except Exception, e:
+        except Exception as e:
             print "getString correctly rejected %r with %s: %s" % (astr, e.__class__, e)
         else:
             print "error: getString(%s) should have failed but returned %r" % (astr, (data, ind))

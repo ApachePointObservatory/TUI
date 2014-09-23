@@ -197,7 +197,7 @@ class ScriptClass(object):
         # (will raise an exception if no expTime or file name)
         try:
             self.expWdg.getString()
-        except Exception, e:
+        except Exception as e:
             raise sr.ScriptError(RO.StringUtil.strFromException(e))
             
         # get basic exposure command

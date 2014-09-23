@@ -70,7 +70,7 @@ class ScriptLoader:
                 )
             except (SystemExit, KeyboardInterrupt):
                 raise
-            except Exception, e:
+            except Exception as e:
                 if self.showErrDialog:
                     tkMessageBox.showerror(
                         message = "Could not load script:\n%r\n%s\n(See console for more info.)" % (self.fullPath, strFromException(e)),

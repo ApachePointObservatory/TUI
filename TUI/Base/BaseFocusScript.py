@@ -1306,7 +1306,7 @@ class BaseFocusScript(object):
             # and do set Center Focus to the new focus
             self.focPosToRestore = None
             self.centerFocPosWdg.set(int(round(bestEstFocPos)))
-        except self.sr.ScriptError, e:
+        except self.sr.ScriptError as e:
             scriptException = e
             self.logWdg.addMsg(str(e), severity=RO.Constants.sevError)
 

@@ -292,7 +292,7 @@ class NudgerWdg (Tkinter.Frame):
                 if currAlt == None:
                     raise ValueError("current altitude unknown")
                 offDeg = (offDeg[0] / RO.MathUtil.cosd(currAlt), offDeg[1])
-        except Exception, e:
+        except Exception as e:
             self.statusBar.setMsg("Failed: %s" % (RO.StringUtil.strFromException(e),),
                 severity=RO.Constants.sevError)
             self.statusBar.playCmdFailed()

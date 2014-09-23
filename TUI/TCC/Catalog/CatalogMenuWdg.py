@@ -143,7 +143,7 @@ class CatalogMenuWdg(Tkinter.Frame):
         self.showMsg("Loading file %s" % (catFile,))
         try:
             objCat, errList = self._catParser.parseCat(catFile)
-        except Exception, e:
+        except Exception as e:
             self.showMsg(
                 msgStr = "Could not load %s: %s" % (catFile, e),
                 severity = RO.Constants.sevError,

@@ -66,10 +66,10 @@ try:
         for oldLogPath in oldLogPaths[MaxOldLogs:]:
             try:
                 os.remove(oldLogPath)
-            except Exception, e:
+            except Exception as e:
                 errLog.write("Could not delete old log file %r: %s\n" % (oldLogPath, e))
 
-except OSError, e:
+except OSError as e:
     sys.stderr.write("Warning: could not open log file so using stderr\nError=%s\n" % (e,))
 
 try:
@@ -83,7 +83,7 @@ try:
     
     import TUI.Main
     TUI.Main.runTUI()
-except Exception, e:
+except Exception as e:
     traceback.print_exc(file=sys.stderr)
 
 if errLog:

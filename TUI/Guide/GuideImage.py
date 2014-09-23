@@ -18,12 +18,17 @@ History:
 2012-08-01 ROwen    Updated for RO.Comm 3.0.
 2014-08-27 ROwen    Bug fix: changed httpGet.getErrMsg() to errMsg (thanks to John Parejko).
                     and removed two unused imports.
+2014-09-17 ROwen    Modified to use astropy instead of pyfits, if available.
+                    Corrected the import of HubModel.
 """
 import os
-import pyfits
+try:
+    import astropy.io.fits as pyfits
+except ImportError:
+    import pyfits
 import RO.StringUtil
 import TUI.TUIModel
-import TUI.Models
+import TUI.Models.HubModel
 import SubFrame
 
 _DebugMem = False # print a message when a file is deleted from disk?
@@ -153,7 +158,7 @@ class BasicImage(object):
                 self.state = self.FileReadFailed
                 self.errMsg = "No image data found"
                 return None
-            except Exception, e:
+            except Exception as e:
                 self.state = self.FileReadFailed
                 self.errMsg = RO.StringUtil.strFromException(e)
 #               sys.stderr.write("Could not read file %r: %s\n" % (self.getLocalPath(), e))

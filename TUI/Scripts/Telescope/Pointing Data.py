@@ -781,7 +781,7 @@ class ScriptClass(object):
                     self.starsToRetryWdg.removeInt(nextStarNum)
                     yield nextStarNum
                 else:
-                    nextStarNum = indIter.next() + 1
+                    nextStarNum = next(indIter) + 1
                     if nextStarNum in self.starsToSkipWdg.intSet:
                         self.sr.showMsg("Skipping star %d" % (nextStarNum,))
                         self.missingStarsWdg.addInt(nextStarNum)
@@ -1052,7 +1052,7 @@ class ScriptClass(object):
                 cmdVar = sr.value
                 if cmdVar is None or cmdVar.didFail():
                     raise ScriptError("Offset command failed")
-        except ScriptError, e:
+        except ScriptError as e:
             sr.startCmd(
                 actor = "tcc",
                 cmdStr = 'broadcast/type=warning "Pointing Data script failed to measure star %s of %s"' % \

@@ -100,7 +100,7 @@ class SubFrame(object):
             # but BEGX,Y use the FITS standard of 1,1, thus the "-1"...
             binSubBeg = [int(fitsHdr.get(name))-1 for name in ("BEGX", "BEGY")]
             binSubSize = [int(fitsHdr.get(name)) for name in ("NAXIS1", "NAXIS2")]
-        except (KeyError, TypeError), e:
+        except (KeyError, TypeError) as e:
             raise ValueError(RO.StringUtil.strFromException(e))
         return cls.fromBinInfo(
             fullSize = fullSize,

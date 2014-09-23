@@ -219,7 +219,7 @@ class SlewWdg (Tkinter.Frame):
         self._slewEnable(False)
         try:
             cmdStr = self.inputWdg.getString()
-        except ValueError, e:
+        except ValueError as e:
             self.statusBar.setMsg(
                 "Rejected: %s" % (e,),
                 severity = RO.Constants.sevError,

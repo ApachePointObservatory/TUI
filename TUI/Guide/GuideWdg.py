@@ -949,7 +949,6 @@ class GuideWdg(Tkinter.Frame):
         helpURL = _HelpPrefix + "GuidingControls"
         
         cmdButtonFrame = Tkinter.Frame(self)
-        cmdCol = 0
         self.exposeBtn = RO.Wdg.Button(
             cmdButtonFrame,
             text = "Expose",
@@ -1160,13 +1159,10 @@ class GuideWdg(Tkinter.Frame):
             if not self.dispImObj.selDataColor:
                 raise RuntimeError("No star selected")
             
-            starData = self.dispImObj.selDataColor[0]
-            pos = starData[2:4]
-    
             starArgs = self.getSelStarArgs(posKey="centerOn")
             expArgs = self.getExpArgStr() # inclThresh=False)
             cmdStr = "guide %s %s" % (starArgs, expArgs)
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.statusBar.setMsg(RO.StringUtil.strFromException(e), severity = RO.Constants.sevError)
             self.statusBar.playCmdFailed()
             return
@@ -1426,7 +1422,7 @@ class GuideWdg(Tkinter.Frame):
                 self.ds9Win.doOpen()
             else:
                 self.ds9Win = RO.DS9.DS9Win(self.actor)
-        except Exception, e:
+        except Exception as e:
             self.statusBar.setMsg(RO.StringUtil.strFromException(e), severity = RO.Constants.sevError)
             return
         
@@ -1481,7 +1477,7 @@ class GuideWdg(Tkinter.Frame):
         """
         try:
             cmdStr = "guide on %s" % self.getGuideArgStr()
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.statusBar.setMsg(RO.StringUtil.strFromException(e), severity = RO.Constants.sevError)
             self.statusBar.playCmdFailed()
             return
@@ -1498,7 +1494,7 @@ class GuideWdg(Tkinter.Frame):
         """
         try:
             cmdStr = "guide tweak %s" % self.getGuideArgStr(modOnly=True)
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.statusBar.setMsg(RO.StringUtil.strFromException(e), severity = RO.Constants.sevError)
             self.statusBar.playCmdFailed()
             return
@@ -2097,10 +2093,9 @@ class GuideWdg(Tkinter.Frame):
         )
         self._trackMem(imObj, str(imObj))
         imObj.fetchFile()
-        ind = None
         if self.dispImObj != None:
             try:
-                ind = self.imObjDict.index(self.dispImObj.imageName)
+                self.imObjDict.index(self.dispImObj.imageName)
             except KeyError:
                 pass
         self.showImage(imObj)
@@ -2706,26 +2701,31 @@ class ArgList(object):
         return " ".join(self.argList)
 
 if __name__ == "__main__":
-    import GuideTest
+    #import GuideTest
+    import TestData
     #import gc
     #gc.set_debug(gc.DEBUG_SAVEALL) # or gc.DEBUG_LEAK to print lots of messages
 
-    root = RO.Wdg.PythonTk()
+    root = TestData.tuiModel.tkRoot
 
-    GuideTest.init("dcam")
+    # GuideTest.init("dcam")
 
-    testFrame = GuideWdg(root, "dcam")
+    testFrame = GuideWdg(root, "tcam")
     testFrame.pack(expand="yes", fill="both")
     testFrame.wait_visibility() # must be visible to download images
-    GuideTest.setParams(expTime=5, thresh=3, radMult=1, mode="field")
+    #GuideTest.setParams(expTime=5, thresh=3, radMult=1, mode="field")
+
+    TestData.start(actor="tcam")
 
 #     GuideTest.runDownload(
-#       basePath = "dcam/UT060404/",
-#       imPrefix = "proc-d",
-#       startNum = 101,
+#       basePath = "keep/guiding/tcam/UT131023/",
+#       imPrefix = "proc-t",
+#       startNum = 1214,
 #       numImages = 2,
 #       waitMs = 2500,
 #     )
 #    testFrame.doChooseIm()
+
+    TestData.animate()
 
     root.mainloop()

@@ -8,7 +8,6 @@ History:
 2012-07-09 ROwen    Modified to use RO.TkUtil.Timer.
 """
 import math
-import random
 import RO.Alg.RandomWalk
 from RO.TkUtil import Timer
 import TUI.Base.TestDispatcher
@@ -36,7 +35,7 @@ class GuideOffInfo(object):
         """Randomly change values
         """
         for randomValue in self.randomValueDict.itervalues():
-            randomValue.next()
+            next(randomValue)
     
     def getValueDict(self):
         """Get a dictionary of value name: value
@@ -67,7 +66,7 @@ class StarInfo(object):
         """Randomly change values
         """
         for randomValue in self.randomValueDict.itervalues():
-            randomValue.next()
+            next(randomValue)
     
     def getValueDict(self):
         """Get a dictionary of value name: value
@@ -123,11 +122,11 @@ def _nextStar(starInfo, delaySec):
     Timer(delaySec, _nextStar, starInfo, delaySec)
 
 def _nextSecFocus(secFocus, delaySec):
-    keyVarStr = "SecFocus=%0.1f" % (secFocus.next(),)
+    keyVarStr = "SecFocus=%0.1f" % (next(secFocus),)
     testDispatcher.dispatch(keyVarStr, actor="tcc")
     Timer(delaySec, _nextSecFocus, secFocus, delaySec)
 
 def _nextSecPiston(secPiston, delaySec):
-    keyVarStr = "SecOrient=%0.1f, 0, 0, 0, 0" % (secPiston.next(),)
+    keyVarStr = "SecOrient=%0.1f, 0, 0, 0, 0" % (next(secPiston),)
     testDispatcher.dispatch(keyVarStr, actor="tcc")
     Timer(delaySec, _nextSecPiston, secPiston, delaySec)

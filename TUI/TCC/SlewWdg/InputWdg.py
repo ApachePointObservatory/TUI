@@ -161,7 +161,7 @@ if __name__ == "__main__":
         try:
             print "value dict = %s" % (testFrame.getValueDict(),)
             print "command = %r" % (testFrame.getString(),)
-        except ValueError, e:
+        except ValueError as e:
             print "Error:", e
 
     def restoreDefault():

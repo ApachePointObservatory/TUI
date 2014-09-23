@@ -50,6 +50,7 @@ History:
                     where menu items showed up in the "Misc Font"..
 2012-12-19 ROwen    Changed font preferences to be for font size only and simplifies the settings.
 2014-08-31 ROwen    Improved help string for Keep Guide Images
+2014-09-17 ROwen    Modified to test for Exception instead of StandardError 
 """
 #import pychecker.checker
 import os
@@ -418,7 +419,7 @@ class TUIPrefs(PrefVar.PrefSet):
 
         try:
             self.readFromFile()
-        except StandardError, e:
+        except Exception as e:
             sys.stderr.write ("could not read TUI preferences: %s\n" % (e,))
         
         # set preferences for RO.Wdg objects

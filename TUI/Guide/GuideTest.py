@@ -36,13 +36,9 @@ History:
 2009-04-21 ROwen    Updated for tuiModel root->tkRoot.
 """
 import gc
-import os
-import re
-import resource
 import TUI.TUIModel
 import TUI.TUIMenu.LogWindow
 import TUI.TUIMenu.DownloadsWindow
-import GuideModel
 import GuideWdg
 
 g_actor = None

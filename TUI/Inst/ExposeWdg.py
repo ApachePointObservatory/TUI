@@ -229,7 +229,7 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         """
         try:
             cmdStr = self.getExpCmdStr()
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.statusBar.setMsg(str(e), severity=RO.Constants.sevError, isTemp=True)
             self.statusBar.playCmdFailed()
             return

@@ -20,6 +20,7 @@ History:
 2006-04-27 ROwen    Bug fix: long paths failed (I asked for the path the wrong way).
                     Modified to use RO.Wdg.FileWdg (simpler than RO.Prefs...).
 2006-12-28 ROwen    Modified to abort the exposure if the script is aborted.
+2014-09-17 ROwen    Modified to test for Exception instead of StandardError 
 """
 import RO.Wdg
 import TUI.TCC.TCCModel
@@ -122,7 +123,7 @@ class ScriptClass(object):
                 continue
             try:
                 x, y, z = [int(val) for val in line.split(None, 3)]
-            except StandardError:
+            except Exception:
                 raise sr.ScriptError("could not parse %r" % rawLine)
             xyzList.append((x, y, z))
         

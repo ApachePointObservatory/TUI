@@ -44,7 +44,7 @@ def animate(dataIter=None):
     if dataIter == None:
         dataIter = iter(AnimDataSet)
     try:
-        data = dataIter.next()
+        data = next(dataIter)
     except StopIteration:
         return
     dispatch(data)

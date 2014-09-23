@@ -15,11 +15,19 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
+<h3>2.3.1+ 2014-09-16</h3>
+
+<p>Internal changes:
+<ul>
+    <li>Now uses astropy instead of pyfits, if available (thanks to George Privon for suggesting and testing this).
+</ul>
+
 <h3>2.3.1 2014-09-16</h3>
 
 <p>Visible changes:
 <ul>
     <li>Preferences: improved help string for Keep Guide Images. Also, the latest version of RO adds Help contextual menu to the three controls along the bottom (the other controls already had this feature).
+    <li>Telescope:Pointing Data script: now broadcasts what it is doing. Also the script no longer commands a collimation update after each slew, because the TCC now commands a collimation shortly before the end of each slew.
 </ul>
 
 <p>Bug fixes:

@@ -20,10 +20,7 @@ History:
 2010-04-22 ROwen    Released as part of TUI.
 2010-04-23 ROwen    Stopped using Exception.message to make Python 2.6 happier.
 """
-import math
-import os
 import numpy
-import pdb
 import Tkinter
 import RO.Constants
 import RO.MathUtil
@@ -331,12 +328,11 @@ class AgileGuideWdg(Tkinter.Frame):
             azAltCmdState = [str(val).lower() for val in self.getKeyValues(self.tccModel.axisCmdState, 0, 2)]
             if azAltCmdState != ["tracking", "tracking"]:
                 raise RuntimeError("not tracking")
-        except Exception, e:
+        except Exception as e:
             self.logStarMeas(starMeas, posErr=posErr, errMsg=strFromException(e), severity=RO.Constants.sevError)
             return
         
         posErrDeg = posErr / instScalePixPerDeg
-        posErrMagArcSec = vecMag(posErr) / meanInstScalePixPerArcSec
         fitErrMagArcSec = vecMag(starMeas.xyStdDev) / meanInstScalePixPerArcSec
         for fitErrThresh, autoCorrFrac in self.FitErrCorrFracList:
             if fitErrMagArcSec < fitErrThresh:
@@ -397,7 +393,7 @@ class AgileGuideWdg(Tkinter.Frame):
             if centroidRadius < self.MinCentroidRadiusPix:
                 centroidRadius = self.MinCentroidRadiusPix
                 
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.statusBar.setMsg("Cannot guide: %s" % (strFromException(e),), severity=RO.Constants.sevError)
             self.doGuideBtn.setBool(False)
             return
@@ -445,7 +441,7 @@ class AgileGuideWdg(Tkinter.Frame):
             instName = self.getKeyValues(self.tccModel.instName, 0, 1)[0]
             if not instName.lower().startswith(self.instName.lower()):
                 raise RuntimeError("current instrument is %s, not %s" % (instName, self.instName))
-        except RuntimeError, e:
+        except RuntimeError as e:
             self.logMsg("%s\tskipped: %s" % (fileName, strFromException(e)))
             return
 

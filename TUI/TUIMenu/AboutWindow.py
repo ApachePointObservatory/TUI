@@ -18,13 +18,19 @@
 2011-02-18 ROwen    Acknowledge Joseph Huehnerhoff for the Windows builds.
 2012-10-15 ROwen    Assume matplotlib is installed. Report pygame version, if installed.
 2013-09-05 ROwen    Change "import Image" to "from PIL import Image" for compatibility with Pillow.
+2014-09-16 ROwen    Modified to use astropy instead of pyfits, if available.
 """
 import os.path
 import sys
 from PIL import Image
 import matplotlib
 import numpy
-import pyfits
+try:
+    import astropy
+    astropyVers = astropy.__version__
+except ImportError:
+    import pyfits
+    astropyVers = "pyfits %s" % (pyfits.__version__,)
 try:
     import pygame
     pygameVersion = pygame.__version__
@@ -47,6 +53,7 @@ def addWindow(tlSet):
     )
 
 def getInfoDict():
+    global astropyVers
     global pygameVersion
     tuiModel = TUI.TUIModel.getModel()
     res = {}
@@ -55,9 +62,9 @@ def getInfoDict():
     res["tcltk"] = tuiModel.tkRoot.call("info", "patchlevel")
     res["matplotlib"] = matplotlib.__version__
     res["numpy"] = numpy.__version__
-    # Image presently uses VERSION but may change to the standard so...
+    res["astropy"] = astropyVers
+    # Image uses VERSION, but PILLOW probably supports __version__
     res["pil"] = getattr(Image, "VERSION", getattr(Image, "__version__", "unknown"))
-    res["pyfits"] = pyfits.__version__
     res["pygame"] = pygameVersion
     res["specialFiles"] = getSpecialFileStr()
     return res
@@ -79,7 +86,7 @@ def getSpecialFileStr():
         try:
             filePath = func()
             pathStr = strFromPath(filePath)
-        except Exception, e:
+        except Exception as e:
             pathStr = "?: %s" % (strFromException(e),)
         outStrList.append("%s: %s" % (name, pathStr))
 
@@ -111,8 +118,8 @@ Python: %(python)s
 Tcl/Tk: %(tcltk)s
 matplotlib: %(matplotlib)s
 numpy: %(numpy)s
+astropy: %(astropy)s
 PIL: %(pil)s
-pyfits: %(pyfits)s
 pygame: %(pygame)s
 
 With special thanks to:

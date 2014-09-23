@@ -303,7 +303,7 @@ if __name__ == "__main__":
     dataIter = iter(dataDicts)
     def dispatchNext():
         try:
-            newDataDict = dataIter.next()
+            newDataDict = next(dataIter)
         except StopIteration:
             return
         

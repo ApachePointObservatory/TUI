@@ -104,7 +104,7 @@ def loadWindows(
             module.addWindow(tlSet)
             if logFunc:
                 logFunc("Added %r" % (moduleName,))
-        except Exception, e:
+        except Exception as e:
             errMsg = "%s.addWindow failed: %s" % (moduleName, e)
             if logFunc:
                 logFunc(errMsg, severity=RO.Constants.sevError)
