@@ -70,7 +70,7 @@ if os.path.exists(zipFilePath):
     print "Deleting %r" % (zipFilePath,)
     os.remove(zipFilePath)
 
-print "Copying TUI repository to %r" % (exportPath,)
+print "Copying %s repository to %r" % (PkgName, exportPath)
 
 # to write directly to a .zip file (but it won't include the RO package):
 # git archive --prefix=<exportFileName>/ -o <zipFilePath> HEAD

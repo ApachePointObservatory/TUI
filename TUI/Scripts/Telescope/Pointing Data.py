@@ -41,6 +41,8 @@ History:
 2014-09-15 ROwen    Always clear missing, retry and skip star lists when starting the script.
                     Prevent entering too-large values in the skip and retry star lists.
                     Add an extra check to prevent the grid being changed while running.
+2014-10-16 ROwen    Always specify window argument to work around a guider bug that caused too-small images.
+                    Show info about each entry in the data file, and append the same info to that entry as a comment.
 """
 import collections
 import glob
@@ -394,14 +396,21 @@ class ScriptClass(object):
         )
         ctrlGr.gridWdg("Stars to Retry", self.starsToRetryWdg, colSpan=8, sticky="ew")
 
-        ctrlFrame.grid(row=1, column=0, sticky="w")
-
-        self.dataPathWdg = RO.Wdg.StrLabel(
-            master = sr.master,
+        self.dataIDWdg = RO.Wdg.StrLabel(
+            master = ctrlFrame,
             anchor = "w",
+            helpText = "ID of most recently saved star measurement",
+        )
+        ctrlGr.gridWdg("Saved Data ID", self.dataIDWdg, colSpan=8, sticky="ew")
+
+        self.dataPathWdg = RO.Wdg.StrEntry(
+            master = ctrlFrame,
+            readOnly = True,
             helpText = "path to pointing data file",
         )
-        self.dataPathWdg.grid(row=2, column=0, sticky="ew")
+        ctrlGr.gridWdg(False, self.dataPathWdg, colSpan=8, sticky="ew")
+
+        ctrlFrame.grid(row=1, column=0, sticky="w")
 
         # self.tccModel.instName.addIndexedCallback(self._setInstName, callNow=True)
         self.tccModel.rotExists.addIndexedCallback(self._updRotExists, callNow=True)
@@ -579,25 +588,33 @@ class ScriptClass(object):
         argList = [
             "time=%s" % (self.expTime,),
             self.formatBinFactorArg(isFinal=isFinal),
-            self.formatWindowArg(doWindow),
+            self.formatWindowArg(doWindow, isFinal=isFinal),
         ]
         argList = [arg for arg in argList if arg]
         return " ".join(argList)
     
-    def formatWindowArg(self, doWindow=True):
+    def formatWindowArg(self, doWindow=True, isFinal=False):
         """Format window argument for expose/centroid/findstars command.
         
         Inputs:
         - doWindow: if true, window the exposure (if permitted)
         """
         if not doWindow or not self.doWindow:
-            return ""
+            # specify the window argument anyway, to work around a guider bug
+            imSize = self.guideModel.gcamInfo.imSize
+            window = numpy.array((0, 0, imSize[0], imSize[1]), dtype=int) \
+                / self.getBinFactor(isFinal=isFinal)
+            if self.windowIsInclusive:
+                for i in (2, 3):
+                    window[i] -= 1
+        else:
+            window = self.window[:]
         if self.windowIsInclusive:
             urOffset = self.windowOrigin
         else:
             urOffset = self.windowOrigin + 1
-        windowLL = [self.window[ii] + self.windowOrigin for ii in range(2)]
-        windowUR = [self.window[ii+2] + urOffset for ii in range(2)]
+        windowLL = [window[ii] + self.windowOrigin for ii in range(2)]
+        windowUR = [window[ii+2] + urOffset for ii in range(2)]
         return "window=%d,%d,%d,%d" % (windowLL[0], windowLL[1], windowUR[0], windowUR[1])
 
     def getEntryNum(self, wdg):
@@ -640,6 +657,10 @@ class ScriptClass(object):
         """Initialize variables, table and graph.
         """
         # initialize shared variables
+        self.windowIsInclusive = True # for guider and slitviewers
+        self.doWindow = True # to work around a guider bug where the image may not be full frame
+            # unless a window is explicitly specified
+        self.windowOrigin = 0
         self.doTakeFinalImage = False
         self.focDir = None
         self.currBoreXYDeg = None
@@ -652,7 +673,8 @@ class ScriptClass(object):
         self.binFactor = None
         self.window = None # LL pixel is 0, UL pixel is included
         self.currStarNum = 0
-        for wdg in (self.missingStarsWdg, self.starsToSkipWdg, self.starsToRetryWdg):
+        self.numStarsWritten = 0 # number of star data items written to output
+        for wdg in (self.missingStarsWdg, self.starsToSkipWdg, self.starsToRetryWdg, self.dataIDWdg):
             wdg.set("")
 
         # data from tcc tinst:IP_NA2.DAT; value measured 2011-07-21
@@ -712,6 +734,7 @@ class ScriptClass(object):
         ptDataName = "ptdata_%s.dat" % (currDateStr,)
         ptDataPath = os.path.join(ptDataDir, ptDataName)
         self.dataPathWdg.set(ptDataPath)
+        self.dataPathWdg.xview("end") # the interesting part is the end
         with open(ptDataPath, "w") as ptDataFile:
             headerStrList = self.getHeaderStrList(currDateStr)
             for headerStr in headerStrList:
@@ -1073,9 +1096,13 @@ class ScriptClass(object):
         # log pointing error
         # do this after the last measurement of the star, so we have only one entry per star
         # and record the value with the star most accurately centered (we hope)
-        ptDataFile.write(ptErr.getPtDataStr())
-        ptDataFile.write("\n")
+        currStarName = self.sr.getKeyVar(self.tccModel.objName, defVal="?")
+        dataIDStr = "entry %d star %d %s" % (self.numStarsWritten + 1, self.currStarNum, currStarName)
+        dataStr = "%s  ! %s\n" % (ptErr.getPtDataStr(), dataIDStr)
+        ptDataFile.write(dataStr)
         ptDataFile.flush()
+        self.numStarsWritten += 1
+        self.dataIDWdg.set(dataIDStr)
         self.missingStarsWdg.removeInt(starNum)
         self.starsToRetryWdg.removeInt(starNum)
         self.azAltList["state"][i] = self.azAltGraph.Measured
