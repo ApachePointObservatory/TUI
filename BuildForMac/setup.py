@@ -53,6 +53,7 @@ History:
                     Removed obsolete constant UniversalBinaryOK.
 2014-02-17 ROwen    Added LSArchitecturePriority to PList to force 32-bit mode (for 10.9 compatibility).
                     Added LSMinimumSystemVersion to PList.
+2014-10-17 ROwen    Back to 64-bit mode, now that we have a modern version of Tcl/Tk to try.
 """
 import os
 from plistlib import Plist
@@ -91,9 +92,11 @@ plist = Plist(
     CFBundleGetInfoString       = "%s %s" % (appName, fullVersStr),
     CFBundleExecutable          = appName,
     LSMinimumSystemVersion      = "10.6.0",
-    LSArchitecturePriority      = ("i386",) # force 32-bit mode;
+#    LSArchitecturePriority      = ("i386",) # force 32-bit mode;
         # this is needed for Tcl/TK 8.5.11 to run on MacOS X 10.9;
         # I'm stuck with 8.5.11 due to a crashing bug in Tcl/Tk 8.5.12 - 8.5.15.1
+        # 8.5.16 has a nasty regression in http that prevents downloading images
+        # 8.5.17 is a possibility; I'm trying a release candidate as I write this
 )
 
 setup(

@@ -15,15 +15,16 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>2.3.1+ 2014-10-16</h3>
+<h3>2.3.2b1 2014-10-17</h3>
 
 <p>Visible changes:
 <ul>
-    <li>Telescope:Pointing Data script: now shows information about each data entry, both in the script and as a comment in the data file. Also, the window argument is specified for each exposure, to work around a bug in the guider.
+    <li>Telescope:Pointing Data script: now shows information about each data entry, both in the script and as a comment in the data file. Also, the window argument is specified for each exposure, to work around a bug in the guider that caused incorrect windowing.
 </ul>
 
 <p>Internal changes:
 <ul>
+    <li>The Mac build includes a release candidate of Tcl/Tk 8.5.17; if this works it should be a huge improvement over the ancient version I had to use previously, especially for users on MacOS 10.9 (I have no idea how Tcl/Tk works on 10.10).
     <li>Modernized some syntax.
     <li>Now uses astropy instead of pyfits, if available (thanks to George Privon for suggesting and testing this).
 </ul>
