@@ -12,6 +12,7 @@ History:
 2006-09-26 ROwen    Added bin factor support to allow isCurrent
                     and full frame determinations to be binned.
 2007-04-24 ROwen    Modified to use numpy instead of numarray.
+2014-10-20 ROwen    Changed from "== None" to "is None" to avoid FutureWarnings.
 """
 import Tkinter
 import numpy
@@ -92,7 +93,7 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
         """Convert coordinates of displayed rectangle
         to unbinned subframe beginning and size
         """
-        if self.fullSize == None:
+        if self.fullSize is None:
             return None
 
         floatMaxRectSize = numpy.asarray(self.getMaxCoords(), dtype=float) + (1.0, 1.0)
@@ -133,7 +134,7 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
         """Return True if sf matches current subframe with current bin factor
         or if self.subFrame and sf are both None.
         """
-        if self.subFrame == None:
+        if self.subFrame is None:
             return self.subFrame == sf
 
         return self.subFrame.isEqualBinned(self.binFac, sf)
@@ -141,7 +142,7 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
     def isFullFrame(self):
         """Return True if subFrame is full frame at the current bin factor.
         """
-        if self.subFrame == None:
+        if self.subFrame is None:
             return False
         
         return self.subFrame.isFullFrameBinned(self.binFac)
@@ -150,7 +151,7 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
         """Convert unbinned subframe beginning and size
         to coordinates of the displayed rectangle.
         """
-        if self.fullSize == None:
+        if self.fullSize is None:
             return None
 
         floatMaxRectSize = numpy.asarray(self.getMaxCoords(), dtype=float) + (1.0, 1.0)
@@ -222,7 +223,7 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
         """
 #       print "setSubFrame(%s)" % (subFrame,)
         if subFrame:
-            newFullSize = (self.subFrame == None) or not numpy.alltrue(subFrame.fullSize == self.subFrame.fullSize)
+            newFullSize = (self.subFrame is None) or not numpy.alltrue(subFrame.fullSize == self.subFrame.fullSize)
             self.subFrame = subFrame.copy()
             
             if not self.subResRect:
@@ -291,7 +292,7 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
 
             # set default rectangle
             if self.defSubFrame:
-                if self.defRectID == None:
+                if self.defRectID is None:
                     raise RuntimeError("have defSubFrame but no defRectID")
                 subBeg, subSize = self.defSubFrame.getSubBegSize()
                 rectCoords = self.rectCoordsFromBegSize(subBeg, subSize)

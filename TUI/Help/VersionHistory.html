@@ -15,6 +15,12 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
+<h3>2.3.2b2 2014-10-22</h3>
+
+<ul>
+    <li>Bug fix: script files could not be loaded if they used print as a statement (instead of a function). This is because "from __future__ import print_function" was somehow leaking from RO.Wdg.ScriptFileWdg into the loaded scripts. Warning: "from __future__ import division" is still probably leaking in; I consider this a more of a feature than a bug.
+</ul>
+
 <h3>2.3.2b1 2014-10-17</h3>
 
 <p>Visible changes:
