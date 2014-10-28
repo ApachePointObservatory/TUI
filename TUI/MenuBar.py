@@ -42,14 +42,15 @@ History:
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
 2012-11-29 ROwen    Bug fix on MacOS X: a duplicate Preferences menu was shown. Now supports cmd-comma.
 2014-08-15 ROwen    Bug fix: an error if no parentTL found was mis-generated.
+2014-10-28 ROwen    Bug fix: TUI Help was shown twice and the first entry didn't work.
+                    Switched from RO.Alg.GenericCallback to functools.partial.
 """
+import functools
 import Tkinter
-import RO.Alg
 import RO.Comm.BrowseURL
 import RO.Constants
 import RO.OS
 import RO.TkUtil
-import RO.Wdg
 import TUI.ScriptMenu
 import TUI.TCC.StatusWdg.StatusWindow
 import TUI.TUIModel
@@ -119,14 +120,24 @@ class MenuBar(object):
 
     def addHelpMenu(self):
         mnu = Tkinter.Menu(self.parentMenu, name = "help", tearoff=False)
+
+        begInd = 0
+        if self.wsys == RO.TkUtil.WSysAqua:
+            # MacOS adds the first help item
+            def doMacHelp(*args):
+                print "doMacHelp(%s)" % (args,)
+                self.doHelp("index.html")
+            self.tuiModel.tkRoot.createcommand("::tk::mac::ShowHelp", doMacHelp)
+            begInd = 1
+
         for itemName, url in (
             ("TUI Help", "index.html"),
             ("Introduction", "Introduction.html"),
             ("Version History", "VersionHistory.html"),
-        ):
+        )[begInd:]:
             mnu.add_command (
                 label=itemName,
-                command=RO.Alg.GenericCallback(self.doHelp, url),
+                command=functools.partial(self.doHelp, url),
             )
         self.parentMenu.add_cascade(label="Help", menu=mnu)
     
@@ -147,7 +158,7 @@ class MenuBar(object):
                 mnu.add_command(
                     label = label,
                     accelerator = accel,
-                    command = RO.Alg.GenericCallback(self.doEditItem, label)
+                    command = functools.partial(self.doEditItem, label)
                 )
             else:
                 mnu.add_separator()
@@ -197,7 +208,7 @@ class MenuBar(object):
         mnu.add_separator()
         if self.wsys == RO.TkUtil.WSysAqua:
             self.tuiModel.tkRoot.createcommand("::tk::mac::ShowPreferences",
-                RO.Alg.GenericCallback(self.showToplevel, "%s.Preferences" % (appName,)))
+                functools.partial(self.showToplevel, "%s.Preferences" % (appName,)))
         else:
             self._addWindow("%s.Preferences" % (appName,), mnu)
         
@@ -263,7 +274,7 @@ class MenuBar(object):
         """
         if label == None:
             label = tlName.split(".")[-1]
-        mnu.add_command(label=label, command=RO.Alg.GenericCallback(self.showToplevel, tlName))
+        mnu.add_command(label=label, command=functools.partial(self.showToplevel, tlName))
 
     def _connStateFunc(self, conn):
         """Called whenever the connection changes state"""

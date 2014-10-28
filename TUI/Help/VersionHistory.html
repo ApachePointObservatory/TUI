@@ -10,27 +10,27 @@
 <h3>Compatibility</h3>
 
 <ul>
-    <li>Mac: the Mac binary works with MacOS X 10.6 - 10.9, though on 10.9 you should disable app nap, if you can: select Get Info on TUI; if you see a checkbutton labelled "Disable App Nap" then check it. The Mac version is not signed, so MacOS may complain when you try to launch it. If that happens simply right-click on the application and select "Open...".
+    <li>Mac: the Mac binary works with MacOS X 10.6 - 10.10, though on 10.9 or later you should disable app nap: select Get Info on TUI; if you see a checkbutton labelled "Disable App Nap" then check it. The Mac version is not signed, so MacOS may complain when you try to launch it. If that happens simply right-click on the application and select "Open...".
 	<li>Unix: runs from source, so is compatible with all flavors of unix. See the <a href="Installation.html">installation instructions</a> for the required version of Python and other libraries.
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
-<h3>2.3.2b2 2014-10-22</h3>
-
-<ul>
-    <li>Bug fix: script files could not be loaded if they used print as a statement (instead of a function). This is because "from __future__ import print_function" was somehow leaking from RO.Wdg.ScriptFileWdg into the loaded scripts. Warning: "from __future__ import division" is still probably leaking in; I consider this a more of a feature than a bug.
-</ul>
-
-<h3>2.3.2b1 2014-10-17</h3>
+<h3>2.3.2 2014-10-28</h3>
 
 <p>Visible changes:
 <ul>
     <li>Telescope:Pointing Data script: now shows information about each data entry, both in the script and as a comment in the data file. Also, the window argument is specified for each exposure, to work around a bug in the guider that caused incorrect windowing.
 </ul>
 
+<p>Bug fixes:
+<ul>
+    <li>The Mac version's Help menu had two entries for TUI Help, but only the second one worked.
+</ul>
+
 <p>Internal changes:
 <ul>
-    <li>The Mac build includes a release candidate of Tcl/Tk 8.5.17; if this works it should be a huge improvement over the ancient version I had to use previously, especially for users on MacOS 10.9 (I have no idea how Tcl/Tk works on 10.10).
+    <li>The Mac build includes a release candidate of Tcl/Tk 8.5.17; this should be a significant improvement over the ancient 8.5.11 I had to use previously, especially for users on MacOS 10.9.
+    <li>The Mac version is once again a 64-bit application (made possible by the Tcl/Tk upgrade).
     <li>Modernized some syntax.
     <li>Now uses astropy instead of pyfits, if available (thanks to George Privon for suggesting and testing this).
 </ul>
