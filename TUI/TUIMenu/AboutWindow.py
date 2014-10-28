@@ -19,6 +19,7 @@
 2012-10-15 ROwen    Assume matplotlib is installed. Report pygame version, if installed.
 2013-09-05 ROwen    Change "import Image" to "from PIL import Image" for compatibility with Pillow.
 2014-09-16 ROwen    Modified to use astropy instead of pyfits, if available.
+2014-10-28 ROwen    Improved version display if pyfits used instead of astropy.
 """
 import os.path
 import sys
@@ -27,10 +28,10 @@ import matplotlib
 import numpy
 try:
     import astropy
-    astropyVers = astropy.__version__
+    astropyVers = "astropy: %s" % (astropy.__version__,)
 except ImportError:
     import pyfits
-    astropyVers = "pyfits %s" % (pyfits.__version__,)
+    astropyVers = "pyfits: %s" % (pyfits.__version__,)
 try:
     import pygame
     pygameVersion = pygame.__version__
@@ -63,7 +64,7 @@ def getInfoDict():
     res["matplotlib"] = matplotlib.__version__
     res["numpy"] = numpy.__version__
     res["astropy"] = astropyVers
-    # Image uses VERSION, but PILLOW probably supports __version__
+    # Image uses VERSION, but PILLOW supports __version__
     res["pil"] = getattr(Image, "VERSION", getattr(Image, "__version__", "unknown"))
     res["pygame"] = pygameVersion
     res["specialFiles"] = getSpecialFileStr()
@@ -118,7 +119,7 @@ Python: %(python)s
 Tcl/Tk: %(tcltk)s
 matplotlib: %(matplotlib)s
 numpy: %(numpy)s
-astropy: %(astropy)s
+%(astropy)s
 PIL: %(pil)s
 pygame: %(pygame)s
 
