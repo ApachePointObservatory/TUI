@@ -165,9 +165,9 @@ class SkyWdg (Tkinter.Frame):
         self.cnv.bind('<Leave>', self._leaveStar)
         # the following prevents the display from blanking
         # when the button is pressed once (I tried trapping and
-        # discarding <Button>, as a faster solutionn, but it didn't work)
-        self.cnv.bind('<Button>', self._enterStar)
-        self.cnv.bind('<Double-Button-1>', self._setPotential)
+        # discarding <ButtonPress>, as a faster solution, but it didn't work)
+        self.cnv.bind('<ButtonPress>', self._enterStar)
+        self.cnv.bind('<Double-ButtonPress-1>', self._setPotential)
         self.center = [None,None]
         self.size = [None,None]
         self.azAltRad = None

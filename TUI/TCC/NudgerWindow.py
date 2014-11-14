@@ -207,7 +207,7 @@ class NudgerWdg (Tkinter.Frame):
         self.cnv.bind('<B1-Motion>', self.drawContinue)
         # the following prevents the display from blanking
         # when the button is pressed once (I tried trapping and
-        # discarding <Button>, as a faster solutionn, but it didn't work)
+        # discarding <ButtonPress-1>, as a faster solution, but it didn't work)
         self.cnv.bind('<ButtonPress-1>', self.drawBegin)
         self.cnv.bind('<ButtonRelease-1>', self.drawEnd)
         

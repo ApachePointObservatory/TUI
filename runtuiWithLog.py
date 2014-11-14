@@ -20,6 +20,7 @@ History:
 2009-11-09 ROwen    Modified to generate the log name from TUI.Version.ApplicationName.
 2014-04-25 ROwen    Modified to put the log files in a subdirectory
                     and to start the log with a timestamp and TUI version.
+2014-11-13 ROwen    Modified log file name format to eliminate colons.
 """
 import glob
 import os
@@ -53,7 +54,7 @@ try:
         raise RuntimeError("Could not create log dir %r" % (logDir,))
 
     # create new log file        
-    dateStr = time.strftime("%Y-%m-%d:%H:%M:%S", time.gmtime())
+    dateStr = time.strftime("%Y-%m-%dT%H_%M_%S", time.gmtime())
     logName = "%s%s%s" % (LogPrefix, dateStr, LogSuffix)
     logPath = os.path.join(logDir, logName)
     errLog = file(logPath, "w", 1) # bufsize=1 means line buffered

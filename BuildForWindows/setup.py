@@ -39,12 +39,13 @@ History:
                     and snack 2.2.10 Windows distribution (snack2.2->snacklib)
 2009-10-22 ROwen    Removed installation of snack (now that TUI uses pygame to play sounds).
 2009-11-09 ROwen    Modified to use TUI.Version.ApplicationName.
+2014-11-10 ROwen    Modified to use runtuiWithLog.py instead of runtui.py.
+                    Updated for Python 2.7 as per Bill Ketzeback's notes.
 """
 from distutils.core import setup
 import os
 import sys
 import matplotlib
-import py2exe
 
 # The following code is necessary for py2exe to find win32com.shell.
 # Solution from <http://starship.python.net/crew/theller/moin.cgi/WinShell>
@@ -59,11 +60,10 @@ for extra in ["win32com.shell"]:
         modulefinder.AddPackagePath(extra, pth)
 
 tuiRoot = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-roRoot = os.path.join(tuiRoot, "ROPackage", "python")
-sys.path = [tuiRoot, roRoot] + sys.path
+sys.path = [tuiRoot] + sys.path
 import TUI.Version
 appName = TUI.Version.ApplicationName
-mainProg = os.path.join(tuiRoot, "runtui.py")
+mainProg = os.path.join(tuiRoot, "runtuiWithLog.py")
 
 NDataFilesToPrint = 5 # number of data files to print, per directory
 
@@ -111,7 +111,7 @@ for resBase in ("Help", "Scripts", "Sounds"):
 # RO resources
 for resBase in ("Bitmaps",):
     toSubDir = os.path.join("RO", resBase)
-    fromDir = os.path.join(roRoot, toSubDir)
+    fromDir = os.path.join(tuiRoot, toSubDir)
     addDataFiles(dataFiles, fromDir, toSubDir)
  
 # Add matplotlib's data files.
@@ -132,7 +132,8 @@ appVers = versDate.split()[0]
 distDir = "%s_%s_Windows" % (appName, appVers)
 
 inclModules = [
-#    "email.Utils", # needed for Python 2.5.0
+    "FileDialog",
+    "pygame._view",
 ]
 # packages to include recursively
 inclPackages = [
@@ -140,12 +141,7 @@ inclPackages = [
     "RO",
     "matplotlib",
     "dateutil", # required by matplotlib
-    "pytz", # required by matplotlib
-#    "matplotlib.backends",
-#    "matplotlib.numerix",
-#    "encodings",
-#    "numpy",
-#    "email", # needed for Python 2.5
+    "FileDialog",
 ]
 
 setup(

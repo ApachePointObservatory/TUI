@@ -1047,10 +1047,10 @@ class GuideWdg(Tkinter.Frame):
         # event bindings
         self.gim.bind("<Map>", self.doMap)
 
-        self.gim.cnv.bind("<Button-1>", self.doDragStart, add=True)
+        self.gim.cnv.bind("<ButtonPress-1>", self.doDragStart, add=True)
         self.gim.cnv.bind("<B1-Motion>", self.doDragContinue, add=True)
         self.gim.cnv.bind("<ButtonRelease-1>", self.doDragEnd, add=True)
-        self.gim.cnv.bind("<Control-Button-1>", self.doCtrlClickBegin)
+        self.gim.cnv.bind("<Control-ButtonPress-1>", self.doCtrlClickBegin)
         
         self.gim.cnv.bind("<Activate>", self.doCancelDrag)
         self.gim.cnv.bind("<Deactivate>", self.doCancelDrag)
