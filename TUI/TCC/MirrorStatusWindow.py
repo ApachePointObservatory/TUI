@@ -20,6 +20,7 @@
                     Added help text and a status bar to dispay it.
                     Removed some unused variables.
 2014-08-07 ROwen    Added mirror state, including a countdown timer.
+2015-01-06 ROwen    Set column span for dividers and status bar large enough to handle 6 axes, plus a margin.
 """
 import Tkinter
 import RO.Wdg
@@ -78,7 +79,7 @@ class MirrorStatusWdg (Tkinter.Frame):
         
         # data for orientation table layout: number of axes, label text, keyword prefix, help text
         orientNumLabelPrefixHelpList = (
-            (NumSecAxes, "Sec orient", "sec", "secondary measured orienation"),
+            (NumSecAxes, "Sec orient", "sec", "secondary measured orientation"),
             (NumSecAxes, "Sec des", "secDes", "secondary desired orientation"),
             (NumTertAxes, "Tert orient", "tert", "tertiary measured orientation"),
             (NumTertAxes, "Tert des", "tertDes", "tertiary desired orientation"),
@@ -107,12 +108,12 @@ class MirrorStatusWdg (Tkinter.Frame):
         gr.gridWdg(
             label = False,
             dataWdg = Tkinter.Frame(self, height=1, bg="black"),
-            colSpan = len(orientColInfo) + 1,
+            colSpan = 10,
             sticky = "ew",
         )
 
         #
-        # display mirror state
+        # display mirror encoder data
         #
 
         statusLabelPrefixHelpList = (
@@ -176,14 +177,14 @@ class MirrorStatusWdg (Tkinter.Frame):
         gr.gridWdg(
             label = False,
             dataWdg = Tkinter.Frame(self, height=1, bg="black"),
-            colSpan = len(orientColInfo) + 1,
+            colSpan = 10,
             sticky = "ew",
         )
         
         #
         # display mirror encoder data
         #
-        
+
         # mount title
         axisTitles = [u"%c (steps)" % (ii + ord("A"),) for ii in range(max(NumSecAxes, NumTertAxes))]
         axisTitleWdgs = [RO.Wdg.StrLabel(self, text=label) for label in axisTitles]
@@ -224,7 +225,7 @@ class MirrorStatusWdg (Tkinter.Frame):
             mountVar.addROWdgSet(mountWdgSet)
 
         self.statusWdg = RO.Wdg.StatusBar(self)
-        gr.gridWdg(False, self.statusWdg, colSpan=6, sticky="ew")
+        gr.gridWdg(False, self.statusWdg, colSpan=10, sticky="ew")
 
 
 if __name__ == "__main__":
