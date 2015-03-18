@@ -23,12 +23,12 @@ History:
 2011-06-16 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 2012-07-18 ROwen    Removed use of update_idletasks and an ugly Mac workaround that is no longer required.
 2014-02-12 ROwen    Moved some code to TUI.Base.ScriptLoader so other users could get to it more easily.
+2015-03-18 ROwen    Removed _RootNode.isAqua because it was not being used.
 """
 import os
 import Tkinter
 import tkFileDialog
 import RO.Alg
-import RO.TkUtil
 from TUI.Base.ScriptLoader import getScriptDirs, ScriptLoader
 
 __all__ = ["getScriptMenu"]
@@ -181,7 +181,6 @@ class _RootNode(_MenuNode):
         """
         self.master = master
         _MenuNode.__init__(self, None, label, pathList)
-        self.isAqua = (RO.TkUtil.getWindowingSystem() == RO.TkUtil.WSysAqua)
         
     def _setMenu(self):
         self.menu = Tkinter.Menu(
