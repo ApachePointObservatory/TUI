@@ -1,3 +1,3 @@
-VersionStr = "2.3.3b2 2015-03-24"
+VersionStr = "2.3.3 2015-04-03"
 VersionName, VersionDate = VersionStr.split()
 ApplicationName = "TUI"
