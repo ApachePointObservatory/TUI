@@ -57,6 +57,7 @@ Warning: the config stuff will probably be modified.
 2010-10-20 ROwen    Modified to not auto-refresh expState keyvar for focus actors; expState isn't
                     output by focus actors, but it's more consistent to leave it in with a null value.
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
+2015-06-01 ROwen    Updated for new dcam, which has size 1024x1024 instead of 512x512.
 """
 __all__ = ['getModel']
 
@@ -91,7 +92,7 @@ class _GCamInfo:
 # instrument names must be lowercase
 _GCamInfoDict = {
     "dcam": _GCamInfo(
-        imSize = (512, 512),
+        imSize = (1024, 1024),
         isSlitViewer = True,
     ),
     "ecam": _GCamInfo(
