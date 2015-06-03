@@ -14,6 +14,7 @@ History:
                     Use RO.StringUtil.strFromException when formatting command failure messages.
 2011-06-17 ROwen    Changed "type" to "msgType" in parsed message dictionaries (in test code only).
 2012-07-19 ROwen    Removed Calibration offsets at Russet's sensible request.
+2015-06-02 ROwen    Stop scaling Guide and Guide XY offsets by cos(alt); the new TCC doesn't want it.
 """
 import Tkinter
 import RO.Constants
@@ -284,14 +285,6 @@ class NudgerWdg (Tkinter.Frame):
             elif offType == "Object Arc XY":
                 offDeg = self.objFromInst(offDeg)
         
-            # if necessary, scale from on-sky to axis offset
-            # options: use cos(alt) or spherical trig; the latter is more accurate near the pole
-            if offType.split()[0] == "Guide":
-                offDeg = list(offDeg)
-                currAlt = self.tccModel.tccPos.getInd(1)[0]
-                if currAlt == None:
-                    raise ValueError("current altitude unknown")
-                offDeg = (offDeg[0] / RO.MathUtil.cosd(currAlt), offDeg[1])
         except Exception as e:
             self.statusBar.setMsg("Failed: %s" % (RO.StringUtil.strFromException(e),),
                 severity=RO.Constants.sevError)
