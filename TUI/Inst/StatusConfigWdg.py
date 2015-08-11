@@ -23,7 +23,7 @@ class StatusConfigWdg (Tkinter.Frame):
         actor = None,
     **kargs):
         """Create a widget to show the current state of and configure an instrument.
-        
+
         Inputs:
         - master: Tcl master widget
         - statusConfigInputClass: a subclass of RO.Wdg.InputContFrame that defines the status
@@ -31,7 +31,7 @@ class StatusConfigWdg (Tkinter.Frame):
           (see Requirements below for more information).
         - helpURL: help URL for this instruments's status/configuration window
         - **kargs: optional keyword arguments for statusConfigInputClass.__init__
-        
+
         statusConfigInputClass must:
         - Be a subclass of RO.Wdg.InputContFrame
         - Define __init__(self, master [, ...optional keyword arguments])
@@ -51,7 +51,7 @@ class StatusConfigWdg (Tkinter.Frame):
         Tkinter.Frame.__init__(self, master)
 
         tuiModel = TUI.TUIModel.getModel()
-        
+
         self._stateTracker = RO.Wdg.StateTracker(logFunc = tuiModel.logFunc)
 
         self.tlSet = tuiModel.tlSet
@@ -66,7 +66,7 @@ class StatusConfigWdg (Tkinter.Frame):
             helpURL = None
         self.inputWdg.grid(row=row, column=0, sticky="w")
         row += 1
-            
+
         # create and pack status monitor
         self.statusBar = RO.Wdg.StatusBar(
             master = self,
@@ -113,7 +113,7 @@ class StatusConfigWdg (Tkinter.Frame):
         )
         self.applyButton.grid(row=0, column=bfCol)
         bfCol += 1
-        
+
         self.cancelButton = RO.Wdg.Button(
             master = buttonFrame,
             text = "X",
@@ -135,7 +135,7 @@ class StatusConfigWdg (Tkinter.Frame):
         bfCol += 1
 
         buttonFrame.grid(row=2, column=0, sticky="w")
-        
+
         self.inputWdg.gridder.addShowHideWdg (
             RO.Wdg.StatusConfigGridder.ConfigCat,
             [self.applyButton, self.cancelButton, self.currentButton],
@@ -147,11 +147,10 @@ class StatusConfigWdg (Tkinter.Frame):
 
         def doConfig(sr, inputWdg=self.inputWdg):
             """Script run function to modify the configuration.
-            
+
             This would be a class method if they could be generators.
             """
             cmdList = inputWdg.getStringList()
-            
             for cmdStr in cmdList:
                 yield sr.waitCmd(
                     actor = self.getActorForCommand(cmdStr),
@@ -166,20 +165,20 @@ class StatusConfigWdg (Tkinter.Frame):
             statusBar = self.statusBar,
             stateFunc = self.enableButtons,
         )
-        
+
         self.inputWdg.addCallback(self.enableButtons)
-    
+
     def doApply(self, btn=None):
         """Apply desired configuration changes.
         """
         self.scriptRunner.start()
-    
+
     def doCancel(self, btn=None):
         """Cancel any pending configuration changes.
         """
         if self.scriptRunner.isExecuting():
             self.scriptRunner.cancel()
-        
+
     def doCurrent(self, btn=None):
         """Restore all input widgets to the current state.
         If no command executing, clear status bar.
@@ -187,7 +186,7 @@ class StatusConfigWdg (Tkinter.Frame):
         self.inputWdg.restoreDefault()
         if not self.scriptRunner.isExecuting():
             self.statusBar.clear()
-    
+
     def enableButtons(self, *args, **kargs):
         """Enable or disable command buttons as appropriate.
         """
@@ -200,10 +199,10 @@ class StatusConfigWdg (Tkinter.Frame):
             doEnable = not self.inputWdg.inputCont.allDefault()
             self.currentButton.setEnable(doEnable)
             self.applyButton.setEnable(doEnable)
-    
+
     def getActorForCommand(self, cmdStr):
         return self.actor
-    
+
     def getStateTracker(self):
         return self._stateTracker
 
@@ -211,7 +210,7 @@ class StatusConfigWdg (Tkinter.Frame):
         """Show the instrument's expose window.
         """
         self.tlSet.makeVisible("None.%s Expose" % (self.instName,))
-    
+
     def _showConfigCallback(self, wdg=None):
         """Callback for show/hide config toggle.
         Restores defaults if config newly shown."""

@@ -62,7 +62,7 @@ class MenuBar(object):
 
     Call only after all windows have been created
     (else the auto menus Inst, etc. will be missing entries).
-    
+
     Note: if MacOS X Aqua, then the root["menu"] is set
     so that the menu bar applies to all windows.
     Otherwise the menu bar appears in the Status window
@@ -74,7 +74,7 @@ class MenuBar(object):
         self.tlSet = self.tuiModel.tlSet
         self.connection = self.tuiModel.dispatcher.connection
         self.appName = TUI.Version.ApplicationName
-        
+
         self.wsys = RO.TkUtil.getWindowingSystem()
 
         # determine parent toplevel and create menu for it
@@ -85,23 +85,23 @@ class MenuBar(object):
             if not parentTL:
                 raise RuntimeError("Could not find window %s" % (TUI.TCC.StatusWdg.StatusWindow.WindowName,))
         self.parentMenu = Tkinter.Menu(parentTL)
-        
+
         self.tuiMenu = None
         self.connectMenuIndex = None
 
         # add the TUI menu
         self.addTUIMenu()
-        
+
         self.connection.addStateCallback(self._connStateFunc, callNow = True)
-        
+
         # if Mac Aqua, add an edit menu
         if self.wsys == RO.TkUtil.WSysAqua:
             self.addMacEditMenu()
-        
+
         # add the automatic menus
         for menuTitle in ("TCC", "Inst", "Guide", "Misc"):
             self.addAutoMenu(menuTitle)
-    
+
         # add the script menu
         self.addScriptMenu()
 
@@ -110,7 +110,7 @@ class MenuBar(object):
 
         # this must come after addTUIMenu, else two application menus show up in Mac OS X
         parentTL["menu"] = self.parentMenu
-    
+
     def addAutoMenu(self, name):
         """Add automatically built menu
         """
@@ -142,7 +142,7 @@ class MenuBar(object):
                 command=functools.partial(self.doHelp, url),
             )
         self.parentMenu.add_cascade(label="Help", menu=mnu)
-    
+
     def addMacEditMenu(self):
         mnu = Tkinter.Menu(self.parentMenu)
         for label, accelLet in (
@@ -165,18 +165,18 @@ class MenuBar(object):
             else:
                 mnu.add_separator()
         self.parentMenu.add_cascade(label="Edit", menu=mnu)
-    
+
     def addScriptMenu(self):
         mnu = TUI.ScriptMenu.getScriptMenu(self.parentMenu)
         self.parentMenu.add_cascade(label="Scripts", menu=mnu)
-    
+
     def addTUIMenu(self):
         if self.wsys == RO.TkUtil.WSysAqua:
             name = "apple"
         else:
             name = None
         mnu = Tkinter.Menu(self.parentMenu, name=name, tearoff=0)
-        
+
         # predefined windows: titles of windows
         # whose positions in the TUI menu are predefined
         predef = ["About %s" % (self.appName,), "Connect", "Preferences", "Downloads"]
@@ -190,12 +190,12 @@ class MenuBar(object):
         mnu.add_command(label="Disconnect", command=self.doDisconnect)
         mnu.add_command(label="Refresh Display", command=self.doRefresh)
         mnu.add_separator()
-        
+
         self._addWindow("%s.Downloads" % (self.appName,), mnu)
-        
+
         self.logMenu = Tkinter.Menu(mnu, tearoff=False, postcommand=self._populateLogMenu)
         mnu.add_cascade(label="Logs", menu=self.logMenu)
-        
+
         # add non-predefined windows here
         tlNames = self.tlSet.getNames("%s." % (self.appName,))
         for tlName in tlNames:
@@ -204,7 +204,7 @@ class MenuBar(object):
             if tlName.startswith("%s.Log" % (self.appName,)):
                 continue
             self._addWindow(tlName, mnu)
-        
+
         # add the remaining predefined entries
         mnu.add_separator()
         if self.wsys == RO.TkUtil.WSysAqua:
@@ -212,7 +212,7 @@ class MenuBar(object):
                 functools.partial(self.showToplevel, "%s.Preferences" % (self.appName,)))
         else:
             self._addWindow("%s.Preferences" % (self.appName,), mnu)
-        
+
         mnu.add_command(label="Save Window Positions", command=self.doSaveWindowPos)
         if self.wsys == RO.TkUtil.WSysX11:
             mnu.add_separator()
@@ -240,7 +240,7 @@ class MenuBar(object):
         evtStr = "<<%s>>" % (name,)
 #       print "do Edit item %s by sending %s to %s" % (name, evtStr, wdg)
         wdg.event_generate(evtStr)
-    
+
     def doHelp(self, urlSuffix):
         helpURL = RO.Constants._joinHelpURL(urlSuffix)
 
@@ -257,7 +257,7 @@ class MenuBar(object):
             if RO.OS.PlatformName == "win":
                 # avoid "improper exit" complaints
                 self.tuiModel.tkRoot.destroy()
-    
+
     def doRefresh(self):
         """Refresh all automatic variables.
         """
@@ -265,10 +265,10 @@ class MenuBar(object):
 
     def doSaveWindowPos(self):
         self.tlSet.writeGeomVisFile()
-    
+
     def showToplevel(self, tlName):
         self.tlSet.makeVisible(tlName)
-        
+
     def _addWindow(self, tlName, mnu, label=None):
         """Add a toplevel named tlName to the specified menu.
         tlName must be of the form menu.title
@@ -287,7 +287,7 @@ class MenuBar(object):
             self.tuiMenu.entryconfigure(self.connectMenuIndex, state="normal")
             self.tuiMenu.entryconfigure(self.connectMenuIndex+1, state="disabled")
             self.tuiMenu.entryconfigure(self.connectMenuIndex+2, state="disabled")
-    
+
     def _populateLogMenu(self):
         """Populate the log menu.
         """

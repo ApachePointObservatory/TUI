@@ -1,1 +1,1 @@
-"""Dual Imaging Spectrograph"""
+"""SPIcam Imager"""

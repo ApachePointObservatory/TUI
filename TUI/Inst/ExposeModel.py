@@ -69,7 +69,7 @@ Notes:
                     Includes support for one or two-component bin factor.
 2008-12-15 ROwen    Reduce minimum exposure time for Agile to 0.3 seconds
 2009-01-28 ROwen    Changed canOverscan to defOverscan in instInfo.
-2009-02-24 ROwen    Added playExposureEnds to instInfo and set it False for Agile. 
+2009-02-24 ROwen    Added playExposureEnds to instInfo and set it False for Agile.
 2009-04-15 ROwen    Increased default Agile x overscan from 9 to 27.
 2009-05-04 ROwen    Added maxNumExp to instInfo and set it to 99999 for Agile.
 2009-05-06 ROwen    Modified to use Get Every preference instead of Auto Get.
@@ -103,7 +103,7 @@ import FileGetter
 
 class _InstInfo(object):
     """Exposure information for a camera
-    
+
     Inputs:
     - instName: the instrument name (in the preferred case)
     - imSize: the size of the image (e.g. CCD) in unbinned pixels; a pair of ints
@@ -128,7 +128,7 @@ class _InstInfo(object):
     - canImage: if True then can take imaging data
     - guiderActor: actor name of guider, or None if none
     - centroidActor: actor to centroid and find stars on an image (must be None if if canImage is False)
-    
+
     Also sets fields:
     - exposeActor = <instActor>Expose
     """
@@ -207,7 +207,7 @@ class _InstInfo(object):
 
 def _makeInstInfoDict():
     """Generate instInfo dictionary and exposure model dictionary
-    
+
     Returns:
     * instInfoDict: a dictionary if instName.lower(): _InstInfo
     """
@@ -230,7 +230,7 @@ def _makeInstInfoDict():
         _InstInfo(
             instName = "DIS",
             imSize = (2048, 1028),
-            minExpTime = 1, 
+            minExpTime = 1,
             camNames = ("blue", "red"),
             canImage = True,
             guiderActor = "dcam",
@@ -271,6 +271,14 @@ def _makeInstInfoDict():
             guiderActor = "gcam",
         ),
         _InstInfo(
+            instName = "Arctic",
+            minExpTime = 0.25,
+            imSize = (4096, 4096),
+            canImage = True,
+            centroidActor = "sfocus",
+            guiderActor = "gcam",
+        ),
+        _InstInfo(
             instName = "TSpec",
             imSize = (2048, 1024),
             minExpTime = 0.75,
@@ -281,7 +289,7 @@ def _makeInstInfoDict():
             guiderActor = "tcam",
         ),
     )
-    
+
     instInfoDict = {}
     for instInfo in _InstInfoList:
         instInfoDict[instInfo.instName.lower()] = instInfo
@@ -352,9 +360,9 @@ class Model(object):
         self.instInfo = _InstInfoDict[instName.lower()]
         self.actor = self.instInfo.exposeActor
         instActor = self.instInfo.instActor
-        
+
         self.tuiModel = TUI.TUIModel.getModel()
-        
+
         keyVarFact = RO.KeyVariable.KeyVarFactory(
             actor = self.actor,
             dispatcher = self.tuiModel.dispatcher,
@@ -378,7 +386,7 @@ class Model(object):
             - start time (an ANSI-format UTC timestamp)
             - remaining time for this state (sec; 0 or None if short or unknown)
             - total time for this state (sec; 0 or None if short or unknown)
-            
+
             Note: if the data is cached then remaining time and total time
             are changed to 0 to indicate that the values are unknown
             """,
@@ -396,10 +404,10 @@ class Model(object):
             - program and date subdirectory
             - user subdirectory
             - file name(s)
-            
+
             This keyword is only output when a file is saved.
             It is not output as a result of status.
-            
+
             The full path to a file is the concatenation of common root, program subdir, user subdir and file name.
             If a file in a multi-file instrument is not saved,
             the missing file name is omitted (but the comma remains).
@@ -417,7 +425,7 @@ class Model(object):
             - program and date subdirectory
             - user subdirectory
             - file name(s)
-            
+
             The full path to a file is the concatenation of common root, program subdir, user subdir and file name.
             If a file in a multi-file instrument is not saved,
             the missing file name is omitted (but the comma remains).
@@ -437,7 +445,7 @@ class Model(object):
             """,
             allowRefresh = True,
         )
-        
+
         self.seqState = keyVarFact(
             keyword = instActor + "SeqState",
             converters = (str, str, RO.CnvUtil.asFloatOrNone, RO.CnvUtil.asInt, RO.CnvUtil.asInt, str),
@@ -451,14 +459,14 @@ class Model(object):
             """,
             allowRefresh = True,
         )
-        
+
         self.comment = keyVarFact(
             keyword = "comment",
             converters = str,
             description = "comment string",
             allowRefresh = False, # change to True if/when <inst>Expose always outputs it with status
         )
-        
+
         if self.instInfo.numBin > 0:
             self.bin = keyVarFact(
                 keyword = "bin",
@@ -476,7 +484,7 @@ class Model(object):
                 description = "window: LL x, y; UR x, y (inclusive, binned pixels)",
                 allowRefresh = True,
             )
-        
+
         if self.instInfo.defOverscan:
             self.overscan = keyVarFact(
                 keyword = "overscan",
@@ -485,14 +493,14 @@ class Model(object):
                 description = "x, y overscan (binned pixels)",
                 allowRefresh = True,
             )
-        
+
         # utility to convert between binned and unbinned windows
         self.imageWindow = RO.Astro.ImageWindow.ImageWindow(
             imSize = self.instInfo.imSize,
         )
-        
+
         keyVarFact.setKeysRefreshCmd(getAllKeys=True)
-        
+
         # entries for file numbering and auto ftp, including:
         # variables for items the user may toggle
         # pointers to prefs for items the user can only set via prefs
@@ -505,7 +513,7 @@ class Model(object):
         self.getCollabPref = self.tuiModel.prefs.getPrefVar("Get Collab")
         self.ftpSaveToPref = self.tuiModel.prefs.getPrefVar("Save To")
         self.seqByFilePref = self.tuiModel.prefs.getPrefVar("Seq By File")
-        
+
         self._getFiles = FileGetter.FileGetter(self)
 
     def formatExpCmd(self,
@@ -525,17 +533,17 @@ class Model(object):
         Raise ValueError or TypeError for invalid inputs.
         """
         outStrList = []
-        
+
         expType = expType.lower()
         if expType not in self.instInfo.expTypes:
             raise ValueError("unknown exposure type %r" % (expType,))
         outStrList.append(expType)
-        
+
         if expType.lower() != "bias":
             if expTime == None:
                 raise ValueError("exposure time required")
             outStrList.append("time=%.2f" % (expTime))
-        
+
         if cameras != None:
             camList = RO.SeqUtil.asSequence(cameras)
             for cam in camList:
@@ -543,44 +551,44 @@ class Model(object):
                 if cam not in self.instInfo.camNames:
                     raise ValueError("unknown camera %r" % (cam,))
                 outStrList.append(cam)
-    
+
         outStrList.append("n=%d" % (numExp,))
 
         if not fileName:
             raise ValueError("file name required")
         outStrList.append("name=%s" % (RO.StringUtil.quoteStr(fileName),))
-            
+
         if self.seqByFilePref.getValue():
             outStrList.append("seq=nextByFile")
         else:
             outStrList.append("seq=nextByDir")
-        
+
         if startNum != None:
             outStrList.append("startNum=%d" % (startNum,))
-        
+
         if totNum != None:
             outStrList.append("totNum=%d" % (totNum,))
-        
+
         if bin:
             if self.instInfo.numBin < 1:
                 raise ValueError("Cannot specify bin in %s expose command" % (self.instInfo.instName,))
             outStrList.append(formatValList("bin", bin, "%d", self.instInfo.numBin))
-        
+
         if window:
             if not self.instInfo.canWindow:
                 raise ValueError("Cannot specify window in %s expose command" % (self.instInfo.instName,))
             outStrList.append(formatValList("window", window, "%d", 4))
-        
+
         if overscan:
             if not self.instInfo.defOverscan:
                 raise ValueError("Cannot specify overscan in %s expose command" % (self.instInfo.instName,))
             outStrList.append(formatValList("overscan", overscan, "%d", 2))
-        
+
         if comment != None:
             outStrList.append("comment=%s" % (RO.StringUtil.quoteStr(comment),))
-    
+
         return " ".join(outStrList)
-    
+
     def _updExpState(self, expState, isCurrent, keyVar):
         """Set the durations to None (unknown) if data is from the cache"""
         if keyVar.isGenuine():
