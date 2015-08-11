@@ -291,8 +291,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             cat = self.CCDCat,
         )
 
-        # set up format functions for the various pop-up menus
-        # these allow us to return index values instead of names
+        # set up format functions for the filter menu
+        # theis allows us to return index values instead of names
         class indFormat(object):
             def __init__(self, indFunc, offset=1):
                 self.indFunc = indFunc
@@ -302,7 +302,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 if not valueList:
                     return ''
                 name = inputCont.getName()
-                return "%s %d" % (name, self.indFunc(valueList[0]) + self.offset)
+                return "%s=%d" % (name, self.indFunc(valueList[0]) + self.offset)
 
         # add callbacks that access widgets
         self.model.filterNames.addCallback(self.filterNameUserWdg.setItems)
@@ -326,26 +326,22 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 RO.InputCont.WdgCont (
                     name = "amp",
                     wdgs = self.ampNameUserWdg,
-                    # formatFunc = indFormat(self.ampNameUserWdg.index),
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="="),
                 ),
                 RO.InputCont.WdgCont (
                     name = "readout",
                     wdgs = self.readoutRateNameUserWdg,
-                    # formatFunc = indFormat(self.readoutRateNameUserWdg.index),
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="="),
                 ),
                 RO.InputCont.WdgCont (
                     name = "bin",
                     wdgs = self.ccdBinUserWdgSet,
-                    formatFunc = RO.InputCont.BasicFmt(
-                        rejectBlanks = True,
-                    ),
+                    formatFunc = RO.InputCont.BasicFmt(nameSep=""),
                 ),
                 RO.InputCont.WdgCont (
                     name = "window",
                     wdgs = self.ccdWindowUserWdgSet,
-                    formatFunc = RO.InputCont.BasicFmt(
-                        rejectBlanks = True,
-                    ),
+                    formatFunc = RO.InputCont.BasicFmt(nameSep=""),
                 ),
             ],
         )
@@ -514,9 +510,7 @@ if __name__ == "__main__":
     testFrame.restoreDefault()
 
     def printCmds():
-        cmdList = testFrame.getStringList()
-        for cmd in cmdList:
-            print cmd
+        print "strList =", testFrame.getStringList()
 
     bf = Tkinter.Frame(root)
     cfgWdg = RO.Wdg.Checkbutton(bf, text="Config", defValue=True)

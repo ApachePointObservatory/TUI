@@ -38,41 +38,41 @@ class _Model (object):
 
         self.filterNames = keyVarFact(
             keyword="filterNames",
-            nval=5,
-            description="list of filter names",
+            nval = (1, None),
+            description = "list of filter names",
         )
 
         self.filterID = keyVarFact(
-            keyword="filterID",
-            converters=RO.CnvUtil.asInt,
-            description="filter wheel position",
+            keyword = "filterID",
+            converters = RO.CnvUtil.asInt,
+            description = "filter wheel position",
         )
 
         self.filterName = keyVarFact(
-            keyword="filterName",
-            description="current filter",
+            keyword = "filterName",
+            description = "current filter",
         )
 
         self.ampNames = keyVarFact(
-            keyword="ampNames",
-            nval=2,
-            description="list of amp names",
+            keyword = "ampNames",
+            nval = (1, None),
+            description = "list of amp names",
         )
 
         self.ampName = keyVarFact(
-            keyword="ampName",
-            description="current amp",
+            keyword = "ampName",
+            description = "current amp",
         )
 
         self.readoutRateNames = keyVarFact(
-            keyword="readoutRateNames",
-            nval=3,
-            description="list of readoutRate names",
+            keyword = "readoutRateNames",
+            nval = (1, None),
+            description = "list of readoutRate names",
         )
 
         self.readoutRateName = keyVarFact(
-            keyword="readoutRateName",
-            description="current readoutRate",
+            keyword = "readoutRateName",
+            description = "current readoutRate",
         )
 
         self.shutter = keyVarFact(
@@ -84,37 +84,37 @@ class _Model (object):
         keyVarFact.setKeysRefreshCmd()
 
         self.ccdState = keyVarFact(
-            keyword="ccdState",
-            description="ccd state",
+            keyword = "ccdState",
+            description = "ccd state",
         )
 
         self.ccdBin = keyVarFact(
-            keyword="ccdBin",
+            keyword = "ccdBin",
             nval = 2,
-            converters=RO.CnvUtil.asIntOrNone,
-            description="ccd binning",
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "ccd binning",
         )
 
         self.ccdWindow = keyVarFact(
-            keyword="loc_ccdWindow",
+            keyword = "loc_ccdWindow",
             nval = 4,
-            converters=RO.CnvUtil.asIntOrNone,
-            description="ccd window, binned: minX, minY, maxX, maxY (inclusive)",
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "ccd window, binned: minX, minY, maxX, maxY (inclusive)",
             isLocal = True,
         )
 
         self.ccdUBWindow = keyVarFact(
-            keyword="ccdUBWindow",
+            keyword = "ccdUBWindow",
             nval = 4,
-            converters=RO.CnvUtil.asIntOrNone,
-            description="ccd window, unbinned: minX, minY, maxX, maxY (inclusive)",
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "ccd window, unbinned: minX, minY, maxX, maxY (inclusive)",
         )
 
         self.ccdOverscan = keyVarFact(
-            keyword="ccdOverscan",
+            keyword = "ccdOverscan",
             nval = 2,
-            converters=RO.CnvUtil.asIntOrNone,
-            description="ccd overscan",
+            converters = RO.CnvUtil.asIntOrNone,
+            description = "ccd overscan",
         )
 
         keyVarFact.setKeysRefreshCmd()

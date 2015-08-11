@@ -149,7 +149,7 @@ class StatusConfigWdg (Tkinter.Frame):
             master = master,
             name = "%s Config" % (self.instName,),
             dispatcher = tuiModel.dispatcher,
-            runFunc = self._waitConfig,
+            runFunc = self._runConfig,
             statusBar = self.statusBar,
             stateFunc = self.enableButtons,
         )
@@ -175,7 +175,7 @@ class StatusConfigWdg (Tkinter.Frame):
         if not self.scriptRunner.isExecuting():
             self.statusBar.clear()
 
-    def _waitConfig(self, sr):
+    def _runConfig(self, sr):
         """Script runner run function to modify the configuration.
 
         Execute each command string in self.inputWdg.getStringList(). Wait for each command

@@ -38,32 +38,15 @@ class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):
             master = master,
             statusConfigInputClass = StatusConfigInputWdg.StatusConfigInputWdg,
         )
-        # override doConfig such that the whole configuration
-        # is sent as a single command to the actor
-        # rather than a series of commands
-        def doConfig(sr, inputWdg=self.inputWdg):
-            """Script run function to modify the configuration.
 
-            This would be a class method if they could be generators.
-            """
-            wholeCmdList = []
-            cmdList = inputWdg.getStringList()
-            for cmdStr in cmdList:
-                field, settings = cmdStr.split(" ", 1)
-                wholeCmdList.append("%s=%s"%(field, ", ".join(settings.split())))
-            wholeCmdStr = " ".join(["set"]+wholeCmdList)
-            yield sr.waitCmd(
-                actor = self.getActorForCommand(cmdStr),
-                cmdStr = wholeCmdStr,
-            )
-
-        self.scriptRunner = RO.ScriptRunner.ScriptRunner(
-            master = master,
-            name = "%s Config" % (self.instName,),
-            dispatcher = TUI.TUIModel.getModel().dispatcher,
-            runFunc = doConfig,
-            statusBar = self.statusBar,
-            stateFunc = self.enableButtons,
+    def _runConfig(self, sr):
+        strList = self.inputWdg.getStringList()
+        if not strList:
+            return
+        cmdStr = "set %s" % (" ".join(strList))
+        yield sr.waitCmd(
+            actor = self.getActorForCommand(cmdStr),
+            cmdStr = cmdStr,
         )
 
 
