@@ -13,9 +13,11 @@ testDispatcher = TUI.Base.TestDispatcher.TestDispatcher(actor="arctic", delay=0.
 tuiModel = testDispatcher.tuiModel
 
 MainDataList = (
-    'filterNames="SDSS u\'", "SDSS g\'", "SDSS r\'", "SDSS i\'", "SDSS z\'"',
+    'ampNames=ll, quad',
+    'ampName=quad',
     'filterID=1',
-    'filterName="SDSS u"',
+    'filterNames="SDSS u\'", "SDSS g\'", "SDSS r\'", "SDSS i\'", "SDSS z\'"',
+    'filterName="SDSS u\'"',
     'shutter="closed"',
     'ccdState="ok"',
     'ccdBin=2,2',
@@ -29,14 +31,14 @@ MainDataList = (
     'basename="/export/images/dtest030319.0001"',
     'ccdTemps=-113.8,-106.7',
     'ccdHeaters=0.0,0.0',
+    'readoutRateNames=Slow, Medium, Fast',
+    'readoutRateName=Slow',
 )
+print "MainDataList=", MainDataList
 
 # # Each element of animDataSet is list of keywords
-# AnimDataSet = (
-# )
-
-MainDataList = []
-AnimDataSet = []
+AnimDataSet = (
+)
 
 def start():
     testDispatcher.dispatch(MainDataList)
