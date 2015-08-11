@@ -145,23 +145,11 @@ class StatusConfigWdg (Tkinter.Frame):
             self.showConfigWdg,
         )
 
-        def doConfig(sr, inputWdg=self.inputWdg):
-            """Script run function to modify the configuration.
-
-            This would be a class method if they could be generators.
-            """
-            cmdList = inputWdg.getStringList()
-            for cmdStr in cmdList:
-                yield sr.waitCmd(
-                    actor = self.getActorForCommand(cmdStr),
-                    cmdStr = cmdStr,
-                )
-
         self.scriptRunner = RO.ScriptRunner.ScriptRunner(
             master = master,
             name = "%s Config" % (self.instName,),
             dispatcher = tuiModel.dispatcher,
-            runFunc = doConfig,
+            runFunc = self._waitConfig,
             statusBar = self.statusBar,
             stateFunc = self.enableButtons,
         )
@@ -186,6 +174,19 @@ class StatusConfigWdg (Tkinter.Frame):
         self.inputWdg.restoreDefault()
         if not self.scriptRunner.isExecuting():
             self.statusBar.clear()
+
+    def _waitConfig(self, sr):
+        """Script runner run function to modify the configuration.
+
+        Execute each command string in self.inputWdg.getStringList(). Wait for each command
+        to finish before starting the next and halt if any command fails.
+        """
+        cmdList = self.inputWdg.getStringList()
+        for cmdStr in cmdList:
+            yield sr.waitCmd(
+                actor = self.getActorForCommand(cmdStr),
+                cmdStr = cmdStr,
+            )
 
     def enableButtons(self, *args, **kargs):
         """Enable or disable command buttons as appropriate.
