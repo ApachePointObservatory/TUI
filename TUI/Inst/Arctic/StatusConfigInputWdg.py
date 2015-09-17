@@ -336,12 +336,12 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 RO.InputCont.WdgCont (
                     name = "bin",
                     wdgs = self.ccdBinUserWdgSet,
-                    formatFunc = RO.InputCont.BasicFmt(nameSep=""),
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="=", valSep=","),
                 ),
                 RO.InputCont.WdgCont (
                     name = "window",
                     wdgs = self.ccdWindowUserWdgSet,
-                    formatFunc = RO.InputCont.BasicFmt(nameSep=""),
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="=", valSep=","),
                 ),
             ],
         )
@@ -392,7 +392,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 self.userCCDUBWindow = currUBWindow
 
         initialUserCCDWindow = self._getUserCCDWindow()
-#       print "_setCCDWindowWdgDef; initialUserCCDWindow =", initialUserCCDWindow
         self._updUserCCDWindow(doCurrValue=False)
         if initialUserCCDWindow != self._getUserCCDWindow():
 #           print "_setCCDWindowWdgDef; user value changed when default changed; save new unbinned value"
@@ -427,7 +426,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             imageSize = [1 + window[ind+2] - window[ind] for ind in range(2)]
         except TypeError:
             imageSize = (None, None)
-
         for ind in range(2):
             self.ccdImageSizeCurrWdgSet[ind].set(imageSize[ind])
 
@@ -443,12 +441,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self._freezeCCDUBWindow = True
         try:
             if doCurrValue and self.userCCDUBWindow == None:
-#               print "_updUserCCDWindow; unbinned = none"
                 return
             userBinFac = self._getUserBinFac()
-#           print "_updUserCCDWindow; userBinFac =", userBinFac
             if 0 in userBinFac:
-#               print "_updUserCCDWindow; bin fac has 0"
                 return
 
             # update user ccd window displayed value, default valud and limits
@@ -459,13 +454,10 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 currWindow = self.model.bin(currUBWindow, userBinFac)
             else:
                 currWindow = (None,)*4
-#           print "_updUserCCDWindow; currWindow=", currWindow
             minWindowXYXY = self.model.minCoord(userBinFac)*2
             maxWindowXYXY = self.model.maxCoord(userBinFac)*2
-#           print "_updUserCCDWindow: setting values", userWindow
             for ind in range(4):
                 wdg = self.ccdWindowUserWdgSet[ind]
-
                 # disable limits
                 wdg.setRange(
                     minValue = None,
