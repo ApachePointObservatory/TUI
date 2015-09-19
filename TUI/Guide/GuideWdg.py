@@ -244,6 +244,7 @@ History:
                     Note that tkFileDialog.askopenfilename does not support file types that contain
                     more than one dot, such as '.fits.gz' (at least on MacOS), so I had to use ".gz"
                     and permit any gzipped file.
+                    If an image has no data in HDU 0 then display a warning in the guider window.
 """
 import atexit
 import os
@@ -2127,6 +2128,10 @@ class GuideWdg(Tkinter.Frame):
         if fitsIm:
             #self.statusBar.setMsg("", RO.Constants.sevNormal)
             imArr = fitsIm[0].data
+            if imArr == None:
+                self.gim.showMsg("Image %s has no data in plane 0" % (imObj.imageName,),
+                    severity=RO.Constants.sevWarning)
+                return
             imHdr = fitsIm[0].header
             
             if len(fitsIm) > 1 and \
