@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Configuration input panel for Arctic.
+"""Configuration input panel for ARCTIC.
 
 This is just a placeholder.
 
@@ -12,12 +12,12 @@ import RO.MathUtil
 import RO.Wdg
 import RO.KeyVariable
 import TUI.TUIModel
-import ArcticModel
+import ARCTICModel
 
 _MaxDataWidth = 5
 
 class StatusConfigInputWdg (RO.Wdg.InputContFrame):
-    InstName = "Arctic"
+    InstName = "ARCTIC"
     HelpPrefix = 'Instruments/%s/%sWin.html#' % (InstName, InstName)
 
     # category names
@@ -28,14 +28,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         master,
         stateTracker,
     **kargs):
-        """Create a new widget to show status for and configure Arctic
+        """Create a new widget to show status for and configure ARCTIC
 
         Inputs:
         - master: parent widget
         - stateTracker: an RO.Wdg.StateTracker
         """
         RO.Wdg.InputContFrame.__init__(self, master=master, stateTracker=stateTracker, **kargs)
-        self.model = ArcticModel.getModel()
+        self.model = ARCTICModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
 
         # set while updating user ccd binning or user window default,

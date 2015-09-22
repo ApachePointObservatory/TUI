@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Status and configuration for Arctic.
+"""Status and configuration for ARCTIC.
 
 History:
 2015-07-31 CS       Created

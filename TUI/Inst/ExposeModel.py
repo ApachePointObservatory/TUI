@@ -271,7 +271,7 @@ def _makeInstInfoDict():
             guiderActor = "gcam",
         ),
         _InstInfo(
-            instName = "Arctic",
+            instName = "ARCTIC",
             minExpTime = 0.25,
             imSize = (4096, 4096),
             canImage = True,

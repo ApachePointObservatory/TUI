@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""An object that models the current state of Arctic.
+"""An object that models the current state of ARCTIC.
 
 History:
 2015-07-31 CS       Created

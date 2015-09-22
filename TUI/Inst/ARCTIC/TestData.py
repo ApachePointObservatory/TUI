@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Data for testing various Arctic widgets
+"""Data for testing various ARCTIC widgets
 
 History:
 2005-07-21 ROwen    Bug fix: was not dispatching MainDataList in order
