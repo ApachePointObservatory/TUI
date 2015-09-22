@@ -81,14 +81,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         # amp readout
         ampNameCurrWdg = RO.Wdg.StrLabel(self,
-            helpText = "current amp",
+            helpText = "current readout amplifier(s)",
             helpURL = self.HelpPrefix + "Amp",
             anchor = "w",
         )
         self.model.ampName.addROWdg(ampNameCurrWdg)
         self.ampNameUserWdg = RO.Wdg.OptionMenu(self,
             items=[],
-            helpText = "requested amp",
+            helpText = "requested readout amplifier(s)",
             helpURL = self.HelpPrefix + "Amp",
             defMenu = "Current",
             autoIsCurrent = True,
