@@ -274,23 +274,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             cat = self.CCDCat,
         )
 
-        # ccd overscan
-        ccdOverscanCurrWdgSet = [RO.Wdg.IntLabel(self,
-                width = 4,
-                helpText = "current overscan in %s" % (axis,),
-                helpURL = self.HelpPrefix + "Overscan",
-            )
-            for axis in axisLabels
-        ]
-        self.model.ccdOverscan.addROWdgSet(ccdOverscanCurrWdgSet)
-
-        gr.gridWdg (
-            label = "Overscan",
-            dataWdg = ccdOverscanCurrWdgSet,
-            units = "bpix",
-            cat = self.CCDCat,
-        )
-
         # set up format functions for the filter menu
         # theis allows us to return index values instead of names
         class indFormat(object):
