@@ -92,6 +92,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             helpURL = self.HelpPrefix + "Amp",
             defMenu = "Current",
             autoIsCurrent = True,
+            callFunc = self._userAmpNameChanged,
         )
         gr.gridWdg (
             label = "Amp",
@@ -379,6 +380,16 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         if initialUserCCDWindow != self._getUserCCDWindow():
 #           print "_setCCDWindowWdgDef; user value changed when default changed; save new unbinned value"
             self._saveCCDUBWindow()
+
+    def _userAmpNameChanged(self, *args, **kargs):
+        """User readout amplifiers changed.
+
+        Enable or disable windowing controls accordingly (sub-windowing is forbidden for quad readout).
+        """
+        userAmpName = self.ampNameUserWdg.getString()
+        allowSubWin = userAmpName.lower() != "quad"
+        for ind in range(4):
+            self.ccdWindowUserWdgSet[ind].setEnable(allowSubWin)
 
     def _userBinChanged(self, *args, **kargs):
         """User bin factor changed.
