@@ -1,13 +1,13 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
 <html>
 <head>
-   <title>TUI:Instruments:Arctic:Arctic window</title>
+   <title>TUI:Instruments:ARCTIC:ARCTIC window</title>
 </head>
 <body>
 
-<h2><a href="../../index.html">TUI</a>:<a href="../index.html">Instruments</a>:<a href="index.html">Arctic</a>:Arctic window</h2>
+<h2><a href="../../index.html">TUI</a>:<a href="../index.html">Instruments</a>:<a href="index.html">ARCTIC</a>:ARCTIC window</h2>
 
-<p>Displays the current status of the Arctic camera and allows you to change the configuration. Normally only the most common status is displayed and the configuration controls are hidden. Various buttons show additional information. Information is displayed in the order light takes going through the instrument (except that the shutter is just behind the mask).
+<p>Displays the current status of the ARCTIC camera and allows you to change the configuration. Normally only the most common status is displayed and the configuration controls are hidden. Various buttons show additional information. Information is displayed in the order light takes going through the instrument (except that the shutter is just behind the mask).
 
 <p>CCD coordinates are always binned. 1,1 is the lower left pixel and 4096, 4096 is the upper right pixel when binned 1x1.
 
@@ -30,7 +30,7 @@
 <ul>
 	<li><a name="Bin"></a><b>Bin</b>: binning factor
 	<li><a name="Window"></a><b>Window</b> (aka subframe): portion of the data that is read and saved. Specified as the lower left corner (min x,y) and the upper right corner (max x,y) of the data, inclusive, in binned pixels. Excludes overscan.<br>
-	<b>Disabled if reading out from all four <a href="#Amp">amplifiers</a></b>, since quad readout requires reading the entire CCD.
+	<b>Warning: sub-windowing is disabled if reading out from all four <a href="#Amp">amplifiers</a></b>.
 </ul>
 
 <p><a name="Presets"></a><b>Presets</b> allows you to save and restore named configurations. This is only visible if Config is checked.
@@ -47,10 +47,10 @@
 <p><a name="CmdButtons"></a>The buttons along the bottom are as follows:
 
 <ul>
-	<li><b>Expose...</b>: opens the separate Arctic <a href="../ExposeWin.html">Expose window</a>.
+	<li><b>Expose...</b>: opens the separate ARCTIC <a href="../ExposeWin.html">Expose window</a>.
 	<li><b>Config</b>: show or hide the configuration controls.
 	<p>The following are only available if the configuration controls are showing:
-	<li><b>Apply</b>: apply the requested changes by sending a series of commands to Arctic.
+	<li><b>Apply</b>: apply the requested changes by sending a series of commands to ARCTIC.
 	<li><b>X</b>: cancel your pending configuration changes. The current command is allowed to finish, but any subsequent commands are flushed.
 	<li><b>Current</b>: reset all configuration widgets to the current state of the instrument.
 </ul>
