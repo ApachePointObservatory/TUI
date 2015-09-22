@@ -240,6 +240,11 @@ History:
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
                     Modified to use generic timer.
                     Added an update_idletasks to work around a bug displaying holdWarnWdg on MacOS.
+2015-09-18 ROwen    Add support for gzipped FITS files to the "Choose..." button, as per SDSS ticket 2430.
+                    Note that tkFileDialog.askopenfilename does not support file types that contain
+                    more than one dot, such as '.fits.gz' (at least on MacOS), so I had to use ".gz"
+                    and permit any gzipped file.
+                    If an image has no data in HDU 0 then display a warning in the guider window.
 """
 import atexit
 import os
@@ -1195,7 +1200,7 @@ class GuideWdg(Tkinter.Frame):
                 kargs["initialfile"] = startFile
 
         imPath = tkFileDialog.askopenfilename(
-            filetypes = (("FITS", "*.fits"), ("FITS", "*.fit"),),
+            filetypes = [("FITS", (".fit", ".fits", ".gz"))],
         **kargs)
         if not imPath:
             return
@@ -2123,6 +2128,10 @@ class GuideWdg(Tkinter.Frame):
         if fitsIm:
             #self.statusBar.setMsg("", RO.Constants.sevNormal)
             imArr = fitsIm[0].data
+            if imArr == None:
+                self.gim.showMsg("Image %s has no data in plane 0" % (imObj.imageName,),
+                    severity=RO.Constants.sevWarning)
+                return
             imHdr = fitsIm[0].header
             
             if len(fitsIm) > 1 and \

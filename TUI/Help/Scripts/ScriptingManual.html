@@ -269,7 +269,7 @@ class ScriptClass(object):
 <ul>
 	<li>The name of the script in TUI's Scripts menu is set its path relative to TUIAdditions/Scripts, for example script file <code>TUIAdditions/Scripts/NICFPS/Dither/foo.py</code> will show up under Scripts as <code>NICFPS&gt;Dither&gt;foo</code>.
 	<li>The Scripts menu is rebuilt whenever it is selected, so changes show up automatically.
-	<li>Please be careful when naming your scripts. User scripts hide shared scripts with the same path (relative to TUIAdditions/Scripts), and both hide built-in scripts.
+	<li>Please be careful when naming your scripts. Built-in scripts take precedence over user scripts, and user scripts take precedence over shared scripts. There is no warning if one script shadows another.
 </ul>
 
 <h2><a name="Debugging"></a>Debugging</h2>
