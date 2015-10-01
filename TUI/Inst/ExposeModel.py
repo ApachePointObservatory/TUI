@@ -87,6 +87,9 @@ Notes:
                     Removed unneeded import of HubModel.
                     Changed all classes into modern style classes.
 2013-07-10 ROwen    Removed Shack-Hartmann.
+2015-08-11 CSayres  Added Arctic
+2015-09-22 ROwen    Renamed Arctic to ARCTIC
+2015-10-01 ROwen    Reduced ARCTIC min exposure time from 0.25 sec to 0.1 sec
 """
 __all__ = ['getModel', "GuiderActorNameDict"]
 
@@ -272,7 +275,7 @@ def _makeInstInfoDict():
         ),
         _InstInfo(
             instName = "ARCTIC",
-            minExpTime = 0.25,
+            minExpTime = 0.1,
             imSize = (4096, 4096),
             canImage = True,
             centroidActor = "sfocus",
