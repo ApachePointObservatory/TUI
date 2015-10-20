@@ -467,18 +467,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         """Update filter state
         """
         (filterState, fullDuration, remDuration), isCurrent = self.model.filterState.get()
-        if not isCurrent:
-            return
+        self.filterStateWdg.set(filterState, isCurrent = isCurrent)
 
-        self.filterStateWdg.set(filterState)
-        if fullDuration > 0:
+        if isCurrent and fullDuration > 0:
             self.filterStateTimer.start(value = remDuration, newMax = fullDuration)
-        else:
-            self.filterStateTimer.clear()
-        if filterState.lower() == "done":
-            self.filterStateTimer.grid_remove()
-        else:
             self.filterStateTimer.grid()
+        else:
+            self.filterStateTimer.grid_remove()
+            self.filterStateTimer.clear()
 
     def _updUserCCDWindow(self, doCurrValue = True):
         """Update user-set ccd window.
