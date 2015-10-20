@@ -3,6 +3,7 @@
 
 History:
 2015-07-31 CS       Created
+2015-10-20 ROwen    Added filterState and switched to currFilter, cmdFilter.
 """
 import RO.CnvUtil
 import RO.Wdg
@@ -48,9 +49,29 @@ class _Model (object):
             description = "filter wheel position",
         )
 
-        self.filterName = keyVarFact(
-            keyword = "filterName",
-            description = "current filter",
+        self.currFilter = keyVarFact(
+            keyword = "currFilter",
+            converters = (RO.CnvUtil.asIntOrNone, str),
+            nval = 2,
+            description = "current filter ID (NaN if unknown) and name ('?' if unknown)",
+        )
+
+        self.cmdFilter = keyVarFact(
+            keyword = "cmdFilter",
+            converters = (RO.CnvUtil.asIntOrNone, str),
+            nval = 2,
+            description = "commanded filter ID (NaN if unknown) and name ('?' if unknown)",
+        )
+
+        self.filterState = keyVarFact(
+            keyword = "filterState",
+            converters = (str, RO.CnvUtil.asFloat, RO.CnvUtil.asFloat),
+            nval = 3,
+            description = """state of filter wheel:
+            - state as a string
+            - total estimated duration (sec) or 0 if unknown
+            - estimated remaining time (sec), or 0 if unknown
+            """,
         )
 
         self.ampNames = keyVarFact(

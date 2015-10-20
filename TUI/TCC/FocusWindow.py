@@ -24,6 +24,7 @@ History:
 					Fixed PR 836: increased focusWidth from 5 to 8.
 2011-06-17 ROwen    Added WindowName constant.
                     Changed "type" to "msgType" in parsed message dictionaries (in test code only).
+2015-10-20 ROwen    Added 10um increment.
 """
 import Tkinter
 import RO.Wdg
@@ -55,7 +56,7 @@ class SecBasicFocusWdg(TUI.Base.FocusWdg.FocusWdg):
             master,
             name = "Secondary",
             statusBar = statusBar,
-            increments = (25, 50, 100),
+            increments = (10, 25, 50, 100),
             defIncr = 50,
             helpURL = _HelpURL,
             label = "Sec Focus",

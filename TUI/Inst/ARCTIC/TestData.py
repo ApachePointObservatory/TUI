@@ -2,10 +2,7 @@
 """Data for testing various ARCTIC widgets
 
 History:
-2005-07-21 ROwen    Bug fix: was not dispatching MainDataList in order
-                    (because it was specified as a normal non-ordered dict).
-2008-04-24 ROwen    Bug fix: had too few filter names.
-2014-02-03 ROwen    Updated to use TUI.Base.TestDispatcher
+2015-10-20 ROwen    Added filterState and switched to currFilter, cmdFilter.
 """
 import TUI.Base.TestDispatcher
 
@@ -15,9 +12,10 @@ tuiModel = testDispatcher.tuiModel
 MainDataList = (
     'ampNames=ll, quad',
     'ampName=quad',
-    'filterID=1',
     'filterNames="SDSS u\'", "SDSS g\'", "SDSS r\'", "SDSS i\'", "SDSS z\'"',
-    'filterName="SDSS u\'"',
+    'currFilter=1, "SDSS u\'"',
+    'cmdFilter=1, "SDSS u\'"',
+    "filterState=Done, 0, 0",
     'shutter="closed"',
     'ccdState="ok"',
     'ccdBin=2,2',
@@ -36,8 +34,10 @@ MainDataList = (
 )
 print "MainDataList=", MainDataList
 
-# # Each element of animDataSet is list of keywords
+# Each element of animDataSet is list of keywords
 AnimDataSet = (
+    ('currFilter=NaN, ?', 'cmdFilter=3, "SDSS r\'"', "filterState=Moving, 3, 3"),
+    ('currFilter=3, "SDSS r\'"', 'cmdFilter=3, "SDSS r\'"', "filterState=Done, 0, 0"),
 )
 
 def start():

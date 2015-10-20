@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 """Configuration input panel for ARCTIC.
 
-This is just a placeholder.
-
 History:
 2015-07-31 CS       Created
+2015-10-20 ROwen    Added filter state and switched to currFilter, cmdFilter.
 """
 import Tkinter
 import RO.Constants
@@ -48,7 +47,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
         self.gridder = gr
 
-        shutterCurrWdg = RO.Wdg.StrLabel(self,
+        shutterCurrWdg = RO.Wdg.StrLabel(
+            master = self,
             helpText = "current state of the shutter",
             helpURL = self.HelpPrefix + "Shutter",
             anchor = "w",
@@ -56,14 +56,16 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.shutter.addROWdg(shutterCurrWdg)
         gr.gridWdg ("Shutter", shutterCurrWdg, sticky="ew", colSpan=3)
 
-        filterNameCurrWdg = RO.Wdg.StrLabel(self,
+        self.filterNameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
             helpText = "current filter",
             helpURL = self.HelpPrefix + "Filter",
             anchor = "w",
         )
-        self.model.filterName.addROWdg(filterNameCurrWdg)
-        self.filterNameUserWdg = RO.Wdg.OptionMenu(self,
-            items=[],
+        self.filterNameUserWdg = RO.Wdg.OptionMenu(
+            self,
+            items = [],
+            noneDisplay = "?",
             helpText = "requested filter",
             helpURL = self.HelpPrefix + "Filter",
             defMenu = "Current",
@@ -71,7 +73,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
         gr.gridWdg (
             label = "Filter",
-            dataWdg = filterNameCurrWdg,
+            dataWdg = self.filterNameCurrWdg,
             units = False,
             cfgWdg = self.filterNameUserWdg,
             sticky = "ew",
@@ -79,14 +81,39 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             colSpan = 3,
         )
 
+        self.filterStateWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 6, # for "Moving"
+            helpText = "filter wheel state",
+            helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+        self.filterStateTimer = RO.Wdg.TimeBar(
+            master = self,
+            countUp = False,
+            valueFormat = ("%3.1f sec", "??? sec"),
+            autoStop = False,
+            updateInterval = 0.1,
+            helpText = "filter wheel timer",
+            helpURL = self.HelpPrefix + "Filter",
+        )
+        gr.gridWdg (
+            label = "Filter State",
+            dataWdg = (self.filterStateWdg, self.filterStateTimer),
+            sticky = "w",
+            colSpan = 3,
+        )
+
         # amp readout
-        ampNameCurrWdg = RO.Wdg.StrLabel(self,
+        ampNameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
             helpText = "current readout amplifier(s)",
             helpURL = self.HelpPrefix + "Amp",
             anchor = "w",
         )
         self.model.ampName.addROWdg(ampNameCurrWdg)
-        self.ampNameUserWdg = RO.Wdg.OptionMenu(self,
+        self.ampNameUserWdg = RO.Wdg.OptionMenu(
+            master = self,
             items=[],
             helpText = "requested readout amplifier(s)",
             helpURL = self.HelpPrefix + "Amp",
@@ -106,13 +133,15 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
 
         # readout rate
-        readoutRateNameCurrWdg = RO.Wdg.StrLabel(self,
+        readoutRateNameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
             helpText = "current readout rate",
             helpURL = self.HelpPrefix + "Readout Rate",
             anchor = "w",
         )
         self.model.readoutRateName.addROWdg(readoutRateNameCurrWdg)
-        self.readoutRateNameUserWdg = RO.Wdg.OptionMenu(self,
+        self.readoutRateNameUserWdg = RO.Wdg.OptionMenu(
+            master = self,
             items=[],
             helpText = "requested readoutRate",
             helpURL = self.HelpPrefix + "Readout Rate",
@@ -139,7 +168,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         # ccd image header; the label is a toggle button
         # for showing ccd image info
         # grid that first as it is always displayed
-        self.showCCDWdg = RO.Wdg.Checkbutton(self,
+        self.showCCDWdg = RO.Wdg.Checkbutton(
+            master = self,
             text = "CCD",
             defValue = False,
             helpText = "Show binning, etc.?",
@@ -180,7 +210,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.ccdBin.addROWdgSet(ccdBinCurrWdgSet)
 
         self.ccdBinUserWdgSet = [
-            RO.Wdg.IntEntry(self,
+            RO.Wdg.IntEntry(
+                master = self,
                 minValue = 1,
                 maxValue = 99,
                 width = 2,
@@ -219,7 +250,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.ccdWindow.addROWdgSet(ccdWindowCurrWdgSet)
 
         self.ccdWindowUserWdgSet = [
-            RO.Wdg.IntEntry(self,
+            RO.Wdg.IntEntry(
+                master = self,
                 minValue = 1,
                 maxValue = (2048, 2048, 2048, 2048)[ii],
                 width = 4,
@@ -251,7 +283,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
 
         # Image size, in binned pixels
-        self.ccdImageSizeCurrWdgSet = [RO.Wdg.IntLabel(self,
+        self.ccdImageSizeCurrWdgSet = [RO.Wdg.IntLabel(
+            master = self,
             width = 4,
             helpText = "current %s size of image (binned pix)" % winDescr[ii],
             helpURL = self.HelpPrefix + "Window",
@@ -261,7 +294,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 #       self.model.ccdWindow.addCallback(self._updCurrImageSize)
 
         self.ccdImageSizeUserWdgSet = [
-            RO.Wdg.IntLabel(self,
+            RO.Wdg.IntLabel(
+                master = self,
                 width = 4,
                 helpText = "requested %s size of image (binned pix)" % ("x", "y")[ii],
                 helpURL = self.HelpPrefix + "ImageSize",
@@ -290,7 +324,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         # add callbacks that access widgets
         self.model.filterNames.addCallback(self.filterNameUserWdg.setItems)
-        self.model.filterName.addIndexedCallback(self.filterNameUserWdg.setDefault, 0)
+        self.model.cmdFilter.addIndexedCallback(self._updCmdFilter)
+        self.model.currFilter.addIndexedCallback(self.filterNameCurrWdg.set, 1)
+        self.model.filterState.addCallback(self._updFilterState)
         self.model.ampNames.addCallback(self.ampNameUserWdg.setItems)
         self.model.ampName.addIndexedCallback(self.ampNameUserWdg.setDefault, 0)
         self.model.readoutRateNames.addCallback(self.readoutRateNameUserWdg.setItems)
@@ -408,9 +444,13 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             imSize = 1 + actUserCCDWindow[ind+2] - actUserCCDWindow[ind]
             self.ccdImageSizeUserWdgSet[ind].set(imSize)
 
+    def _updCmdFilter(self, *args, **kargs):
+        cmdFilter, isCurrent = self.model.cmdFilter.getInd(1)
+        defFilt = cmdFilter if cmdFilter != "?" else None
+        self.filterNameUserWdg.setDefault(defFilt, isCurrent=isCurrent)
 
     def _updCurrImageSize(self, *args, **kargs):
-        """Updates current image size.
+        """Update current image size.
         """
         window, isCurrent = self.model.ccdWindow.get()
         if not isCurrent:
@@ -422,6 +462,23 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             imageSize = (None, None)
         for ind in range(2):
             self.ccdImageSizeCurrWdgSet[ind].set(imageSize[ind])
+
+    def _updFilterState(self, *args, **kargs):
+        """Update filter state
+        """
+        (filterState, fullDuration, remDuration), isCurrent = self.model.filterState.get()
+        if not isCurrent:
+            return
+
+        self.filterStateWdg.set(filterState)
+        if fullDuration > 0:
+            self.filterStateTimer.start(value = remDuration, newMax = fullDuration)
+        else:
+            self.filterStateTimer.clear()
+        if filterState.lower() == "done":
+            self.filterStateTimer.grid_remove()
+        else:
+            self.filterStateTimer.grid()
 
     def _updUserCCDWindow(self, doCurrValue = True):
         """Update user-set ccd window.
