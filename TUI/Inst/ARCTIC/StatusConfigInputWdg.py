@@ -453,11 +453,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         """
         filterState, stateIsCurrent = self.model.filterState.getInd(0)
 
-        if filterState.lower() == "done":
+        if filterState is not None and filterState.lower() == "done":
             filterName, nameIsCurrent = self.model.currFilter.getInd(1)
-            self.filterNameCurrWdg.set(filterName, nameIsCurrent)
+            self.filterNameCurrWdg.set(filterName, isCurrent=nameIsCurrent)
         else:
-            self.filterNameCurrWdg.set(filterState, stateIsCurrent)
+            self.filterNameCurrWdg.set(filterState, isCurrent=stateIsCurrent)
 
     def _updUserCCDWindow(self, doCurrValue = True):
         """Update user-set ccd window.

@@ -10,8 +10,8 @@ testDispatcher = TUI.Base.TestDispatcher.TestDispatcher(actor="arctic", delay=1)
 tuiModel = testDispatcher.tuiModel
 
 MainDataList = (
-    'ampNames=ll, quad',
-    'ampName=quad',
+    'ampNames=LL, Quad',
+    'ampName=Quad',
     'filterNames="SDSS u\'", "SDSS g\'", "SDSS r\'", "SDSS i\'", "SDSS z\'"',
     'currFilter=1, "SDSS u\'"',
     'cmdFilter=1, "SDSS u\'"',
@@ -36,7 +36,7 @@ print "MainDataList=", MainDataList
 
 # Each element of animDataSet is list of keywords
 AnimDataSet = (
-    ('currFilter=NaN, ?', 'cmdFilter=3, "SDSS r\'"', "filterState=Moving, 3, 3", "ampName=ur"),
+    ('currFilter=NaN, ?', 'cmdFilter=3, "SDSS r\'"', "filterState=Moving, 3, 3", "ampName=UR"),
     ('currFilter=3, "SDSS r\'"', 'cmdFilter=3, "SDSS r\'"', "filterState=Done, 0, 0"),
 )
 
