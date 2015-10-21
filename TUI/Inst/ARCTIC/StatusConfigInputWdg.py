@@ -3,7 +3,9 @@
 
 History:
 2015-07-31 CS       Created
-2015-10-20 ROwen    Added filter state and switched to currFilter, cmdFilter.
+2015-10-20 ROwen    Added support for filterState keyword, including a new line for filter status
+                    with a countdown timer, and switched to keywords currFilter, cmdFilter.
+2015-10-21 ROwen    Display filter state in filter name area and remove the countdown timer.
 """
 import Tkinter
 import RO.Constants
@@ -58,7 +60,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
 
         self.filterNameCurrWdg = RO.Wdg.StrLabel(
             master = self,
-            helpText = "current filter",
+            width = 9, # room for "Not Homed"
+            helpText = "current filter or status",
             helpURL = self.HelpPrefix + "Filter",
             anchor = "w",
         )
@@ -78,29 +81,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             cfgWdg = self.filterNameUserWdg,
             sticky = "ew",
             cfgSticky = "w",
-            colSpan = 3,
-        )
-
-        self.filterStateWdg = RO.Wdg.StrLabel(
-            master = self,
-            width = 6, # for "Moving"
-            helpText = "filter wheel state",
-            helpURL = self.HelpPrefix + "Filter",
-            anchor = "w",
-        )
-        self.filterStateTimer = RO.Wdg.TimeBar(
-            master = self,
-            countUp = False,
-            valueFormat = ("%3.1f sec", "??? sec"),
-            autoStop = False,
-            updateInterval = 0.1,
-            helpText = "filter wheel timer",
-            helpURL = self.HelpPrefix + "Filter",
-        )
-        gr.gridWdg (
-            label = "Filter State",
-            dataWdg = (self.filterStateWdg, self.filterStateTimer),
-            sticky = "w",
             colSpan = 3,
         )
 
@@ -325,10 +305,10 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         # add callbacks that access widgets
         self.model.filterNames.addCallback(self.filterNameUserWdg.setItems)
         self.model.cmdFilter.addIndexedCallback(self._updCmdFilter)
-        self.model.currFilter.addIndexedCallback(self.filterNameCurrWdg.set, 1)
-        self.model.filterState.addCallback(self._updFilterState)
+        self.model.currFilter.addCallback(self._updFilterNameOrState)
+        self.model.filterState.addCallback(self._updFilterNameOrState)
         self.model.ampNames.addCallback(self.ampNameUserWdg.setItems)
-        self.model.ampName.addIndexedCallback(self.ampNameUserWdg.setDefault, 0)
+        self.model.ampName.addCallback(self._updAmpName)
         self.model.readoutRateNames.addCallback(self.readoutRateNameUserWdg.setItems)
         self.model.readoutRateName.addIndexedCallback(self.readoutRateNameUserWdg.setDefault, 0)
         self.model.ccdUBWindow.addCallback(self._setCCDWindowWdgDef)
@@ -433,6 +413,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         """
         self._updUserCCDWindow()
 
+    def _updAmpName(self, *args, **kargs):
+        """update ampName"""
+        ampName, isCurrent = self.model.ampName.getInd(0)
+        self.ampNameUserWdg.setDefault(ampName, isCurrent=isCurrent, doCheck=False)
+
     def _userWindowChanged(self, *args, **kargs):
         self._saveCCDUBWindow()
 
@@ -463,18 +448,16 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         for ind in range(2):
             self.ccdImageSizeCurrWdgSet[ind].set(imageSize[ind])
 
-    def _updFilterState(self, *args, **kargs):
-        """Update filter state
+    def _updFilterNameOrState(self, *args, **kargs):
+        """Show current filter name, if stopped at a known position, else state
         """
-        (filterState, fullDuration, remDuration), isCurrent = self.model.filterState.get()
-        self.filterStateWdg.set(filterState, isCurrent = isCurrent)
+        filterState, stateIsCurrent = self.model.filterState.getInd(0)
 
-        if isCurrent and fullDuration > 0:
-            self.filterStateTimer.start(value = remDuration, newMax = fullDuration)
-            self.filterStateTimer.grid()
+        if filterState.lower() == "done":
+            filterName, nameIsCurrent = self.model.currFilter.getInd(1)
+            self.filterNameCurrWdg.set(filterName, nameIsCurrent)
         else:
-            self.filterStateTimer.grid_remove()
-            self.filterStateTimer.clear()
+            self.filterNameCurrWdg.set(filterState, stateIsCurrent)
 
     def _updUserCCDWindow(self, doCurrValue = True):
         """Update user-set ccd window.

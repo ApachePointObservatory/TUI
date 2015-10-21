@@ -6,7 +6,7 @@ History:
 """
 import TUI.Base.TestDispatcher
 
-testDispatcher = TUI.Base.TestDispatcher.TestDispatcher(actor="arctic", delay=0.5)
+testDispatcher = TUI.Base.TestDispatcher.TestDispatcher(actor="arctic", delay=1)
 tuiModel = testDispatcher.tuiModel
 
 MainDataList = (
@@ -36,7 +36,7 @@ print "MainDataList=", MainDataList
 
 # Each element of animDataSet is list of keywords
 AnimDataSet = (
-    ('currFilter=NaN, ?', 'cmdFilter=3, "SDSS r\'"', "filterState=Moving, 3, 3"),
+    ('currFilter=NaN, ?', 'cmdFilter=3, "SDSS r\'"', "filterState=Moving, 3, 3", "ampName=ur"),
     ('currFilter=3, "SDSS r\'"', 'cmdFilter=3, "SDSS r\'"', "filterState=Done, 0, 0"),
 )
 
