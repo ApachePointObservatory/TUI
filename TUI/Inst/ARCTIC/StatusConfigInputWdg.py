@@ -6,6 +6,7 @@ History:
 2015-10-20 ROwen    Added support for filterState keyword, including a new line for filter status
                     with a countdown timer, and switched to keywords currFilter, cmdFilter.
 2015-10-21 ROwen    Display filter state in filter name area and remove the countdown timer.
+2015-10-29 ROwen    Improve display when a filter wheel move ends with cmdFilter != filterName.
 """
 import Tkinter
 import RO.Constants
@@ -290,7 +291,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
 
         # set up format functions for the filter menu
-        # theis allows us to return index values instead of names
+        # this allows us to return index values instead of names
         class indFormat(object):
             def __init__(self, indFunc, offset=1):
                 self.indFunc = indFunc
@@ -299,12 +300,15 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 valueList = inputCont.getValueList()
                 if not valueList:
                     return ''
+                selValue = valueList[0]
+                if not selValue:
+                    return ''
                 name = inputCont.getName()
-                return "%s=%d" % (name, self.indFunc(valueList[0]) + self.offset)
+                return "%s=%d" % (name, self.indFunc(selValue) + self.offset)
 
         # add callbacks that access widgets
         self.model.filterNames.addCallback(self.filterNameUserWdg.setItems)
-        self.model.cmdFilter.addIndexedCallback(self._updCmdFilter)
+        self.model.cmdFilter.addIndexedCallback(self._updFilterNameOrState)
         self.model.currFilter.addCallback(self._updFilterNameOrState)
         self.model.filterState.addCallback(self._updFilterNameOrState)
         self.model.ampNames.addCallback(self.ampNameUserWdg.setItems)
@@ -429,11 +433,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             imSize = 1 + actUserCCDWindow[ind+2] - actUserCCDWindow[ind]
             self.ccdImageSizeUserWdgSet[ind].set(imSize)
 
-    def _updCmdFilter(self, *args, **kargs):
-        cmdFilter, isCurrent = self.model.cmdFilter.getInd(1)
-        defFilt = cmdFilter if cmdFilter != "?" else None
-        self.filterNameUserWdg.setDefault(defFilt, isCurrent=isCurrent)
-
     def _updCurrImageSize(self, *args, **kargs):
         """Update current image size.
         """
@@ -452,12 +451,27 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         """Show current filter name, if stopped at a known position, else state
         """
         filterState, stateIsCurrent = self.model.filterState.getInd(0)
+        filterName, filterNameIsCurrent = self.model.currFilter.getInd(1)
+        cmdFilter, cmdFilterIsCurrent = self.model.cmdFilter.getInd(1)
+        isOK = True
 
-        if filterState is not None and filterState.lower() == "done":
-            filterName, nameIsCurrent = self.model.currFilter.getInd(1)
-            self.filterNameCurrWdg.set(filterName, isCurrent=nameIsCurrent)
+        if filterState is not None and filterState.lower() not in ("moving", "homing"):
+            if filterName != cmdFilter:
+                # filter wheel apparently didn't go where it was commanded to go;
+                # show current and filter widget in pink as a warning
+                # and set default user to None so any filter can be chosen
+                filterNameIsCurrent = False
+                isOK = False
+            self.filterNameCurrWdg.set(filterName, isCurrent=filterNameIsCurrent)
         else:
             self.filterNameCurrWdg.set(filterState, isCurrent=stateIsCurrent)
+        if not isOK:
+            self.filterNameUserWdg.setDefault(None, doCheck=False)
+            self.filterNameUserWdg.set(cmdFilter)
+        elif cmdFilter in (None, "?"):
+            self.filterNameUserWdg.setDefault(None, doCheck=False)
+        else:
+            self.filterNameUserWdg.setDefault(cmdFilter, doCheck=False)
 
     def _updUserCCDWindow(self, doCurrValue = True):
         """Update user-set ccd window.

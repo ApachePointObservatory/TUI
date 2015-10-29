@@ -3,6 +3,8 @@
 
 History:
 2015-10-20 ROwen    Added filterState and switched to currFilter, cmdFilter.
+2015-10-29 ROwen    Added exposure state keywords and removed some keywords that are not output.
+                    Added an animated state that tests a filter move that ends with cmdFilter != filterName.
 """
 import TUI.Base.TestDispatcher
 
@@ -22,22 +24,19 @@ MainDataList = (
     'ccdWindow=1,1,1024,514',
     'ccdUBWindow=1,1,2048,1028',
     'ccdOverscan=50,0',
-    'name="dtest030319."',
-    'number=1',
-    'places=4',
-    'path="/export/images"',
-    'basename="/export/images/dtest030319.0001"',
-    'ccdTemps=-113.8,-106.7',
-    'ccdHeaters=0.0,0.0',
+    'ccdSize=4096,4096',
+    'ccdTemp=?',
+    'exposureState=done, 0.0000',
     'readoutRateNames=Slow, Medium, Fast',
     'readoutRateName=Slow',
+    'tempSetpoint=None',
 )
-print "MainDataList=", MainDataList
 
 # Each element of animDataSet is list of keywords
 AnimDataSet = (
-    ('currFilter=NaN, ?', 'cmdFilter=3, "SDSS r\'"', "filterState=Moving, 3, 3", "ampName=UR"),
-    ('currFilter=3, "SDSS r\'"', 'cmdFilter=3, "SDSS r\'"', "filterState=Done, 0, 0"),
+    ('cmdFilter=3, "SDSS r\'"', "filterState=Moving, 3, 3", "ampName=UR", 'currFilter=NaN, ?'),
+    ('currFilter=3, "SDSS g\'"', "filterState=Done, 0, 0"),
+    ('currFilter=3, "SDSS r\'"', "filterState=Done, 0, 0"),
 )
 
 def start():
