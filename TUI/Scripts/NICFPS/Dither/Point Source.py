@@ -29,9 +29,9 @@ History:
                     Bug fix: needMove was comparing to begOffset, not currOffset.
 2008-09-23 ROwen    Fix PR 859: never finished by restoring the initial offset because end and run
                     both called needMove with self.currOffset instead of self.begOffset.
+2015-11-02 ROwen    Remove unused import
 """
 import numpy
-import random
 import Tkinter
 import RO.Wdg
 import TUI.TCC.TCCModel

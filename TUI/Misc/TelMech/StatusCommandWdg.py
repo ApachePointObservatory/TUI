@@ -33,6 +33,7 @@ History:
                     This caused an incorrect display and TUI would freeze when showing devices.
                     Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 2014-05-19 ROwen    Made detection of a running tertiary rotation command more robust.
+2015-11-02 ROwen    Switched from arr.any/all to all/any(arr) for numpy arrays
 """
 import numpy
 import Tkinter
@@ -78,13 +79,13 @@ class DevStateWdg(RO.Wdg.Label):
         catInfo.addCallback(self.updateState)
 
     def updateState(self, catInfo):
-        isCurrent = catInfo.devIsCurrent.all()
+        isCurrent = all(catInfo.devIsCurrent)
         stateStr, severity = self.getStateStrSev(catInfo.devState, catInfo)
         self.set(stateStr, isCurrent = isCurrent, severity = severity)
 
     def getStateStrSev(self, devState, catInfo):
         """Return state string associated with specified device state"""
-        if numpy.isnan(devState).any():
+        if any(numpy.isnan(devState)):
             return ("?", RO.Constants.sevWarning)
 
         if self.patternDict:
@@ -92,13 +93,13 @@ class DevStateWdg(RO.Wdg.Label):
             if statusStrSev != None:
                 return statusStrSev
             
-        if devState.all():
+        if all(devState):
             if self.onIsNormal:
                 severity = RO.Constants.sevNormal
             else:
                 severity = RO.Constants.sevWarning
             return ("All " + catInfo.stateNames[1], severity)
-        elif devState.any():
+        elif all(devState):
             return ("Some " + catInfo.stateNames[1], RO.Constants.sevWarning)
 
         # all are off
@@ -128,12 +129,12 @@ class EyelidsStateWdg(DevStateWdg):
         """Return state string associated with specified device state"""
         devState = self.catInfo.devState
         
-        if numpy.isnan(devState).any():
+        if any(numpy.isnan(devState)):
             return ("?", RO.Constants.sevWarning)
 
-        if devState.all():
+        if all(devState):
             return ("All " + self.catInfo.stateNames[1], RO.Constants.sevNormal)
-        elif not devState.any():
+        elif not any(devState):
             return ("All " + self.catInfo.stateNames[0], RO.Constants.sevWarning)
         
         # indicate whether the eyelid at the current port is open

@@ -1,12 +1,14 @@
-import itertools
+"""Collect sky flats for SPICam
+
+History:
+2015-11-02 ROwen    First history entry. Removed two unused imports.
+"""
 import math
 import time
-import numpy as num
 import RO.MathUtil
 import RO.PVT
 import RO.Wdg
 import RO.Astro.Tm
-import Tkinter
 import TUI.TCC.TCCModel
 import TUI.TCC.TelConst
 import TUI.Inst.ExposeModel as ExposeModel
@@ -51,8 +53,6 @@ class ScriptClass(object):
         self.expWdg.grid(row=row, column=0, columnspan=3, sticky="w")
         row += 1
 
-        wdgFrame = Tkinter.Frame(sr.master)        
-        gr = RO.Wdg.Gridder(wdgFrame, sticky="w")
         self.filterWdg = RO.Wdg.OptionMenu(
             master = self.expWdg,
             items = [],

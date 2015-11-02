@@ -11,6 +11,7 @@ History:
 2006-12-13 ROwen    Clarified some doc strings.
 2007-04-24 ROwen    Modified to use numpy instead of numarray.
 2008-04-29 ROwen    Fixed reporting of exceptions that contain unicode arguments.
+2015-11-02 ROwen    Switch from numpy.alltrue to numpy.all.
 """
 import numpy
 import RO.SeqUtil
@@ -46,9 +47,9 @@ class SubFrame(object):
         if sf == None:
             return False
 
-        return numpy.alltrue(self.fullSize == sf.fullSize) \
-            and numpy.alltrue(self.subBeg == sf.subBeg) \
-            and numpy.alltrue(self.subSize == sf.subSize)
+        return numpy.all(self.fullSize == sf.fullSize) \
+            and numpy.all(self.subBeg == sf.subBeg) \
+            and numpy.all(self.subSize == sf.subSize)
     
     def __repr__(self):
         return "SubFrame(fullSize=%s, subBeg=%s, subSize=%s)" % \
@@ -142,14 +143,14 @@ class SubFrame(object):
         binFac = binFacAsArr(binFac)
         myBinBeg, myBinSize = self.getBinSubBegSize(binFac)
         sfBinBeg, sfBinSize = sf.getBinSubBegSize(binFac)
-        return numpy.alltrue(self.fullSize == sf.fullSize) \
-            and numpy.alltrue(myBinBeg == sfBinBeg) \
-            and numpy.alltrue(myBinSize == sfBinSize)
+        return numpy.all(self.fullSize == sf.fullSize) \
+            and numpy.all(myBinBeg == sfBinBeg) \
+            and numpy.all(myBinSize == sfBinSize)
     
     def isFullFrame(self):
         """Return True if subframe is full frame.
         """
-        return numpy.alltrue(self.fullSize == self.subSize)
+        return numpy.all(self.fullSize == self.subSize)
     
     def isFullFrameBinned(self, binFac):
         """Return True if subframe is full frame
@@ -159,8 +160,8 @@ class SubFrame(object):
         binBeg, binSize = self.getBinSubBegSize(binFac)
         binFullSize = self.fullSize / binFac
         #print "isFullFrameBinned; binFac=%s; binBeg=%s, binSize=%s, binFullSize=%s" % (binFac, binBeg, binSize, binFullSize)
-        return numpy.alltrue(binBeg == [0, 0]) \
-            and numpy.alltrue(binSize == binFullSize)
+        return numpy.all(binBeg == [0, 0]) \
+            and numpy.all(binSize == binFullSize)
     
     def setBinSubBegSize(self, binFac, binSubBeg, binSubSize):
         """Set subframe from binned beginning and size.

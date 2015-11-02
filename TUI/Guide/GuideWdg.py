@@ -245,6 +245,9 @@ History:
                     more than one dot, such as '.fits.gz' (at least on MacOS), so I had to use ".gz"
                     and permit any gzipped file.
                     If an image has no data in HDU 0 then display a warning in the guider window.
+2015-11-02 ROwen    Correct computation of boreXY (was adding 0.5 instead of subtracting it).
+                    Switch from numpy.alltrue to numpy.all.
+                    Simplify some use of numpy and specify data types where ambiguous.
 """
 import atexit
 import os
@@ -1390,24 +1393,19 @@ class GuideWdg(Tkinter.Frame):
     
             endPos = self.gim.cnvPosFromEvt(evt)
             startPos = self.dragStart or endPos
-    
-            meanPos = numpy.divide(numpy.add(startPos, endPos), 2.0)
-            deltaPos = numpy.abs(numpy.subtract(endPos, startPos))
-    
-            rad = max(deltaPos) / (self.gim.zoomFac * 2.0)
-            imPos = self.gim.imPosFromCnvPos(meanPos)
-            thresh = self.threshWdg.getNum()
-            
-            if abs(deltaPos[0]) > 1 and abs(deltaPos[1] > 1):
-                # centroid
-    
-                # execute centroid command
+            absDeltaPos = numpy.abs(numpy.subtract(endPos, startPos, dtype=float))
+            if numpy.all(absDeltaPos > 1):
+                # cursor has moved significantly; centroid the region
+                rad = max(absDeltaPos) / (self.gim.zoomFac * 2.0)
+                meanCnvPos = numpy.mean((startPos, endPos), axis=0, dtype=float)
+                imPos = self.gim.imPosFromCnvPos(meanCnvPos)
+                thresh = self.threshWdg.getNum()
+
                 cmdStr = "centroid file=%r on=%.2f,%.2f cradius=%.1f thresh=%.2f" % \
                     (self.dispImObj.imageName, imPos[0], imPos[1], rad, thresh)
                 self.doCmd(cmdStr)
-                
             else:
-                # select
+                # cursor has barely moved; select the object
                 self.doSelect(evt)
         finally:
             self.endDragMode()
@@ -1989,7 +1987,7 @@ class GuideWdg(Tkinter.Frame):
             return None
         if not self.dispImObj.binFac:
             return None
-        if not numpy.alltrue(self.dispImObj.subFrame.fullSize == self.guideModel.gcamInfo.imSize):
+        if numpy.any(self.dispImObj.subFrame.fullSize != self.guideModel.gcamInfo.imSize):
             return None
 
         begImPos = self.gim.begIJ[::-1]
@@ -2153,7 +2151,7 @@ class GuideWdg(Tkinter.Frame):
             imHdr = None
         
         # check size of image subFrame; if it doesn't match, then don't use it
-        if imObj.subFrame and not numpy.alltrue(imObj.subFrame.fullSize == self.guideModel.gcamInfo.imSize):
+        if imObj.subFrame is not None and numpy.any(imObj.subFrame.fullSize != self.guideModel.gcamInfo.imSize):
             #print "image has wrong full size; subframe will not show current image"
             imObj.subFrame = None
         
@@ -2201,10 +2199,10 @@ class GuideWdg(Tkinter.Frame):
                     self.showStar(starData)
             
             if self.guideModel.gcamInfo.isSlitViewer and imHdr:
-                boreXYIraf = (imHdr.get("CRPIX1"), imHdr.get("CRPIX2"))
-                if None not in boreXYIraf:
+                boreXYFITS = numpy.array((imHdr.get("CRPIX1"), imHdr.get("CRPIX2")), dtype=float)
+                if None not in boreXYFITS:
                     # boresight position known; display it
-                    self.boreXY = numpy.add(boreXYIraf, 0.5)
+                    self.boreXY = boreXYFITS - 0.5
                     boreColor = self.boreColorPref.getValue()
                     self.gim.addAnnotation(
                         GImDisp.ann_Plus,

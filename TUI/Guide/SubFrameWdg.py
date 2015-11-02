@@ -13,6 +13,7 @@ History:
                     and full frame determinations to be binned.
 2007-04-24 ROwen    Modified to use numpy instead of numarray.
 2014-10-20 ROwen    Changed from "== None" to "is None" to avoid FutureWarnings.
+                    Fix one mixed type numpy operation, to make numpy 1.10 happy.
 """
 import Tkinter
 import numpy
@@ -164,7 +165,8 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
         fracBeg = numpy.zeros(2, dtype=float)
         fracBeg[0] = subBeg[0] / floatFullSize[0]
         fracBeg[1] = 1.0 - ((subEnd[1] + 1) / floatFullSize[1])
-        fracSize = numpy.divide(subSize, floatFullSize)
+        floatSubSize = numpy.array(subSize, dtype=float)
+        fracSize = numpy.divide(floatSubSize, floatFullSize)
         
         floatRectBeg = fracBeg * floatMaxRectSize
         floatRectSize = fracSize * floatMaxRectSize
@@ -223,7 +225,7 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
         """
 #       print "setSubFrame(%s)" % (subFrame,)
         if subFrame:
-            newFullSize = (self.subFrame is None) or not numpy.alltrue(subFrame.fullSize == self.subFrame.fullSize)
+            newFullSize = (self.subFrame is None) or not numpy.all(subFrame.fullSize == self.subFrame.fullSize)
             self.subFrame = subFrame.copy()
             
             if not self.subResRect:

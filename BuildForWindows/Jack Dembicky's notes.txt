@@ -1,0 +1,214 @@
+See
+http://www.apo.nmsu.edu/35m_operations/TUI/Installation.html
+http://www.apo.nmsu.edu/35m_operations/TUI/InstallationOnWindows.html
+http://www.apo.nmsu.edu/35m_operations/TUI/Installation.html#Unix
+
+
+========================================
+Install Python2.7 build  
+(only needs to be done once on compiling machine)
+========================================
+
+Download & Install Python 2.7.x release files 
+Windows x86 MSI Installer(2.7.x)
+python-2.7.8.msi
+
+Download and run ez_setup.py 
+https://bootstrap.pypa.io/ez_setup.py
+
+========================================
+Set up the System path for Python & Scripts
+(only needs to be done once on compiling machine)
+========================================
+
+Add the c:/Python27;C:/Python27/Scripts to your windows PATH.  
+see:  http://www.computerhope.com/issues/ch000549.htm
+
+========================================
+Install Python supporting libraries 
+(only needs to be done once on compiling machine)
+IMPORTANT!!! Install these version as they work 
+with the Python 2.5, newer versions don't
+========================================
+
+Open a shell and install the following support packages (This assumes you have set the path up correctly above)
+
+Install Numpy 
+http://sourceforge.net/projects/numpy/files/NumPy/
+numpy-1.9.0-win32-superpack-python2.7.exe
+
+Install matplotlib 
+http://matplotlib.org/downloads.html
+matplotlib-1.4.2.win32-py2.7.exe
+
+Install pywin32 
+http://sourceforge.net/projects/pywin32/files/pywin32/
+pywin32-219.win32-py2.7.exe
+
+Install py2exe
+http://sourceforge.net/projects/py2exe/files/py2exe/0.6.9/
+py2exe-0.6.9.win32-py2.7.exe
+
+Install pygame
+http://www.pygame.org/download.shtml
+pygame-1.9.2a0.win32-py2.7.msi
+
+Pillow 
+https://pypi.python.org/pypi/Pillow
+Pillow-2.6.1.win32-py2.7.exe
+
+Astropy 
+http://www.astropy.org/
+astropy-0.4.2.win32-py2.7.exe
+
+Install pyfits (needed for compile to .exe)
+http://www.stsci.edu/institute/software_hardware/pyfits/Download
+pyfits-3.3.win32-py2.7.exe
+easy_install pyfits
+
+Install RO
+https://pypi.python.org/pypi?:action=display&name=RO
+easy_install.exe RO
+
+Install pyinstaller
+easy_install pyinstaller
+
+Install six 
+https://pypi.python.org/pypi/six (1.8.0)
+easy_install six
+
+Install python-dateutil 
+http://labix.org/python-dateutil#head-2f49784d6b27bae60cde1cff6a535663cf87497b (See Downloads section)
+easy_install python-dateutil
+
+Install pyparsing
+https://pypi.python.org/pypi/pyparsing
+easy_install.exe pyparsing
+
+Install pytz 
+https://pypi.python.org/pypi/pytz/
+easy_install.exe pytz
+
+Install Tornado
+https://pypi.python.org/pypi/tornado
+easy_install.exe Tornado
+
+Install PIL
+easy_install.exe pil
+
+You may need to do the following if PIL directory is not present
+Rename c:/Python27/Lib/site-packages/PIL-1.1.7-py2.7-win32.egg as c:/Python27/Lib/site-packages/PIL
+
+Copy MSVCP90.dll into c:/Python27/Dlls
+(Get this file from a prior windows version of TUI, ie TUI2.1.0)
+
+
+You don't need a compiler at this time, but if you ever do:
+---------------------------------------------------------------
+
+http://www.microsoft.com/en-us/download/details.aspx?displaylang=en&id=29
+
+install Microsoft Visual C++ Compiler for Python
+http://aka.ms/vcpython27
+
+========================================
+Building Windows executable TUI with pyinstaller
+========================================
+Download & extract the (latest) version of TUI you wish to create a Windows executable for
+
+Open DOS command line
+
+cd into TUI source file directory you just extracted
+
+edit 'runtui.py' and add/change the following:
+
+In the IMPORT section ADD the following
+
+   import FileDialog
+
+search for dateStr and make the following changes
+
+Original:
+
+    dateStr = time.strftime("%Y-%m-%d:%H:%M:_%S", time.gmtime())
+
+Change to:
+
+# Datestring for MacOS    
+#    dateStr = time.strftime("%Y-%m-%d:%H:%M:_%S", time.gmtime())
+# Datestring for Windows
+    dateStr = time.strftime("%Y-%m-%d_%H_%M_%S", time.gmtime())
+
+Save and exit the editor
+
+edit 'TUI/TUIMenu/AboutWindow.py' and add/change the following:
+
+Original:
+
+    outStrList.append("Error Log: %s" % (sys.stderr.name,))
+
+Change to:
+
+#    outStrList.append("Error Log: %s" % (sys.stderr.name,))
+    outStrList.append("Error Log: %s" % (sys.stderr,))
+
+Save and exit the editor
+
+edit 'RO/Wdg/Sound.py' and add/change the following:
+
+Original:
+
+    import pygame.mixer
+
+Change to:
+
+    import pygame.mixer
+    import pygame._view
+
+Save and exit the editor
+
+cd into BuildForWindows directory
+
+execute the following command
+
+setup.py py2exe
+
+After it finishes it will create a new directory with the build distribution and TUI.exe file inside.
+
+In <localpath>/Python27/tcl copy the entire directory 'tcl8' to <your_new_TUI_build>/tcl/
+
+In <localpath>/Python27/Lib/site-packages/pygame copy the file 'libogg-0.dll' to <your_new_TUI_build>/
+
+Verify TUI run properly, including images download and display in the guiders (one guide camera check is sufficient).
+
+Verify sounds play correctly (you can go to preferences and just play a file)
+
+Zip the entire TUI_x_x_x_Windows folder for distribution.
+
+
+Step 4)Upload
+
+From Windows Tunnel into Zaphod from Newton uisng Putty
+
+Putty config
+
+newton.apo.nmsu.edu Port 22 SSH
+
+SSH -> Tunnels
+Remote Ports do the same (SSH-2 only)
+(L22  zaphod.apo.nmsu.edu:22)   
+Destination Local & Auto
+
+From CoreFTP 
+
+Host: localhost
+Username: arc
+Password: <see list>
+Port 22
+PASV
+Connection SSH/SFTP
+
+upload the zipped file into the folder public_html/WWW/35m_operations/TUI-Images/files/
+
+Then modify the following file:  public_html/WWW/arc35m/TUIdownloads_ARC35m.html
+Redirect the link to the new file and rename the link.

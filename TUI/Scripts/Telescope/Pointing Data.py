@@ -43,6 +43,7 @@ History:
                     Add an extra check to prevent the grid being changed while running.
 2014-10-16 ROwen    Always specify window argument to work around a guider bug that caused too-small images.
                     Show info about each entry in the data file, and append the same info to that entry as a comment.
+2015-11-02 ROwen    Make sure to match types when using numpy, for numpy 1.10.
 """
 import collections
 import glob
@@ -602,8 +603,7 @@ class ScriptClass(object):
         if not doWindow or not self.doWindow:
             # specify the window argument anyway, to work around a guider bug
             imSize = self.guideModel.gcamInfo.imSize
-            window = numpy.array((0, 0, imSize[0], imSize[1]), dtype=int) \
-                / self.getBinFactor(isFinal=isFinal)
+            window = numpy.array((0, 0, imSize[0], imSize[1]), dtype=int) // self.getBinFactor(isFinal=isFinal)
             if self.windowIsInclusive:
                 for i in (2, 3):
                     window[i] -= 1
@@ -1163,8 +1163,8 @@ class AzAltGraph(Tkinter.Frame):
             az = numpy.compress(azAltPoints["state"] == state, azAltPoints["az"])
             alt = numpy.compress(azAltPoints["state"] == state, azAltPoints["alt"])
 
-            r = numpy.subtract(90, alt)
-            theta = numpy.deg2rad(numpy.subtract(270, az))
+            r = numpy.subtract(90.0, alt)
+            theta = numpy.deg2rad(numpy.subtract(270.0, az))
             self.axis.plot(theta, r, linestyle="", **markerArgs)
 
 
@@ -1172,8 +1172,8 @@ class AzAltGraph(Tkinter.Frame):
         az = azAltPoints["az"]
         alt = azAltPoints["alt"]
 
-        r = numpy.subtract(90, alt)
-        theta = numpy.deg2rad(numpy.subtract(270, az))
+        r = numpy.subtract(90.0, alt)
+        theta = numpy.deg2rad(numpy.subtract(270.0, az))
         self.axis.plot(theta, r, linestyle="-", linewidth=0.4, color="gray")
 
         self._setLimits()
