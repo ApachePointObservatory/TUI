@@ -211,7 +211,7 @@ class GMechFilterWdg(Tkinter.Frame):
     def doApply(self, wdg=None):
         """Command a new filter"""
         desFilterInd = self.userFilterWdg.getIndex()
-        if desFilterInd == None:
+        if desFilterInd is None:
             raise RuntimeError("No filter selected")
         desFilterNum = desFilterInd + self.getMinFilterNum()
         cmdStr = "filter %s" % (desFilterNum,)
@@ -249,12 +249,12 @@ class GMechFilterWdg(Tkinter.Frame):
     def getMinFilterNum(self):
         """Return the minimum filter number; raise RuntimeError if unavailable"""
         minFilter = self.gmechModel.minFilter.getInd(0)[0]
-        if minFilter == None:
+        if minFilter is None:
             raise RuntimeError("Minimum filter number unknown")
         return minFilter
 
     def updFilter(self, filterNum, isCurrent, keyVar=None):
-        if filterNum == None:
+        if filterNum is None:
             return
 
         self.currFilterWdg.set(filterNum)

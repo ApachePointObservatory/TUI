@@ -82,7 +82,7 @@ class ExposeInputWdg (Tkinter.Frame):
         #print "ExposeInputWdg(%r, %r, %r)" % (master, instName, expTypes)
 
         Tkinter.Frame.__init__(self, master, **kargs)
-        if helpURL == None:
+        if helpURL is None:
             helpURL = _HelpURL
         
         self.entryError = None
@@ -138,7 +138,7 @@ class ExposeInputWdg (Tkinter.Frame):
         gr.gridWdg("Download", downloadCtrlFrame, colSpan=5, sticky="w")
 
         typeFrame = Tkinter.Frame(self)
-        if expTypes != None:
+        if expTypes is not None:
             expTypes = RO.SeqUtil.asSequence(expTypes)
         else:
             expTypes = self.expModel.instInfo.expTypes

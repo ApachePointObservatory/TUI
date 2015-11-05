@@ -162,7 +162,7 @@ class _InstInfo(object):
         if len(imSize) != 2:
             raise RuntimeError("imSize=%s must contain two ints" % (imSize,))
         self.imSize = [int(val) for val in imSize]
-        if instActor != None:
+        if instActor is not None:
             self.instActor = str(instActor)
         else:
             self.instActor = instName.lower()
@@ -170,7 +170,7 @@ class _InstInfo(object):
         self.minExpTime = float(minExpTime)
         self.maxExpTime = float(maxExpTime)
         self.maxNumExp = int(maxNumExp)
-        if camNames == None:
+        if camNames is None:
             camNames = ("",)
         self.camNames = camNames
         self.expTypes = expTypes
@@ -182,7 +182,7 @@ class _InstInfo(object):
         self.numBin = int(numBin)
         if not (0 <= self.numBin <= 2):
             raise RuntimeError("numBin=%s not in range [0,2]" % (self.numBin,))
-        if defBin == None:
+        if defBin is None:
             defBinList = [1]*self.numBin
         else:
             defBinList = [int(val) for val in RO.SeqUtil.asList(defBin)]
@@ -191,7 +191,7 @@ class _InstInfo(object):
         self.defBin = defBinList
         self.canWindow = bool(canWindow)
         self.defOverscan = defOverscan
-        if defOverscan != None:
+        if defOverscan is not None:
             try:
                 assert len(defOverscan) == 2
                 self.defOverscan = [int(val) for val in defOverscan]
@@ -345,7 +345,7 @@ def getModel(instName):
     global _modelDict
     instNameLow = instName.lower()
     model = _modelDict.get(instNameLow)
-    if model == None:
+    if model is None:
         model = Model(instName)
         _modelDict[instNameLow] = model
     return model
@@ -543,11 +543,11 @@ class Model(object):
         outStrList.append(expType)
 
         if expType.lower() != "bias":
-            if expTime == None:
+            if expTime is None:
                 raise ValueError("exposure time required")
             outStrList.append("time=%.2f" % (expTime))
 
-        if cameras != None:
+        if cameras is not None:
             camList = RO.SeqUtil.asSequence(cameras)
             for cam in camList:
                 cam = cam.lower()
@@ -566,10 +566,10 @@ class Model(object):
         else:
             outStrList.append("seq=nextByDir")
 
-        if startNum != None:
+        if startNum is not None:
             outStrList.append("startNum=%d" % (startNum,))
 
-        if totNum != None:
+        if totNum is not None:
             outStrList.append("totNum=%d" % (totNum,))
 
         if bin:
@@ -587,7 +587,7 @@ class Model(object):
                 raise ValueError("Cannot specify overscan in %s expose command" % (self.instInfo.instName,))
             outStrList.append(formatValList("overscan", overscan, "%d", 2))
 
-        if comment != None:
+        if comment is not None:
             outStrList.append("comment=%s" % (RO.StringUtil.quoteStr(comment),))
 
         return " ".join(outStrList)
@@ -604,7 +604,7 @@ class Model(object):
 
 def formatValList(name, valList, valFmt, numElts=None):
     #print "formatValList(name=%r, valList=%s, valFmt=%r, numElts=%s)" % (name, valList, valFmt, numElts)
-    if numElts != None and len(valList) != numElts:
+    if numElts is not None and len(valList) != numElts:
         raise ValueError("%s=%s; needed %s values" % (name, valList, numElts,))
     valStr = ",".join([valFmt % (val,) for val in valList])
     return "%s=%s" % (name, valStr)

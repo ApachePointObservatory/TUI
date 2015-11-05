@@ -206,7 +206,7 @@ class ExposeWdg (RO.Wdg.InputContFrame):
             used as help text for the Pause button until the sequence ends
             (has no effect unless nextState is "running")
         """
-        if actor == None:
+        if actor is None:
             actor = self.expModel.actor
         self.cannotPauseText = cannotPauseText
         cmdVar = RO.KeyVariable.CmdVar(
@@ -233,7 +233,7 @@ class ExposeWdg (RO.Wdg.InputContFrame):
             self.statusBar.setMsg(str(e), severity=RO.Constants.sevError, isTemp=True)
             self.statusBar.playCmdFailed()
             return
-        if cmdStr == None:
+        if cmdStr is None:
             return
         
         expType = self.expInputWdg.getExpType()
@@ -278,7 +278,7 @@ class ExposeWdg (RO.Wdg.InputContFrame):
         status will be one of: running, paused, aborted, stopped, done, failed
         """
         #print "_seqStatusCallback(self, status=%r, isCurrent=%r)" % (status, isCurrent)
-        if status != None:
+        if status is not None:
             status = status.lower()
         
         # enable or disable stop and abort as appropriate

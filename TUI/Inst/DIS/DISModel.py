@@ -74,7 +74,7 @@ _theModel = None
 
 def getModel():
     global _theModel
-    if _theModel == None:
+    if _theModel is None:
         _theModel = _Model()
     return _theModel
         
@@ -477,7 +477,7 @@ class _KeyVarByGSID:
     def _updCurrKeyVar(self, *args, **kargs):
         gsID, gsIDCurr = self._gsIDVar.getInd(0)
         keyVar = self.getKeyVarByID(gsID)
-        if keyVar == None:
+        if keyVar is None:
             valueList = self._nullValueList
             valueIsCurrent = gsIDCurr
         else:

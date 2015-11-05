@@ -190,7 +190,7 @@ class BackgroundKwds(object):
     def setUTCMinusTAI(self, utcMinusTAI, isCurrent=1, keyVar=None):
         """Updates UTC-TAI in RO.Astro.Tm
         """
-        if isCurrent and utcMinusTAI != None:
+        if isCurrent and utcMinusTAI is not None:
             RO.Astro.Tm.setUTCMinusTAI(utcMinusTAI)
             self.didSetUTCMinusTAI = True
             if self.clockType == "TAI":

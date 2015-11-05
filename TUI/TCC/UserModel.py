@@ -81,7 +81,7 @@ class _TkVar(RO.AddCallback.TkVarMixin):
         callFunc = None,
         callNow = False,
     ):
-        if var == None:
+        if var is None:
             var = Tkinter.StringVar()       
         RO.AddCallback.TkVarMixin.__init__(self, var, callFunc, callNow)
     

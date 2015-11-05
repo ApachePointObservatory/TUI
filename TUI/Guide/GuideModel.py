@@ -129,7 +129,7 @@ def getModel(gcamName):
     global _modelDict
     gcamNameLow = gcamName.lower()
     model = _modelDict.get(gcamNameLow)
-    if model == None:
+    if model is None:
         model = Model(gcamName)
         _modelDict[gcamNameLow] = model
     return model
@@ -320,7 +320,7 @@ additional fields may be used for components of star quality
     def _updLocGuideModeSummary(self):
         """Compute new local guide mode summary"""
         guideState, gsCurr = self.guideState.getInd(0)
-        if guideState == None:
+        if guideState is None:
             return
         if guideState.lower() != "on":
             self.locGuideStateSummary.set((guideState,), isCurrent = gsCurr)

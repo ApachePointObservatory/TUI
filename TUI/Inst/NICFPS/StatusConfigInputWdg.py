@@ -790,7 +790,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
 
         pressSev = RO.Constants.sevNormal
         pressOK = True
-        if press != None and pressMax != None and press > pressMax:
+        if press is not None and pressMax is not None and press > pressMax:
             pressSev = RO.Constants.sevError
             pressOK = False
         self.pressWdgSet[0].setSeverity(pressSev)
@@ -831,14 +831,14 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             tName, tCurr, tMin, tMax = infoSet
             
             okInd = None
-            if tCurr != None:
-                if tMin != None and tCurr < tMin:
+            if tCurr is not None:
+                if tMin is not None and tCurr < tMin:
                     allTempsOK = False
                     okInd = 3
-                elif tMax != None and tCurr > tMax:
+                elif tMax is not None and tCurr > tMax:
                     allTempsOK = False
                     okInd = 2
-            if okInd == None:
+            if okInd is None:
                 sevSet = [RO.Constants.sevNormal] * 4
             else:
                 sevSet = [RO.Constants.sevError] * 4
@@ -869,7 +869,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         
     def _updFilter(self, filterName, isCurrent, keyVar=None):
         self._showFilterTimer(False)
-        if filterName != None and filterName.lower() == "unknown":
+        if filterName is not None and filterName.lower() == "unknown":
             severity = RO.Constants.sevError
             self.filterUserWdg.setDefault(
                 None,
@@ -903,7 +903,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         self.slitOPathCurrWdg["width"] = maxNameLen
 
     def _updFilterTime(self, filterTime, isCurrent, keyVar=None):
-        if filterTime == None or not isCurrent:
+        if filterTime is None or not isCurrent:
             self._showFilterTimer(False)
             return
         
@@ -912,7 +912,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
     
     def _updFowlerSamples(self, fowlerSamples, isCurrent, keyVar=None):
         self.fowlerSamplesCurrWdg.set(fowlerSamples, isCurrent)
-        if fowlerSamples != None:
+        if fowlerSamples is not None:
             strVal = str(fowlerSamples)
         else:
             strVal = None
@@ -935,7 +935,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         self.fpOPathUserWdg.setDefault(fpOPath, isCurrent)
     
     def _updFPTime(self, fpTime, isCurrent, keyVar=None):
-        if fpTime == None or not isCurrent:
+        if fpTime is None or not isCurrent:
             self._showFPTimer(False)
             return
         
@@ -957,7 +957,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         self.slitOPathUserWdg.setDefault(slitOPath, isCurrent)
 
     def _updSlitTime(self, slitTime, isCurrent, keyVar=None):
-        if slitTime == None or not isCurrent:
+        if slitTime is None or not isCurrent:
             self._showSlitTimer(False)
             return
         

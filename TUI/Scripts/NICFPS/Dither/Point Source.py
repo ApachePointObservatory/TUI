@@ -227,7 +227,7 @@ class ScriptClass(object):
         # get it now so that it will not change if the user messes
         # with the controls while the script is running
         numExp = self.expWdg.numExpWdg.getNumOrNone()
-        if numExp == None:
+        if numExp is None:
             raise sr.ScriptError("must specify #Exp")
 
         numNodes = sum(doPtArr)

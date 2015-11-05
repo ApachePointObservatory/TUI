@@ -145,10 +145,10 @@ class BSubWdg(Tkinter.Frame):
         self.cancelBtn.setEnable(runningOff or runningOn)
     
     def runningOff(self):
-        return not (self.offCmd == None or self.offCmd.isDone())
+        return not (self.offCmd is None or self.offCmd.isDone())
     
     def runningOn(self):
-        return not (self.onCmd == None or self.onCmd.isDone())
+        return not (self.onCmd is None or self.onCmd.isDone())
     
     def updIsBSub(self, isBSub, isCurrent, keyVar=None):
         isBSubStr = {

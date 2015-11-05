@@ -85,7 +85,7 @@ class AgileExposeWindow(TUI.Inst.ExposeWdg.ExposeWdg):
         if connState and connState.lower() != "connected":
             raise RuntimeError("Wait for camera to be connected")
         cmdStr = self.expInputWdg.getString()
-        if cmdStr == None:
+        if cmdStr is None:
             return
         cmdStr += " gain=%s readrate=%s" % (self.gainWdg.getString().lower(), self.readRateWdg.getString().lower())
         return cmdStr

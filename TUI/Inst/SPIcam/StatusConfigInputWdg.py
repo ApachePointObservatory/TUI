@@ -357,7 +357,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         If this has the effect of changing the displayed values
         (only true if a box is blank) then update the saved unbinned window.
         """
-        if self.userCCDUBWindow == None:
+        if self.userCCDUBWindow is None:
             currUBWindow, isCurrent = self.model.ccdUBWindow.get()
             if isCurrent:
                 self.userCCDUBWindow = currUBWindow
@@ -413,7 +413,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         """
         self._freezeCCDUBWindow = True
         try:
-            if doCurrValue and self.userCCDUBWindow == None:
+            if doCurrValue and self.userCCDUBWindow is None:
 #               print "_updUserCCDWindow; unbinned = none"
                 return
             userBinFac = self._getUserBinFac()

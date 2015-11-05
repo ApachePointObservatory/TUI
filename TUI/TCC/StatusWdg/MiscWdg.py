@@ -255,7 +255,7 @@ class MiscWdg (Tkinter.Frame):
         """
         az, alt = axePos[0:2]
 
-        if alt != None:
+        if alt is not None:
             airmass = RO.Astro.Sph.airmass(alt)
             zd = 90.0 - alt
         else:
@@ -286,7 +286,7 @@ class MiscWdg (Tkinter.Frame):
         stateInfo = [] # each element = (is current, not off, state str, actor)
         for gcamName, guideModel in self.guideModelDict.iteritems():
             state, isCurr = guideModel.guideState.getInd(0)
-            if state == None:
+            if state is None:
                 stateLow = ""
             else:
                 stateLow = state.lower()

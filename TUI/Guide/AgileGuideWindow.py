@@ -52,7 +52,7 @@ def formatNum(val, fmt="%0.1f"):
     """Convert a number into a string
     None is returned as NaN
     """
-    if val == None:
+    if val is None:
         return "NaN"
     try:
         return fmt % (val,)
@@ -73,7 +73,7 @@ class StarMeas(object):
         ampl = None,
         fwhm = None,
     ):
-        if typeChar != None:
+        if typeChar is not None:
             typeChar = typeChar.lower()
         self.typeChar = typeChar
         self.xyPos = xyPos
@@ -300,7 +300,7 @@ class AgileGuideWdg(Tkinter.Frame):
             return
 
         starMeas = StarMeas.fromStarKey(starDataList[0])
-        if (starMeas.ampl == None):
+        if (starMeas.ampl is None):
             self.statusBar.setMsg("Centroid failed; no ampl", severity=RO.Constants.sevWarning)
             return
 
@@ -476,16 +476,16 @@ class AgileGuideWdg(Tkinter.Frame):
         starMeas = None
         for starData in starDataList:
             locStarMeas = StarMeas.fromStarKey(starData)
-            if (locStarMeas.ampl == None) or (locStarMeas.ampl > self.MaxFindAmpl):
+            if (locStarMeas.ampl is None) or (locStarMeas.ampl > self.MaxFindAmpl):
                 continue
-            if starMeas == None:
+            if starMeas is None:
                 starMeas = locStarMeas
             self.logStarMeas(locStarMeas)
             nLogged += 1
             if nLogged > 4:
                 break
         
-        if starMeas == None:
+        if starMeas is None:
             self.logMsg("%s\tfind\tno usable stars found" % (self.pendingFileName,), severity=RO.Constants.sevError)
         
         for ind in (0, 1):
@@ -507,7 +507,7 @@ class AgileGuideWdg(Tkinter.Frame):
         The optional argument is to avoid needlessly reading keyword values twice
         if instScalePixPerDeg is already known.
         """
-        if instScalePixPerDeg == None:
+        if instScalePixPerDeg is None:
             instScalePixPerDeg = self.getInstScalePixPerDeg()
         return numpy.mean(numpy.abs(instScalePixPerDeg)) / 3600.0
 
@@ -577,11 +577,11 @@ class AgileGuideWdg(Tkinter.Frame):
             formatNum(starMeas.ampl, "%0.0f"),
             formatNum(starMeas.sky, "%0.0f"),
         ]
-        if posErr != None:
+        if posErr is not None:
             dataStrs += [formatNum(val, "%0.2f") for val in posErr]
         if errMsg:
             dataStrs.append(errMsg)
-        elif boresightOffsetDeg != None:
+        elif boresightOffsetDeg is not None:
             offArcSec = boresightOffsetDeg * 3600.0
             dataStrs += [formatNum(val, "%0.2f") for val in offArcSec]
             
@@ -594,7 +594,7 @@ class AgileGuideWdg(Tkinter.Frame):
 
     @property
     def pendingFileName(self):
-        if self.pendingPath == None:
+        if self.pendingPath is None:
             return "?"
         return self.pendingPath.rsplit("/", 1)[-1]
 
@@ -604,7 +604,7 @@ class AgileGuideWdg(Tkinter.Frame):
 
         if _Debug:
             print "tccMoveItemsCallback(moveItems=%r, isCurrent=%s)" % (moveItems, isCurrent)
-        if moveItems == None or not isCurrent:
+        if moveItems is None or not isCurrent:
             return
         if moveItems[1].lower == "y":
             itemList = []

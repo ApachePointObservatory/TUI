@@ -189,7 +189,7 @@ class InputWdg(RO.Wdg.InputContFrame):
         """
         objInstAngPVT, isCurrent = self.tccModel.objInstAng.getInd(0)
         objInstAng = objInstAngPVT.getPos()
-        if not isCurrent or objInstAng == None:
+        if not isCurrent or objInstAng is None:
             raise ValueError, "objInstAng unknown"
         if None in offVec:
             raise ValueError, "bug: unknown offset"

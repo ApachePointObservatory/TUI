@@ -198,7 +198,7 @@ class ScriptClass(object):
         self.helpURL = HelpURL
         defBinFactor = 3
         finalBinFactor = None
-        if defBinFactor == None:
+        if defBinFactor is None:
             self.defBinFactor = None
             self.binFactor = 1
             self.dispBinFactor = 1
@@ -320,7 +320,7 @@ class ScriptClass(object):
             helpText = "Bin factor (for rows and columns)",
             helpURL = self.helpURL,
         )
-        if self.defBinFactor != None:
+        if self.defBinFactor is not None:
             ctrlGr.gridWdg(self.binFactorWdg.label, self.binFactorWdg)
 
         self.centroidRadWdg = RO.Wdg.IntEntry(
@@ -575,7 +575,7 @@ class ScriptClass(object):
         - isFinal: if True then return parameters for final exposure
         """
         binFactor = self.getBinFactor(isFinal=isFinal)
-        if binFactor == None:
+        if binFactor is None:
             return ""
         return "bin=%d" % (binFactor,)
     
@@ -621,7 +621,7 @@ class ScriptClass(object):
         """Return the numeric value of a widget, or raise ScriptError if blank.
         """
         numVal = wdg.getNumOrNone()
-        if numVal != None:
+        if numVal is not None:
             return numVal
         raise self.sr.ScriptError(wdg.label + " not specified")
     
@@ -631,10 +631,10 @@ class ScriptClass(object):
         Inputs:
         - isFinal: if True then return parameters for final exposure
         """
-        if self.defBinFactor == None:
+        if self.defBinFactor is None:
             return None
 
-        if isFinal and self.finalBinFactor != None:
+        if isFinal and self.finalBinFactor is not None:
             return self.finalBinFactor
         return self.binFactor
 
@@ -901,7 +901,7 @@ class ScriptClass(object):
         Sets self.sr.value to StarMeas.
         Displays a warning if no star found.
         """
-        if self.maxFindAmpl == None:
+        if self.maxFindAmpl is None:
             raise RuntimeError("Find disabled; maxFindAmpl=None")
 
         self.sr.showMsg("Exposing %s sec to find best star" % (self.expTime,))
@@ -948,13 +948,13 @@ class ScriptClass(object):
             (e.g. concatenate items 2:4 of the guider Files keyword)
         - starDataList: list of star keyword data
         """
-        if self.maxFindAmpl == None:
+        if self.maxFindAmpl is None:
             raise RuntimeError("Find disabled; maxFindAmpl=None")
         
         for starData in starDataList:
             starXYPos = starData[2:4]
             starAmpl = starData[14]
-            if (starAmpl == None) or (starAmpl > self.maxFindAmpl):
+            if (starAmpl is None) or (starAmpl > self.maxFindAmpl):
                 continue
                 
             self.sr.showMsg("Centroiding star at %0.1f, %0.1f" % tuple(starXYPos))
@@ -1264,7 +1264,7 @@ class PtRefStar(object):
     def __init__(self, valueList):
         """Construct a PtRefStar from a ptRefStar keyword value list
         """
-        if valueList[0] == None:
+        if valueList[0] is None:
             raise RuntimeError("Invalid data")
         self.pos = valueList[0:2]
         self.parallax = valueList[2]

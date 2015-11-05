@@ -310,14 +310,14 @@ class ObjPosWdg(RO.Wdg.InputContFrame):
         self._azAltRefreshTimer.cancel()
 
         target = self.userModel.potentialTarget.get()
-        if target == None:
+        if target is None:
             self.azWdg.set(None)
             self.altWdg.set(None)
             self.airmassWdg.set(None)
             return
         
         azalt = target.getAzAlt()
-        if azalt == None:
+        if azalt is None:
             self.azWdg.set(None)
             self.altWdg.set(None)
             self.airmassWdg.set(None)
@@ -328,7 +328,7 @@ class ObjPosWdg(RO.Wdg.InputContFrame):
         altData, limCurrent = self.tccModel.altLim.get()
         altSeverity = RO.Constants.sevNormal
         minAlt = altData[0]
-        if minAlt != None:
+        if minAlt is not None:
             if alt < minAlt:
                 altSeverity = RO.Constants.sevError
         

@@ -85,16 +85,16 @@ def setParams(expTime=None, thresh=None, radMult=None, mode=None):
     
     strList = []
 
-    if expTime != None:
+    if expTime is not None:
         g_expTime = float(expTime)
         strList.append("time=%.1f" % g_expTime)
-    if thresh != None:
+    if thresh is not None:
         g_thresh = float(thresh)
         strList.append("fsActThresh=%.1f" % g_thresh)
-    if radMult != None:
+    if radMult is not None:
         g_radMult = float(radMult)
         strList.append("fsActRadMult=%.1f" % g_radMult)
-    if mode != None:
+    if mode is not None:
         g_mode = mode
         strList.append("guideMode=%s" % g_mode)
     if strList:
@@ -156,7 +156,7 @@ def nextDownload(basePath, imPrefix, imNum, numImages=None, waitMs=2000):
     dispatch('i files=g, 1, "%s", "%s", ""' % (basePath, imName))
     #if (numImages - 1) % 20 == 0:
         #print "Image %s; resource usage: %s" % (imNum, resource.getrusage(resource.RUSAGE_SELF))
-    if numImages != None:
+    if numImages is not None:
         numImages -= 1
         if numImages <= 0:
             #dumpGarbage()

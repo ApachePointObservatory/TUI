@@ -105,7 +105,7 @@ class ConnectWdg(Tkinter.Frame):
         self.progIDEntry.bind("<Return>", self.handleReturn)
         self.pwdEntry.bind("<Return>", self.handleReturn)
         usernamePref = self.tuiModel.prefs.getPrefVar("User Name")
-        if usernamePref != None:
+        if usernamePref is not None:
             usernamePref.addCallback(self.updateUsernamePref, callNow=True)
         
         buttonFrame = Tkinter.Frame(self)

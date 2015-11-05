@@ -77,13 +77,13 @@ class TestDispatcher(object):
         - actor: name of actor
         - msgCode: message code; one of :>iwe!
         """
-        if cmdr == None:
+        if cmdr is None:
             cmdr = self.cmdr
-        if cmdID == None:
+        if cmdID is None:
             cmdID = self.cmdID
-        if actor == None: 
+        if actor is None: 
             actor = self.actor
-        if msgCode == None:
+        if msgCode is None:
             msgCode = self.msgCode
         for keyword in RO.SeqUtil.asCollection(dataList):
             replyStr = "%s %s %s %s %s" % (cmdr, cmdID, actor, msgCode, keyword)

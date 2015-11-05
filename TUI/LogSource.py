@@ -237,7 +237,7 @@ class LogSource(RO.AddCallback.BaseMixin):
             severity = RO.Constants.sevDebug
 
         # get default cmdr dynamically since it might change each time user connects to hub
-        if cmdr == None:
+        if cmdr is None:
             cmdr = self.dispatcher.connection.getCmdr()
 
         tags = []

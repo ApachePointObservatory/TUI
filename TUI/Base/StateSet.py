@@ -125,7 +125,7 @@ if __name__ == "__main__":
     
     def setPredState(name, severity, stateStr=""):
         global predState
-        if name == None:
+        if name is None:
             predState = None
         else:
             predState = State(name, severity, stateStr)

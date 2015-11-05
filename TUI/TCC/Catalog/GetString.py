@@ -59,7 +59,7 @@ History:
             # some character in the string
             foundBslash = False
 
-    if endInd == None:
+    if endInd is None:
         raise ValueError, "no closing %r found in %r" % (quoteChar, astr,)
 
     retStr = astr[begInd+1:endInd]
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         except Exception as e:
             print "error: getString(%s) failed with: %s" % (astr, e)
         else:
-            if ind == None:
+            if ind is None:
                 print "getString(%s) = %s, end of string" % (astr, getString(astr))
             else:
                 print "getString(%s) = %s, astr[%d] = %s" % (astr, getString(astr), ind, astr[ind])

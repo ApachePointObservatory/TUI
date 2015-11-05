@@ -429,7 +429,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         vacuumThresh, vacuumThreshCurr = self.model.vacuumThreshold.getInd(0)
         isCurrent = isCurrent and vacuumCurr and vacuumAlarmCurr and vacuumThreshCurr
 
-        if vacuumAlarm != None and vacuumAlarm:
+        if vacuumAlarm is not None and vacuumAlarm:
             vacuumSev = RO.Constants.sevError
             vacuumOK = False
         else:
@@ -450,7 +450,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         tempMin = [None]*len(tempThresholds)
         tempMax = [None]*len(tempThresholds)
         for ii, t in enumerate(tempThresholds):
-            if t == None:
+            if t is None:
                 continue
             if t > 0:
                 tempMax[ii] = t
@@ -484,7 +484,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             tName, tCurr, tMin, tMax = infoSet
             
             sevSet = [RO.Constants.sevNormal] * 4 # assume temp OK
-            if tCurr != None:
+            if tCurr is not None:
                 if tempAlarms[ii]:
                     allTempsOK = False
                     sevSet = [RO.Constants.sevError] * 4

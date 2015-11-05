@@ -24,14 +24,14 @@ class StripChartWdg(RO.Wdg.StripChartWdg.StripChartWdg):
         """
         line = self.addLine(subplotInd=subplotInd, **kargs)
         
-        if func == None:
+        if func is None:
             func = lambda x: x
         
         def callFunc(valList, isCurrent, keyVar=None, line=line, keyInd=keyInd, func=func):
             if not isCurrent or not keyVar.isGenuine():
                 return
             val = valList[keyInd]
-            if val == None:
+            if val is None:
                 return
             line.addPoint(func(val))
         

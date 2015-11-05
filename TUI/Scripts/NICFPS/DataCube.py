@@ -175,11 +175,11 @@ class ScriptClass(object):
         
         endZ = None
         self.errStr = ""
-        if begSpacing == None:
+        if begSpacing is None:
             self.errStr = "specify initial Z"
-        elif deltaZ == None:
+        elif deltaZ is None:
             self.errStr = "specify delta z"
-        elif numSpacings == None:
+        elif numSpacings is None:
             self.errStr = "specify number of zs"
         else:
             endZ = begSpacing + (deltaZ * (numSpacings - 1))

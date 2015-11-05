@@ -177,7 +177,7 @@ class ScriptClass(object):
             
         # get basic exposure command
         expCmdPrefix = self.expWdg.getString(numExp = 1)
-        if expCmdPrefix == None:
+        if expCmdPrefix is None:
             raise sr.ScriptError("missing inputs")
         
         # get drift info and related info
@@ -190,14 +190,14 @@ class ScriptClass(object):
             driftAxis = 1
         
         driftSpeedAS = self.driftSpeedWdg.getNumOrNone()
-        if driftSpeedAS == None:
+        if driftSpeedAS is None:
             raise sr.ScriptError("No drift speed")
         driftSpeed = driftSpeedAS / RO.PhysConst.ArcSecPerDeg
         driftSpeedXY = [0.0, 0.0]
         driftSpeedXY[driftAxis] = driftSpeed
 
         driftRangeAS = self.driftRangeWdg.getNumOrNone()
-        if driftRangeAS == None:
+        if driftRangeAS is None:
             raise sr.ScriptError("Drift range unknown")
         driftRange = driftRangeAS / RO.PhysConst.ArcSecPerDeg
         

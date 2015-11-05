@@ -47,7 +47,7 @@ class ScriptClass(OffsetGuiderFocusScript):
         """
         self.enableCmdBtns(False)
 
-        if self.focPosToRestore != None:
+        if self.focPosToRestore is not None:
             sr.startCmd(
                 actor = "gmech",
                 cmdStr =  "focus %0.0f" % (self.focPosToRestore,),
@@ -57,9 +57,9 @@ class ScriptClass(OffsetGuiderFocusScript):
         """Set center focus to current focus.
         """
         currFocus = self.sr.getKeyVar(self.gmechModel.desFocus, defVal=None)
-        if currFocus == None:
+        if currFocus is None:
             currFocus = self.sr.getKeyVar(self.gmechModel.focus, defVal=None)
-            if currFocus == None:
+            if currFocus is None:
                 self.sr.showMsg("Current focus not known",
                     severity=RO.Constants.sevWarning,
                 )

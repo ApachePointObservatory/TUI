@@ -212,7 +212,7 @@ class SkyWdg (Tkinter.Frame):
     def _setPotential(self, event):
         xyPix = (event.x, event.y)
         catObj = self.findNearestStar(xyPix, maxDistSq = 25.0)
-        if catObj != None:
+        if catObj is not None:
             self.userModel.potentialTarget.set(catObj)
             
             # note: evaluate when needed instead of at init
@@ -567,7 +567,7 @@ class SkyWdg (Tkinter.Frame):
     
     def _drawTelCurrent(self):
         self.cnv.delete(SkyWdg.TELCURRENT)
-        if self.telCurrent == None:
+        if self.telCurrent is None:
             return
 
         color = "red"
@@ -594,7 +594,7 @@ class SkyWdg (Tkinter.Frame):
 
     def _drawTelTarget(self):
         self.cnv.delete(SkyWdg.TELTARGET)
-        if self.telTarget == None:
+        if self.telTarget is None:
             return
 
         color = "red"
@@ -625,7 +625,7 @@ class SkyWdg (Tkinter.Frame):
     def _drawTelPotential(self):
 #       print "_drawTelPotential"
         self.cnv.delete(SkyWdg.TELPOTENTIAL)
-        if self.telPotential == None:
+        if self.telPotential is None:
             return
 
         color = "dark green"

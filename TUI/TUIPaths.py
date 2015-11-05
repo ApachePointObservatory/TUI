@@ -40,7 +40,7 @@ def getAddPaths(ifExists=True):
     # start with the application support directories
     # include TUI's root if unix (since it has no standard shared location)
     appSuppDirs = RO.OS.getAppSuppDirs()
-    addPathList = [dir for dir in appSuppDirs if dir != None]
+    addPathList = [dir for dir in appSuppDirs if dir is not None]
     if RO.OS.PlatformName == "unix":
         tuiRoot = os.path.dirname(os.path.dirname(RO.OS.getResourceDir(TUI)))
         addPathList.append(tuiRoot)
@@ -59,21 +59,21 @@ def getAddPaths(ifExists=True):
 
 def getGeomFile():
     prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
-    if prefsDir == None:
+    if prefsDir is None:
         raise RuntimeError("Cannot determine prefs dir")
     fileName = "%s%sGeom" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
     return os.path.join(prefsDir, fileName)
 
 def getPrefsFile():
     prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
-    if prefsDir == None:
+    if prefsDir is None:
         raise RuntimeError("Cannot determine prefs dir")
     fileName = "%s%sPrefs" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
     return os.path.join(prefsDir, fileName)
 
 def getUserPresetsFile():
     prefsDir = RO.OS.getPrefsDirs(inclNone=True)[0]
-    if prefsDir == None:
+    if prefsDir is None:
         raise RuntimeError("Cannot determine prefs dir")
     fileName = "%s%sUserPresets.json" % (RO.OS.getPrefsPrefix(), TUI.Version.ApplicationName)
     return os.path.join(prefsDir, fileName)

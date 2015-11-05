@@ -21,10 +21,10 @@ import TUI.TUIModel
 _Prefs = None
 _PlaySoundsPref = None
 def _playSound(name):
-    if name == None:
+    if name is None:
         return
     global _Prefs, _PlaySoundsPref
-    if _Prefs == None:
+    if _Prefs is None:
         _Prefs = TUI.TUIModel.getModel().prefs
         _PlaySoundsPref = _Prefs.getPrefVar("Play Sounds")
     if _PlaySoundsPref.getValue():

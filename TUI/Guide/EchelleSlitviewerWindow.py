@@ -199,7 +199,7 @@ class ECamFilterWdg(Tkinter.Frame):
         
         maxNameLen = 0
         for name in filtNames:
-            if name != None:
+            if name is not None:
                 maxNameLen = max(maxNameLen, len(name))
 
         self.currFilterWdg["width"] = maxNameLen

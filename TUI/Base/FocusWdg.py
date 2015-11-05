@@ -87,7 +87,7 @@ class FocusWdg(Tkinter.Frame):
         self.grid_columnconfigure(3, weight=1)
         
         # command buttons
-        if buttonFrame == None:
+        if buttonFrame is None:
             gridButtonFrame = True
             buttonFrame = Tkinter.Frame(self)
         else:
@@ -181,7 +181,7 @@ class FocusWdg(Tkinter.Frame):
     def doSet(self, btn=None):
         """Called by the Set... button to set a new focus value."""
         currFocus, isCurrent = self.currFocusWdg.get()
-        if isCurrent and currFocus != None:
+        if isCurrent and currFocus is not None:
             default = currFocus
         else:
             default = None
@@ -193,7 +193,7 @@ class FocusWdg(Tkinter.Frame):
         	formatStr = self.formatStr,
         	focusWidth = self.focusWidth,
         ).result
-        if newFocus == None:
+        if newFocus is None:
             return
         cmdVar = self.createFocusCmd(newFocus, isIncr=False)
         self.runFocusCmd(cmdVar)
@@ -249,7 +249,7 @@ class FocusSetDialog(RO.Wdg.ModalDialogBase):
     	- focusWidth: width of focus entry, in characters
     	"""
     	self.name = name
-    	if initValue == None:
+    	if initValue is None:
     		initValue = 0
         self.initValue = float(initValue)
         self.formatStr = formatStr

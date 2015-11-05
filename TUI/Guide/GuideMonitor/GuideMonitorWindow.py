@@ -123,7 +123,7 @@ class GuideMonitorWdg(Tkinter.Frame):
             return
         guideOffArcSecList = [pvt.getPos() * RO.PhysConst.ArcSecPerDeg for pvt in guideOffPVTList]
         currAlt = self.tccModel.axePos.getInd(1)[0]
-        if currAlt == None:
+        if currAlt is None:
             return
         azOffsetOnSky = guideOffArcSecList[0] * math.cos(currAlt * RO.PhysConst.RadPerDeg)
         

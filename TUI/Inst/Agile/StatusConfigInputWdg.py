@@ -261,14 +261,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     def _updCCDTemp(self, dataList, isCurrent, keyVar=None):
         #print "_updCCDTemp(dataList=%s, isCurrent=%s)" % (dataList, isCurrent)
         ccdTemp, tempStatus = dataList[0:2]
-        if ccdTemp == None:
+        if ccdTemp is None:
             stateStr = "?"
         else:
             stateStr = "%0.1f" % (ccdTemp,)
-        if tempStatus != None:
+        if tempStatus is not None:
             tempStatus = tempStatus.lower()
         dispStr, severity = self.ccdTempStateDict.get(tempStatus, (tempStatus, RO.Constants.sevWarning))
-        if dispStr != None:
+        if dispStr is not None:
             stateStr = "%s %s" % (stateStr, dispStr)
         self.ccdTempWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
         if not isCurrent or severity != RO.Constants.sevNormal:
@@ -279,14 +279,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     def _updCCDSetTemp(self, dataList, isCurrent, keyVar=None):
         #print "_updCCDSetTemp(dataList=%s, isCurrent=%s)" % (dataList, isCurrent)
         ccdSetTemp, tempStatus = dataList[0:2]
-        if ccdSetTemp == None:
+        if ccdSetTemp is None:
             stateStr = "?"
         else:
             stateStr = "%0.1f" % (ccdSetTemp,)
-        if tempStatus != None:
+        if tempStatus is not None:
             tempStatus = tempStatus.lower()
         dispStr, severity = self.ccdTempStateDict.get(tempStatus, (tempStatus, RO.Constants.sevWarning))
-        if dispStr != None:
+        if dispStr is not None:
             stateStr = "%s %s" % (stateStr, dispStr)
         self.ccdSetTempWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
         if not isCurrent or severity != RO.Constants.sevNormal:
@@ -298,7 +298,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         #print "_updCCDTempLimits(ccdTempLimits=%s, isCurrent=%s)" % (ccdTempLimits, isCurrent)
         for ind, wdg in enumerate(self.ccdTempLimitsWdgSet):
             tempLimit = ccdTempLimits[ind]
-            if tempLimit == None:
+            if tempLimit is None:
                 wdg.grid_remove()
             else:
                 tempLimit = abs(tempLimit)
@@ -311,7 +311,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         #print "_updFWStatus(fwStatus=%s, isCurrent=%s)" % (fwStatus, isCurrent)
         statusWord = fwStatus[2]
         motorSev = RO.Constants.sevWarning
-        if statusWord == None:
+        if statusWord is None:
             motorStr = "?"
         else:
             if statusWord & 0x0201 != 0:
@@ -343,14 +343,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         severity = RO.Constants.sevNormal
         if isRunning is False:
             severity = RO.Constants.sevError
-        elif (isRunning == None) or (server == "?") or (stratum == None):
+        elif (isRunning is None) or (server == "?") or (stratum is None):
             severity = RO.Constants.sevWarning
         isRunningStr = self.ntpRunningDict[isRunning]
-        if server == None:
+        if server is None:
             serverStr = "?"
         else:
             serverStr = server.split(".")[0]
-        if stratum != None:
+        if stratum is not None:
             stratumStr = stratum
         else:
             stratumStr = "?"

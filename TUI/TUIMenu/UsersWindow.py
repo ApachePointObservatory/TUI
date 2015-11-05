@@ -95,7 +95,7 @@ class User(object):
     def isConnected(self):
         """Return True if user is connected, False otherwise
         """
-        return self._disconnTime == None
+        return self._disconnTime is None
     
     @property
     def disconnTime(self):
@@ -247,7 +247,7 @@ class UsersWdg(Tkinter.Frame):
 
     def updUser(self, userInfo, isCurrent, keyVar=None):
         """User keyword callback; add user data to self.userDict"""
-        if (not isCurrent) or (userInfo == None):
+        if (not isCurrent) or (userInfo is None):
             return
 
         cmdr = userInfo[0]

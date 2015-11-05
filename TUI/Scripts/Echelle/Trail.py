@@ -145,7 +145,7 @@ class ScriptClass(object):
         numTrails = self.numTrailsWdg.getNumOrNone()
         trailRangeAS = self.trailRangeWdg.getNumOrNone()
 
-        if trailRangeAS != None:
+        if trailRangeAS is not None:
             self.trailRangePercentWdg.set(trailRangeAS * 100.0 / SlitLengthAS)
         else:
             self.trailRangePercentWdg.set(None, isCurrent = False)
@@ -202,7 +202,7 @@ class ScriptClass(object):
             
         # get basic exposure command
         expCmdPrefix = self.expWdg.getString(numExp = 1)
-        if expCmdPrefix == None:
+        if expCmdPrefix is None:
             raise sr.ScriptError("missing inputs")
         
         # get trail info and related info
@@ -333,7 +333,7 @@ class ScriptClass(object):
         Raise sr.ScriptError if the entry is blank.
         """
         val = wdg.getNumOrNone()
-        if val == None:
+        if val is None:
             raise self.ScriptError(errMsg)
         return val
             

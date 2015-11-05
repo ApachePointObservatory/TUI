@@ -474,10 +474,10 @@ class _BasePerms(object):
         """Cleanup
         """
         wdgSet = self._actorWdgDict.values() # all widgets to destroy
-        if self._nameSpacerWdg != None:
+        if self._nameSpacerWdg is not None:
             wdgSet.append(self._nameSpacerWdg)
         self._nameSpacerWdg = None
-        if self._nameWdg != None:
+        if self._nameWdg is not None:
             wdgSet.append(self._nameWdg)
         self._nameWdg = None
         self._actorWdgDict = RO.Alg.OrderedDict()

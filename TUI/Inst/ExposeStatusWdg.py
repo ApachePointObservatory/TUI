@@ -55,7 +55,7 @@ class ExposeStatusWdg (Tkinter.Frame):
         helpURL = None,
     **kargs):
         Tkinter.Frame.__init__(self, master, **kargs)
-        if helpURL == None:
+        if helpURL is None:
             helpURL = _HelpURL
 
         self.expModel = ExposeModel.getModel(instName)
@@ -232,7 +232,7 @@ class ExposeStatusWdg (Tkinter.Frame):
             self.expTimer.pack_forget()
             self.expTimer.clear()
         
-        if self.wasExposing != None \
+        if self.wasExposing is not None \
             and self.wasExposing != isExposing \
             and self.winfo_ismapped():
             # play the appropriate sound

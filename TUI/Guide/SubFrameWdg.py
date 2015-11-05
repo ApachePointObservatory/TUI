@@ -299,7 +299,7 @@ class SubFrameWdg(Tkinter.Frame, RO.AddCallback.BaseMixin, RO.Wdg.CtxMenuMixin):
                 subBeg, subSize = self.defSubFrame.getSubBegSize()
                 rectCoords = self.rectCoordsFromBegSize(subBeg, subSize)
                 self.cnv.coords(self.defRectID, *rectCoords)
-            elif self.defRectID != None:
+            elif self.defRectID is not None:
                 raise RuntimeError("have defRectID but no defSubFrame")
             
             # set current rectangle

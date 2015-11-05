@@ -90,7 +90,7 @@ class DevStateWdg(RO.Wdg.Label):
 
         if self.patternDict:
             statusStrSev = self.patternDict.get(tuple(devState.astype(numpy.bool)))
-            if statusStrSev != None:
+            if statusStrSev is not None:
                 return statusStrSev
             
         if all(devState):
@@ -139,12 +139,12 @@ class EyelidsStateWdg(DevStateWdg):
         
         # indicate whether the eyelid at the current port is open
         currPortName, isCurrent = self.tertRot.getInd(0)
-        if currPortName != None:
+        if currPortName is not None:
             currPortName = currPortName.upper()
-        if currPortName == None:
+        if currPortName is None:
             return ("Some " + self.catInfo.stateNames[1], RO.Constants.sevNormal)
         devInd = self.catInfo.devIndDict.get(currPortName.upper())
-        if devInd == None:
+        if devInd is None:
             return ("Some " + self.catInfo.stateNames[1], RO.Constants.sevWarning)
         if devState[devInd]:
             return ("%s Open" % (currPortName,), RO.Constants.sevNormal)
@@ -488,7 +488,7 @@ class StatusCommandWdg (Tkinter.Frame):
         and sets up a callback that will re-enable it when done
         """
         wdg.setEnable(False)
-        if cmdCallback == None:
+        if cmdCallback is None:
             cmdCallback = self.cmdDone
         cmdVar = RO.KeyVariable.CmdVar(
             actor = self.model.actor,
@@ -630,7 +630,7 @@ class StatusCommandWdg (Tkinter.Frame):
     def updateCovers(self, value, isCurrent, keyVar=None):
         """Handle covers keyword data"""
 #         print "updateCovers(value=%r, isCurrent=%r)" % (value, isCurrent)
-        if value == None:
+        if value is None:
             severity = RO.Constants.sevWarning
             strValue = "?"
         else:
@@ -646,7 +646,7 @@ class StatusCommandWdg (Tkinter.Frame):
     
     def updateTertRot(self, value, isCurrent, keyVar=None):
         """Handle tertRot keyword data"""
-        if value == None or value.lower() == "home":
+        if value is None or value.lower() == "home":
             severity = RO.Constants.sevWarning
         else:
             severity = RO.Constants.sevNormal

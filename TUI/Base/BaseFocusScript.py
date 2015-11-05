@@ -166,7 +166,7 @@ def formatNum(val, fmt="%0.1f"):
     """Convert a number into a string
     None is returned as NaN
     """
-    if val == None:
+    if val is None:
         return "NaN"
     try:
         return fmt % (val,)
@@ -179,11 +179,11 @@ class Extremes(object):
     def __init__(self, val=None):
         self.minVal = None
         self.maxVal = None
-        if val != None:
+        if val is not None:
             self.addVal(val)
         
     def addVal(self, val):
-        if val == None:
+        if val is None:
             return
         if self.isOK():
             self.minVal = min(self.minVal, val)
@@ -193,7 +193,7 @@ class Extremes(object):
             self.maxVal = val
     
     def isOK(self):
-        return self.minVal != None
+        return self.minVal is not None
     
     def __eq__(self, other):
         return (self.minVal == other.minVal) and (self.maxVal == other.maxVal)
@@ -311,7 +311,7 @@ class BaseFocusScript(object):
         self.instName = instName
         self.tccInstPrefix = tccInstPrefix or self.instName
         self.imageViewerTLName = imageViewerTLName
-        if defBinFactor == None:
+        if defBinFactor is None:
             self.defBinFactor = None
             self.binFactor = 1
             self.dispBinFactor = 1
@@ -381,7 +381,7 @@ class BaseFocusScript(object):
             helpText = "Bin factor (for rows and columns)",
             helpURL = self.helpURL,
         )
-        if self.defBinFactor != None:
+        if self.defBinFactor is not None:
             self.gr.gridWdg(self.binFactorWdg.label, self.binFactorWdg)
 
         self.starPosWdgSet = []
@@ -521,7 +521,7 @@ class BaseFocusScript(object):
             helpText = "Update focus, expose and find best star",
             helpURL = self.helpURL,
         )
-        if self.maxFindAmpl != None:
+        if self.maxFindAmpl is not None:
             self.findBtn.pack(side="left")
         self.measureBtn = RO.Wdg.Button(
             master = cmdBtnFrame,
@@ -593,7 +593,7 @@ class BaseFocusScript(object):
             
             doAskWait = False
     
-            if self.focPosToRestore != None:
+            if self.focPosToRestore is not None:
                 tccCmdStr = "set focus=%0.0f" % (self.focPosToRestore,)
                 self.logWdg.addMsg("Setting focus to %0.0f %s" % (self.focPosToRestore, MicronStr))
                 doAskWait = True
@@ -630,7 +630,7 @@ class BaseFocusScript(object):
         """
         #print "defBinFactor=%r, binFactor=%r" % (self.defBinFactor, self.binFactor)
         binFactor = self.getBinFactor(isFinal=isFinal)
-        if binFactor == None:
+        if binFactor is None:
             return ""
         return "bin=%d" % (binFactor,)
     
@@ -671,10 +671,10 @@ class BaseFocusScript(object):
         Inputs:
         - isFinal: if True then return parameters for final exposure
         """
-        if self.defBinFactor == None:
+        if self.defBinFactor is None:
             return None
 
-        if isFinal and self.finalBinFactor != None:
+        if isFinal and self.finalBinFactor is not None:
             return self.finalBinFactor
         return self.binFactor
 
@@ -714,7 +714,7 @@ class BaseFocusScript(object):
         """Return the numeric value of a widget, or raise ScriptError if blank.
         """
         numVal = wdg.getNumOrNone()
-        if numVal != None:
+        if numVal is not None:
             return numVal
         raise self.sr.ScriptError(wdg.label + " not specified")
 
@@ -784,12 +784,12 @@ class BaseFocusScript(object):
     def isFinalExposureWanted(self):
         """Return True if a final exposure is wanted, else False
         """
-        return self.doTakeFinalImage and (self.doWindow or self.doRestoreBoresight() or self.finalBinFactor != None)
+        return self.doTakeFinalImage and (self.doWindow or self.doRestoreBoresight() or self.finalBinFactor is not None)
     
     def logFitFWHM(self, name, focPos, fwhm):
         """Log a fit value of FWHM or FWHM error.
         """
-        if fwhm != None:
+        if fwhm is not None:
             fwhmArcSec = fwhm * self.arcsecPerPixel * self.binFactor
         else:
             fwhmArcSec = None
@@ -815,7 +815,7 @@ class BaseFocusScript(object):
         If fwhm is None, it is reported as NaN.
         """
         fwhm = starMeas.fwhm
-        if fwhm != None:
+        if fwhm is not None:
             fwhmArcSec = fwhm * self.arcsecPerPixel * self.binFactor
         else:
             fwhmArcSec = None
@@ -909,7 +909,7 @@ class BaseFocusScript(object):
             )
             
             # command loop; repeat until error or user explicitly presses Stop
-            if self.maxFindAmpl == None:
+            if self.maxFindAmpl is None:
                 btnStr = "Measure or Sweep"
             else:
                 btnStr = "Find, Measure or Sweep"
@@ -929,14 +929,14 @@ class BaseFocusScript(object):
                  
                 if testNum == 0:
                     self.clearGraph()
-                    if self.maxFindAmpl == None:
+                    if self.maxFindAmpl is None:
                         self.logWdg.addMsg("===== Measure =====")
                     else:
                         self.logWdg.addMsg("===== Find/Measure =====")
                    
                 testNum += 1
                 focPos = float(self.centerFocPosWdg.get())
-                if focPos == None:
+                if focPos is None:
                     raise self.sr.ScriptError("must specify center focus")
                 yield self.waitSetFocus(focPos, False)
     
@@ -949,7 +949,7 @@ class BaseFocusScript(object):
                     self.recordUserParams(doStarPos=False)
                     yield self.waitFindStar()
                     starData = self.sr.value
-                    if starData.xyPos != None:
+                    if starData.xyPos is not None:
                         self.sr.showMsg("Found star at %0.1f, %0.1f" % tuple(starData.xyPos))
                         self.setStarPos(starData.xyPos)
                 else:
@@ -958,7 +958,7 @@ class BaseFocusScript(object):
                 starMeas = self.sr.value
                 self.logStarMeas("%s %d" % (cmdName, testNum,), focPos, starMeas)
                 fwhm = starMeas.fwhm
-                if fwhm == None:
+                if fwhm is None:
                     waitMsg = "No star found! Fix and then press %s" % (btnStr,)
                     self.setGraphRange(extremeFocPos=extremeFocPos)
                 else:
@@ -981,7 +981,7 @@ class BaseFocusScript(object):
         """Set center focus to current focus.
         """
         currFocus = self.sr.getKeyVar(self.tccModel.secFocus, defVal=None)
-        if currFocus == None:
+        if currFocus is None:
             self.sr.showMsg("Current focus not known",
                 severity=RO.Constants.sevWarning,
             )
@@ -1102,7 +1102,7 @@ class BaseFocusScript(object):
         Sets self.sr.value to StarMeas.
         Displays a warning if no star found.
         """
-        if self.maxFindAmpl == None:
+        if self.maxFindAmpl is None:
             raise RuntimeError("Find disabled; maxFindAmpl=None")
 
         self.sr.showMsg("Exposing %s sec to find best star" % (self.expTime,))
@@ -1147,13 +1147,13 @@ class BaseFocusScript(object):
             (e.g. concatenate items 2:4 of the guider Files keyword)
         - starDataList: list of star keyword data
         """
-        if self.maxFindAmpl == None:
+        if self.maxFindAmpl is None:
             raise RuntimeError("Find disabled; maxFindAmpl=None")
         
         for starData in starDataList:
             starXYPos = starData[2:4]
             starAmpl = starData[14]
-            if (starAmpl == None) or (starAmpl > self.maxFindAmpl):
+            if (starAmpl is None) or (starAmpl > self.maxFindAmpl):
                 continue
                 
             self.sr.showMsg("Centroiding star at %0.1f, %0.1f" % tuple(starXYPos))
@@ -1223,7 +1223,7 @@ class BaseFocusScript(object):
     
                 self.logStarMeas("Sw %d" % (focInd+1,), focPos, starMeas)
                 
-                if starMeas.fwhm != None:
+                if starMeas.fwhm is not None:
                     focPosFWHMList.append((focPos, starMeas.fwhm))
                     self.graphFocusMeas(focPosFWHMList, extremeFWHM=extremeFWHM)
             
@@ -1254,7 +1254,7 @@ class BaseFocusScript(object):
             self.logFitFWHM("Fit", bestEstFocPos, bestEstFWHM)
     
             # compute and log standard deviation, if possible
-            if fwhmSigma != None:
+            if fwhmSigma is not None:
                 focSigma = math.sqrt(fwhmSigma / coeffs[2])
                 self.logFitFWHM(u"Fit \N{GREEK SMALL LETTER SIGMA}", focSigma, fwhmSigma)
             else:
@@ -1269,7 +1269,7 @@ class BaseFocusScript(object):
             self.setGraphRange(extremeFocPos=extremeFocPos, extremeFWHM=extremeFWHM)
     
             # check fit error
-            if focSigma != None:
+            if focSigma is not None:
                 maxFocSigma = self.MaxFocSigmaFac * focusRange
                 if focSigma > maxFocSigma:
                     raise self.sr.ScriptError("focus std. dev. too large: %0.0f > %0.0f" % (focSigma, maxFocSigma))
@@ -1296,7 +1296,7 @@ class BaseFocusScript(object):
             self.logStarMeas("Meas", bestEstFocPos, finalStarMeas)
             
             finalFWHM = finalStarMeas.fwhm
-            if finalFWHM != None:
+            if finalFWHM is not None:
                 self.plotAxis.plot([bestEstFocPos], [finalFWHM], 'ro')
                 self.setGraphRange(extremeFocPos=extremeFocPos, extremeFWHM=extremeFWHM)
             else:
@@ -1310,7 +1310,7 @@ class BaseFocusScript(object):
             scriptException = e
             self.logWdg.addMsg(str(e), severity=RO.Constants.sevError)
 
-        if self.focPosToRestore != None:
+        if self.focPosToRestore is not None:
             focPosToRestore, self.focPosToRestore = self.focPosToRestore, None
             self.logWdg.addMsg("Setting focus to %0.0f %s" % (focPosToRestore, MicronStr))
             yield self.waitSetFocus(focPosToRestore)
@@ -1438,7 +1438,7 @@ class SlitviewerFocusScript(BaseFocusScript):
         """
         self.boreNameWdgSet = []
         for ii in range(2):
-            showWdg = (self.defBoreXY[ii] != None)
+            showWdg = (self.defBoreXY[ii] is not None)
             if showWdg:
                 defVal = float(self.defBoreXY[ii])
             else:
@@ -1476,7 +1476,7 @@ class SlitviewerFocusScript(BaseFocusScript):
         cmdStr = "offset boresight %0.7f, %0.7f/pabs/computed" % (boreXYDeg[0], boreXYDeg[1])
 
         # save the initial boresight position, if not already done
-        if self.begBoreXYDeg == None:
+        if self.begBoreXYDeg is None:
             begBorePVTs = self.sr.getKeyVar(self.tccModel.boresight, ind=None)
             if not self.sr.debug:
                 begBoreXYDeg = [pvt.getPos() for pvt in begBorePVTs]
@@ -1670,7 +1670,7 @@ class ImagerFocusScript(BaseFocusScript):
         - isFinal: if True then return parameters for final exposure
         """
         binFactor = self.getBinFactor(isFinal=isFinal)
-        if binFactor == None:
+        if binFactor is None:
             return ""
         return "bin=%d,%d" % (binFactor, binFactor)
 

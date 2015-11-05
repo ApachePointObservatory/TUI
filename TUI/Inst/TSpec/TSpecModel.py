@@ -24,7 +24,7 @@ _theModel = None
 
 def getModel():
     global _theModel
-    if _theModel == None:
+    if _theModel is None:
         _theModel = _Model()
     return _theModel
 

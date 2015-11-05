@@ -86,7 +86,7 @@ def addDataFiles(dataFiles, fromDir, toSubDir=None, inclHiddenDirs=False):
     if not os.path.isdir(fromDir):
         raise RuntimeError("Cannot find directory %r" % (fromDir,))
     lenFromDir = len(fromDir)
-    if toSubDir == None:
+    if toSubDir is None:
         toSubDir = os.path.split(fromDir)[1]
     for (dirPath, dirNames, fileNames) in os.walk(fromDir):
         if not inclHiddenDirs:

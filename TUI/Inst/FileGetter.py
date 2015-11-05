@@ -65,7 +65,7 @@ class FileGetter (object):
         
         # display image if display wanted and camera name known and download succeeded
 #         print "viewImageVarCont=%r" % (self.exposeModel.viewImageVarCont.get())
-        if self.exposeModel.viewImageVarCont.get() and (camName != None) and (httpGet.state == httpGet.Done):
+        if self.exposeModel.viewImageVarCont.get() and (camName is not None) and (httpGet.state == httpGet.Done):
             ds9Win = self.ds9WinDict.get(camName)
             try:
                 if not ds9Win:
@@ -142,7 +142,7 @@ class FileGetter (object):
             
             camName = RO.SeqUtil.get(self.exposeModel.instInfo.camNames, ii)
             doneFunc = RO.Alg.GenericCallback(self._downloadFinished, camName)
-            if camName == None:
+            if camName is None:
                 self.tuiModel.logMsg(
                     "More files than known cameras for image %s" % fileName,
                     severity = RO.Constants.sevWarning,

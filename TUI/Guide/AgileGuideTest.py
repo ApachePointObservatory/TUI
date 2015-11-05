@@ -290,7 +290,7 @@ class TestGuiderWdg(Tkinter.Frame):
         else:
             cmdr = self.tuiModel.getCmdr()
 
-        if cmdID == None:
+        if cmdID is None:
             if self.guideWdg.pendingCmd:
                 cmdID = self.guideWdg.pendingCmd.cmdID or 0
             else:

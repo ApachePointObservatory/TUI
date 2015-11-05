@@ -44,7 +44,7 @@ class SubFrame(object):
     def __eq__(self, sf):
         """Test equality with another SubFrame object
         """
-        if sf == None:
+        if sf is None:
             return False
 
         return numpy.all(self.fullSize == sf.fullSize) \
@@ -137,7 +137,7 @@ class SubFrame(object):
         - binFac: x,y bin factor (if a single value, used for x and y)
         - sf: the subframe being compared
         """
-        if sf == None:
+        if sf is None:
             return False
 
         binFac = binFacAsArr(binFac)

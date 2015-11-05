@@ -307,7 +307,7 @@ class AxisStatusWdg(Tkinter.Frame):
 
         ctrlStatusWdg = self.ctrlStatusWdgSet[axis]
 
-        if statusWord != None:
+        if statusWord is not None:
             infoList = RO.BitDescr.getDescr(_BitInfo, statusWord)
             
             # for now simply show the first status;

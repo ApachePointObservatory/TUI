@@ -204,14 +204,14 @@ class ScriptClass(object):
         # get it now so that it will not change if the user messes
         # with the controls while the script is running
         numExpPerNode = self.expWdg.numExpWdg.getNumOrNone()
-        if numExpPerNode == None:
+        if numExpPerNode is None:
             raise sr.ScriptError("must specify #Exp")
 
         nodeNames = ("A1", "B1", "B2", "A2")
         numNodes = len(nodeNames)
         totNumExp = numCycles * numNodes * numExpPerNode
         expCmdPrefix = self.expWdg.getString(totNum = totNumExp)
-        if expCmdPrefix == None:
+        if expCmdPrefix is None:
             raise sr.ScriptError("missing inputs")
         
         NodeOffsetDict = dict (

@@ -649,7 +649,7 @@ class TUILogWdg(Tkinter.Frame):
                 return (logEntry.cmdr == cmdr) \
                     and (logEntry.severity > RO.Constants.sevDebug) \
                     and not logEntry.isKeys \
-                    and ((logEntry.cmdInfo == None) or (logEntry.cmdInfo.isMine))
+                    and ((logEntry.cmdInfo is None) or (logEntry.cmdInfo.isMine))
             filterFunc.__doc__ = "my commands and replies"
             return filterFunc
 

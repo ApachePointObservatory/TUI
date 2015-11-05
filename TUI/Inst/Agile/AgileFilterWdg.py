@@ -140,7 +140,7 @@ class AgileFilterWdg(object):
     def updCurrFilter(self, currFiltInfo, isCurrent, keyVar=None):
         #print "updCurrFilter(currFiltInfo = %s, isCurrent = %s)" % (currFiltInfo, isCurrent)
         slotNum, slotName, slidePos, slideName, focusOffset = currFiltInfo[0:5]
-        if slotNum == None:
+        if slotNum is None:
             wheelEntry = None
             slotIsCurr = False
         else:
@@ -176,7 +176,7 @@ def formatFilterEntry(slotNum, filterName):
     - slotNum: slot number; must be an integer
     - filterName: name of filter in this slot
     """
-    if slotNum == None:
+    if slotNum is None:
         raise ValueError("Invalid slotNum=%s; must be an integer" % (slotNum,))
     if filterName in ("?", None):
         return "%d: ?" % (slotNum,)

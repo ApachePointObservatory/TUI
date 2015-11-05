@@ -46,7 +46,7 @@ _theModel = None
 
 def getModel():
     global _theModel
-    if _theModel == None:
+    if _theModel is None:
         _theModel = _Model()
     return _theModel
 
@@ -131,7 +131,7 @@ class CatInfo(RO.AddCallback.BaseMixin):
     def _updateDevState(self, value, isCurrent, keyVar):
         """Update devState"""
         ind = self.devIndDict[keyVar.keyword]
-        if value == None:
+        if value is None:
             value = numpy.nan
         self.devState[ind] = value
         self.devIsCurrent[ind] = isCurrent

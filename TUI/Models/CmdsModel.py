@@ -82,7 +82,7 @@ class _Model (object):
         .hub 0 cmds i NewCmd=21619; CmdTime=1311803002.81; Cmdr="TU02.ROwen"; CmdrMID=1001;
             CmdrCID="TU02.ROwen"; CmdActor="keys"; CmdText="..."
         """
-        if data[0] == None:
+        if data[0] is None:
             return
         if not keyVar:
             return

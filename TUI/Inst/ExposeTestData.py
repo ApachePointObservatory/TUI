@@ -60,7 +60,7 @@ MainMsgDict = {"data":MainDataSet}.update(BaseMsgDict)
 
 def dispatch(dataSet=None):
     """Dispatch a set of data, i.e. a list of keyword, value tuples"""
-    if dataSet == None:
+    if dataSet is None:
         dataSet = MainDataSet
     print "Dispatching data:", dataSet
     msgDict = {"data":dataSet}
@@ -68,7 +68,7 @@ def dispatch(dataSet=None):
     dispatcher.dispatch(msgDict)
     
 def animate(dataIter=None):
-    if dataIter == None:
+    if dataIter is None:
         dataIter = iter(AnimDataSet)
     try:
         data = next(dataIter)

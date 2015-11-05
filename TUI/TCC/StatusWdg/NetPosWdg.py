@@ -158,7 +158,7 @@ class NetPosWdg (Tkinter.Frame):
         """
         # print "TUI.TCC.StatusWdg.NetPosWdg._objSysChanged%r" % ((csysObjAndDate, isCurrent),)
         csysObj, csysDate = csysObjAndDate
-        dateValid = csysDate != None
+        dateValid = csysDate is not None
                 
         if csysObj.dateIsYears():
             if not dateValid:
