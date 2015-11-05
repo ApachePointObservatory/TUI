@@ -58,6 +58,7 @@ Warning: the config stuff will probably be modified.
                     output by focus actors, but it's more consistent to leave it in with a null value.
 2012-08-10 ROwen    Updated for RO.Comm 3.0.
 2015-06-01 ROwen    Updated for new dcam, which has size 1024x1024 instead of 512x512.
+2015-11-05 ROwen    Changed ==/!= True/False to is/is not True/False to modernize the code.
 """
 __all__ = ['getModel']
 
@@ -376,11 +377,11 @@ additional fields may be used for components of star quality
         gsLower = guideState.lower()
 
         if gsLower in ("starting", "on"):
-            if self._isGuiding != True:
+            if self._isGuiding is not True:
                 TUI.PlaySound.guidingBegins()
             self._isGuiding = True
         elif gsLower == "stopping":
-            if self._isGuiding != False:
+            if self._isGuiding is not False:
                 TUI.PlaySound.guidingEnds()
             self._isGuiding = False
     

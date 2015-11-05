@@ -33,7 +33,7 @@ History:
 2010-03-01 ROwen    Made master argument explicit for all RO Widgets.
 2011-01-19 ROwen    Play exposureFailed sound cue if exposure sequence fails.
 2011-07-21 ROwen    Renamed _updFiles to _updNewFiles for clarity.
-
+2015-11-05 ROwen    Changed ==/!= True/False to is/is not True/False to modernize the code.
 """
 __all__ = ["ExposeStatusWdg"]
 
@@ -193,7 +193,7 @@ class ExposeStatusWdg (Tkinter.Frame):
         else:
             errState = RO.Constants.sevNormal
         self.expStateWdg.set(expStateStr, severity = errState)
-        isNewFailure = isFailed and (self.wasFailed != True)
+        isNewFailure = isFailed and (self.wasFailed is not True)
 
         isExposing = lowState in ("integrating", "resume")
         

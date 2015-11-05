@@ -25,6 +25,8 @@ History:
                     Modified for updated TestData.
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
 2012-11-14 ROwen    Update help text for show/hide controls for checkbuttons with indicatoron.
+2015-11-05 ROwen    Changed ==/!= True/False to is/is not True/False to modernize the code.
+                    Removed some unused variables.
 """
 import Tkinter
 import RO.Constants
@@ -329,7 +331,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.environStateSet.setState(StFWMotor, severity=motorSev, stateStr=motorStr)
         
     def _updGPSSynced(self, dataList, isCurrent, keyVar=None):
-        gpsSynced = dataList[0]
         severity, stateStr = self.gpsSyncedDict[dataList[0]]
         self.gpsSyncedWdg.set(stateStr, isCurrent=isCurrent, severity=severity)
         if severity == RO.Constants.sevNormal and isCurrent:
@@ -340,7 +341,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
     def _updNTPStatus(self, dataList, isCurrent, keyVar=None):
         isRunning, server, stratum = dataList[0:3]
         severity = RO.Constants.sevNormal
-        if isRunning == False:
+        if isRunning is False:
             severity = RO.Constants.sevError
         elif (isRunning == None) or (server == "?") or (stratum == None):
             severity = RO.Constants.sevWarning
@@ -378,7 +379,6 @@ def parseConnState(connState):
     Return: stateStr (suitably modified), severity
     """
     stateStr = connState[0]
-    descrStr = connState[1]
     if not stateStr:
         stateStr = "?"
     isConnected = stateStr.lower() == "connected"
