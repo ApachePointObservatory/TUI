@@ -67,6 +67,7 @@ History:
 2012-11-13 ROwen    Stop using Checkbutton indicatoron=False because it is no longer supported on MacOS X.
                     Cosmetic changes to make more similar to STUI's version (for easier diff).
 2012-11-29 ROwen    Fix spelling of Run_Commands (the s was missing).
+2015-11-05 ROwen    Ditched obsolete "except (SystemExit, KeyboardInterrupt): raise" code
 """
 import bisect
 import re
@@ -553,8 +554,6 @@ class TUILogWdg(Tkinter.Frame):
         """
         try:
             return re.compile(regExp, flags)
-        except (KeyboardInterrupt, SystemExit):
-            raise
         except Exception:
             self.statusBar.setMsg(
                 "%r is not a valid regular expression" % (regExp,),
