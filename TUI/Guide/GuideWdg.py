@@ -248,6 +248,7 @@ History:
 2015-11-02 ROwen    Correct computation of boreXY (was adding 0.5 instead of subtracting it).
                     Switch from numpy.alltrue to numpy.all.
                     Simplify some use of numpy and specify data types where ambiguous.
+2015-11-05 ROwen    Fix a numpy warning when dealing with boresight.
 """
 import atexit
 import os
@@ -2199,10 +2200,10 @@ class GuideWdg(Tkinter.Frame):
                     self.showStar(starData)
             
             if self.guideModel.gcamInfo.isSlitViewer and imHdr:
-                boreXYFITS = numpy.array((imHdr.get("CRPIX1"), imHdr.get("CRPIX2")), dtype=float)
+                boreXYFITS = imHdr.get("CRPIX1"), imHdr.get("CRPIX2")
                 if None not in boreXYFITS:
                     # boresight position known; display it
-                    self.boreXY = boreXYFITS - 0.5
+                    self.boreXY = numpy.subtract(boreXYFITS, 0.5, dtype=float)
                     boreColor = self.boreColorPref.getValue()
                     self.gim.addAnnotation(
                         GImDisp.ann_Plus,
