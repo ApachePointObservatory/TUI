@@ -4,6 +4,7 @@
 History:
 2015-07-31 CS       Created
 2015-10-20 ROwen    Added filterState and switched to currFilter, cmdFilter.
+2016-01-25 CS       Altered maxCoord to always return an even number (for 3x3 binning w/ quad)
 """
 import RO.CnvUtil
 import RO.Wdg
@@ -145,7 +146,6 @@ class _Model (object):
         self.ccdUBWindow.addCallback(self._updCCDWindow)
 
 
-
     def _updCCDWindow(self, *args, **kargs):
         """Updated ccdWindow.
 
@@ -183,10 +183,12 @@ class _Model (object):
         binXYXY = binFac * 2
 
         # compute value ignoring limits
+        # Compute a binned width
+
         binnedCoords = [1 + ((unbinnedCoords[ind] - 1) // int(binXYXY[ind]))
             for ind in range(len(unbinnedCoords))]
-
         # apply limits
+
         minBinXYXY = self.minCoord(binFac)*2
         maxBinXYXY = self.maxCoord(binFac)*2
         binnedCoords = [min(max(binnedCoords[ind], minBinXYXY[ind]), maxBinXYXY[ind])
@@ -234,8 +236,12 @@ class _Model (object):
     def maxCoord(self, binFac=(1,1)):
         """Returns the maximum binned CCD coordinate, given a bin factor.
         """
+        # The value is even for both amplifiers, even if only using single readout,
+        # just to keep the system more predictable. The result is that the full image size
+        # is the same for 3x3 binning regardless of whether you read one amp or four,
+        # and as a result you lose one row and one column when you read one amp.
         assert len(binFac) == 2, "binFac must have 2 elements; binFac = %r" % binFac
-        return [(4096, 4096)[ind] // int(binFac[ind]) for ind in range(2)]
+        return [(4096, 4096)[ind] // int(2 * binFac[ind]) * 2 for ind in range(2)]
 
     def minCoord(self, binFac=(1,1)):
         """Returns the minimum binned CCD coordinate, given a bin factor.

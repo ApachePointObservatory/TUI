@@ -3,6 +3,7 @@
 
 History:
 2015-07-31 CS       Created
+2016-01-25 CS       Use statusBar.doCmd instead of script runner for config
 """
 import RO.Alg
 import TUI.Inst.ExposeWdg
@@ -38,16 +39,22 @@ class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):
             master = master,
             statusConfigInputClass = StatusConfigInputWdg.StatusConfigInputWdg,
         )
+        self.inputWdg.statusBar = self.statusBar
 
     def _runConfig(self, sr):
         strList = self.inputWdg.getStringList()
         if not strList:
             return
         cmdStr = "set %s" % (" ".join(strList))
-        yield sr.waitCmd(
-            actor = self.getActorForCommand(cmdStr),
+        cmdVar = RO.KeyVariable.CmdVar (
+            actor = "arctic",
             cmdStr = cmdStr,
         )
+        self.statusBar.doCmd(cmdVar)
+        # yield sr.waitCmd(
+        #     actor = self.getActorForCommand(cmdStr),
+        #     cmdStr = cmdStr,
+        # )
 
 
 if __name__ == "__main__":

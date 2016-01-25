@@ -7,6 +7,7 @@ History:
                     with a countdown timer, and switched to keywords currFilter, cmdFilter.
 2015-10-21 ROwen    Display filter state in filter name area and remove the countdown timer.
 2015-10-29 ROwen    Improve display when a filter wheel move ends with cmdFilter != filterName.
+2016-01-25 CS       Add Full Frame button.
 """
 import Tkinter
 import RO.Constants
@@ -112,6 +113,17 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             colSpan = 3,
         )
 
+        self.fullFrameButton = RO.Wdg.Button(
+            master = self,
+            text = "Set Full Frame",
+            command = self._setFullFrame,
+            helpText = "set ccd window to full frame",
+            helpURL = self.HelpPrefix + "Set Full Frame",
+        )
+        gr.gridWdg(
+            label = "Set Full Frame",
+            dataWdg = self.fullFrameButton,
+        )
 
         # readout rate
         readoutRateNameCurrWdg = RO.Wdg.StrLabel(
@@ -370,6 +382,13 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         def repaint(evt):
             self.restoreDefault()
         self.bind("<Map>", repaint)
+
+    def _setFullFrame(self, *args, **kwargs):
+        cmdVar = RO.KeyVariable.CmdVar (
+            actor = "arctic",
+            cmdStr = "set window=full",
+        )
+        self.statusBar.doCmd(cmdVar)
 
     def _saveCCDUBWindow(self):
         """Save user ccd window in unbinned pixels.
