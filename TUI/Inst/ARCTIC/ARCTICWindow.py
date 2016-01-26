@@ -39,22 +39,20 @@ class StatusConfigWdg(TUI.Inst.StatusConfigWdg.StatusConfigWdg):
             master = master,
             statusConfigInputClass = StatusConfigInputWdg.StatusConfigInputWdg,
         )
-        self.inputWdg.statusBar = self.statusBar
 
     def _runConfig(self, sr):
         strList = self.inputWdg.getStringList()
         if not strList:
             return
         cmdStr = "set %s" % (" ".join(strList))
+        if "amp=quad" in cmdStr.lower() and "window" not in cmdStr.lower():
+            # explicitly add a full window
+            cmdStr += " window=full"
         cmdVar = RO.KeyVariable.CmdVar (
             actor = "arctic",
             cmdStr = cmdStr,
         )
         self.statusBar.doCmd(cmdVar)
-        # yield sr.waitCmd(
-        #     actor = self.getActorForCommand(cmdStr),
-        #     cmdStr = cmdStr,
-        # )
 
 
 if __name__ == "__main__":
