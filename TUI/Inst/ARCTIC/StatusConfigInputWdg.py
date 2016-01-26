@@ -113,18 +113,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             colSpan = 3,
         )
 
-        self.fullFrameButton = RO.Wdg.Button(
-            master = self,
-            text = "Set Full Frame",
-            command = self._setFullFrame,
-            helpText = "set ccd window to full frame",
-            helpURL = self.HelpPrefix + "Set Full Frame",
-        )
-        gr.gridWdg(
-            label = "Set Full Frame",
-            dataWdg = self.fullFrameButton,
-        )
-
         # readout rate
         readoutRateNameCurrWdg = RO.Wdg.StrLabel(
             master = self,
@@ -174,6 +162,21 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             label = self.showCCDWdg,
         )
 
+        self.fullFrameButton = RO.Wdg.Button(
+            master = self,
+            text = "Set Full Frame",
+            command = self._setFullFrame,
+            helpText = "set ccd window to full frame",
+            helpURL = self.HelpPrefix + "Set Full Frame",
+        )
+        gr.gridWdg(
+            cfgWdg = self.fullFrameButton,
+            cat = self.CCDCat,
+            row = -1,
+            sticky = "e",
+            colSpan = 2,
+        )
+
         # grid ccd labels; these show/hide along with all other CCD data
         axisLabels = ("x", "y")
         ccdLabelDict = {}
@@ -190,7 +193,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             cfgWdg = ccdLabelDict["cfg"],
             sticky = "e",
             cat = self.CCDCat,
-            row = -1,
+#            row = -1,
         )
 
         ccdBinCurrWdgSet = [RO.Wdg.IntLabel(self,
@@ -384,11 +387,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.bind("<Map>", repaint)
 
     def _setFullFrame(self, *args, **kwargs):
-        cmdVar = RO.KeyVariable.CmdVar (
-            actor = "arctic",
-            cmdStr = "set window=full",
-        )
-        self.statusBar.doCmd(cmdVar)
+        currBinList = [wdg.getNum() for wdg in self.ccdBinUserWdgSet]
+        maxCoordList = self.model.maxCoord(binFac=currBinList)
+        for i in range(2):
+            self.ccdWindowUserWdgSet[i].set(1)
+            self.ccdWindowUserWdgSet[i+2].set(maxCoordList[i])
 
     def _saveCCDUBWindow(self):
         """Save user ccd window in unbinned pixels.
@@ -429,6 +432,8 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         allowSubWin = userAmpName.lower() != "quad"
         for ind in range(4):
             self.ccdWindowUserWdgSet[ind].setEnable(allowSubWin)
+        if not allowSubWin:
+            self._setFullFrame()
 
     def _userBinChanged(self, *args, **kargs):
         """User bin factor changed.
