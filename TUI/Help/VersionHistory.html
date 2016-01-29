@@ -15,6 +15,15 @@
 	<li>Windows: works with Windows 7 and Vista. Thanks to Joseph Huehnerhoff for producing the Windows builds.
 </ul>
 
+<h3>2.5.1 2016-01-29</h3>
+
+<p>Visible changes:
+<ul>
+    <li>Added "Set Full Frame" button alongside ARCTIC window panel.
+    <li>Selecting "Quad" amp readout automatically updates the CCD Window to full frame.
+    <li>Binning by 3 results in even rows/columns.  This allows for image size to remain consistent whether reading from one amp or 4.
+</ul>
+
 <h3>2.5.0 2015-11-10</h3>
 
 <p>Visible changes:
@@ -273,7 +282,7 @@
         <li>Modified Hold/Current and history behavior to reduce confusion between user-chosen FITS files and images received from the guider:
         <ul>
             <li>Current always shows an image from the guider, if one is available, else nothing. Formerly if you used Choose... to view a FITS file and you had never received any images from the guider, then the image you were viewing would stay up when you pressed Current.
-            <li>The image history is reserved for images received from the guider. Images viewed using Choose... are not added to the image history. 
+            <li>The image history is reserved for images received from the guider. Images viewed using Choose... are not added to the image history.
         </ul>
     </ul>
     <li>Log window changes:
@@ -812,7 +821,7 @@
 	<li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=511">PR 511</a> Permission widget buttons poorly sized for fvwm2 window manager.
 	<li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=499">PR 499</a> DIS masks with integer names cannot be selected.
 	<li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=493">PR 493</a> NA2 Guider has Boresight (?!) for default mode.
-	<li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=451">PR 451</a> NICFPS focus script plot (fails to plot if script is run more than once).	
+	<li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=451">PR 451</a> NICFPS focus script plot (fails to plot if script is run more than once).
 	<li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=429">PR 429</a> Sound prefs do not show their initial value.
 	<li><a href="http://problem-reports.apo.nmsu.edu/cgi-bin/gnatsweb.pl?cmd=view&amp;database=APO&amp;pr=428">PR 428</a> No "guiding begins" sound cue with NA2 guider.
 	<li>Guide windows: an issue with Thresh and Rad Mult range checking could cause tracebacks in the error log.
@@ -1054,7 +1063,7 @@
 		<li>The dither pattern checkboxes are recorded when the script starts running. Thus changes during script execution are ignored (just like the other input widgets).
 	</ul>
 	<li>Modified the GRIM:Square script dither order to ctr, UL, UR, LR, LL, to be more efficient.
-</ul>	
+</ul>
 
 <p>Bug fixes:
 <ul>
@@ -1103,9 +1112,9 @@
 		<li>Eliminated formatNow argument (it was not being used and was broken).
 	</ul>
 	<li>RO.Wdg.InputContFrame: added removeCallback; added callNow argument to addCallback.
-	<li>RO.Wdg.OptionButton: renamed doEnable to setEnable to match RO.Wdg widgets. 
+	<li>RO.Wdg.OptionButton: renamed doEnable to setEnable to match RO.Wdg widgets.
 	<li>RO.Wdg.OptionMenu: rearranged a few methods into alphabetical order.
-	<li>RO.Wdg.RadioButtonSet: renamed doEnable to setEnable to match RO.Wdg widgets. 
+	<li>RO.Wdg.RadioButtonSet: renamed doEnable to setEnable to match RO.Wdg widgets.
 	<li>RO.Wdg.ScrolledWdg: corrected a doc string error.
 	<li>RO.Wdg.StatusConfigGridder: ConfigCat is now a class constant.
 </ul>
@@ -1144,7 +1153,7 @@
 	<li>RO.Wdg.Checkbutton: more sensible defaults; if showValue true then defaults to indicatoron false. If indicatoron false then defaults to padx = 5, pady = 2.
 	<li>RO.Wdg.FTPLogWdg: getFile arguments overhauled to match the changes in RO.Comm.GetFile -&gt; RO.Comm.FTPGet mentioned above.
 	<li>RO.Wdg.Label: renamed method _setStatus to setStatus (it is a useful public method).
-	<li>RO.Wdg.PatchedCanvas: the corrections applied by this module are no longer needed and have been disabled. This module now issues a deprecation warning when used, and really doesn't do anything else. Please use Tkinter.Canvas instead. 
+	<li>RO.Wdg.PatchedCanvas: the corrections applied by this module are no longer needed and have been disabled. This module now issues a deprecation warning when used, and really doesn't do anything else. Please use Tkinter.Canvas instead.
 </ul>
 
 <h3>Version 0.92 2004-10-13</h3>
@@ -1243,7 +1252,7 @@
 <ul>
 	<li><a href="http://problem-reports.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=32">PR 32</a> Refresh Display may cause the slew countdown timer to start.
 	<li><a href="http://problem-reports.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=40">PR 40</a> Contextual help broken on Mac OS X (at least in many cases; see "internal changes" or the PR for more info).
-	<li><a href="http://problem-reports.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=42">PR 42</a> Two sounds don't play on Solaris: AxisHalt and MessageReceived.	
+	<li><a href="http://problem-reports.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=42">PR 42</a> Two sounds don't play on Solaris: AxisHalt and MessageReceived.
 	<li><a href="http://problem-reports.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=48">PR 48</a> Focus problem with file and directory preferences.
 	<li><a href="http://problem-reports.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=52">PR 52</a> If the user tried to deselect both cameras in the DIS Expose window (which is illegal), the last camera deselected was re-selected, but unfortunately it still showed up as deselected.
 	<li><a href="http://problem-reports.apo.nmsu.edu/PRs?database=APO&amp;cmd=view+audit-trail&amp;pr=54">PR 54</a> Mac TUI does not include the snack sound package.
@@ -1441,7 +1450,7 @@
 <p>Internal changes:
 <ul>
 	<li>Modifies Main.py to make it easier to create a Mac standalone executable (it no longer assumes it is in the TUI directory) and improved error reporting (to simplify building future standalone versions).
-	
+
 	<li>Included a link to the TUI distributions in the installation instructions.
 </ul>
 
@@ -1460,9 +1469,9 @@
 <p>Internal changes:
 <ul>
 	<li>The TCC displays are refreshed from data cached in the hub. This may speed refresh when connecting.
-	
+
 	<li>Added setKeysRefreshCmd to RO.KeyVariable.KeyVarFactory. This makes it easy to get just the desired data and no other.
-	
+
 	<li>Removed refreshKeys arg from KeyVar; use KeyVarFactory.setKeysRefreshCmd instead.
 
 	<li>Most keywords that refresh via "keys" (reading from the hub's cache) now explicitly specify the desired keywords (via KeyVarFactory.setKeysRefreshCmd). This avoids asking for extra unwanted data.
@@ -1473,7 +1482,7 @@
 <p>Visible changes:
 <ul>
 	<li>Added an Echelle configuration window. (Note: it has no "expert mode"; a separate window for collimating the Echelle is planned for the future.)
-	
+
 	<li>Instrument displays (but not yet telescope displays) are now refreshed from data cached in the hub. This will speed up refresh when connecting (especially for instruments that are in use!).
 
 	<li>(APO only) added a Permissions window. <b>Warning</b> this only controls permissions for users connected to the new hub. Remark users (and users of the developmental hub) are not affected.
@@ -1774,72 +1783,72 @@
 
 <ul>
 	<li><b>Incompatible Changes</b>:
-	
+
 	<ul>
 		<li>Renamed the main script <code>TUI/TUI.py</code> to <code>TUI/Main.py</code>. This eliminates an ambiguity between the TUI module and the TUI script. This change requires you to run TUI by executing Main.py instead of TUI.py. If you have an alias set up (highly recommended), you will have to change it.
-		
+
 		<li>This is the first version that talks to the hub (which at the moment only talks to the DIS and the TCC). Before connecting, you must change the host setting in your preferences. Talk to Craig Loomis or Russell Owen for details.
 	</ul>
-	
+
 </ul>
 
 <h3>Version 0.24 2002-12-05</h3>
 
 <ul>
 	<li><b>Incompatible Change</b>:
-	
+
 	<ul>
 		<li>The settings files .TUIPrefs and .TUIGeom are now stored in your home directory, if you have one (e.g. on unix and Mac OS X). Formerly they were stored in whatever directory you used to launch TUI. If you have settings you wish to preserve, please move these two files.
 	</ul>
-	
-	
+
+
 	<li>On-Line Help:
-	
+
 	<ul>
 		<li>Added on-line help via contextual menus and a new Help menu in the Status window menu bar.
-		
+
 		<li>Most controls have a help contextual menu; others will gain it over time.
-		
+
 		<li>Due to limitations in Tk, you will not get the help contextual menu if you click on a window background (frames don't produce the necessary events). Fortunately, this is not an issue in graphic displays (e.g. the Telescope and Focal Plane windows).
-		
+
 		<li>The old manual is superceded by this new help system.
 	</ul>
-	
-	
+
+
 	<li>Command Status:
-	
+
 	<ul>
 		<li>Added a command status display to the Slew window. This is a preliminary implementation. I hope to use this display to show data entry error messages and/or allow the user to obtain greater detail for the command status. These enhancements may conflict with each other and so I've not quite figured out how to proceed.
 	</ul>
-	
-	
+
+
 	<li>Fixes:
-	
+
 	<ul>
 		<li>Bug fix: object position 2 could never be less than 0, which was wrong for most coordinate systems. (Thanks to Bill Ketzeback.)
-		
+
 		<li>Bug fix: entering a command in the log window would not reliably cause the log window to scroll to the bottom. Fixed by adding an update_idletasks to CmdLogWdg; we'll see if this is a complete fix. (Thanks to Russet McMillan.)
-		
+
 		<li>Bug fix: command history recall in the log window would append an extra character to the recalled command (possibly only in Mac OS X aqua Tk since I don't remember ever seeing this before). Fixed by not propogating key events for previous and next command.
-		
+
 		<li>Bug fix: certain windows (including About TUI and Preferences) would not come to the front when first requested. This was probably only in Mac OS X aqua Tk since I don't remember seeing it before. Fixed by doing a lift after wm_deiconify.
-		
+
 		<li>Changed the log display to be read only. It may not be
 		bulletproof; if you find some way to modify the text that
 		should not be allowed, please let me know.
-		
+
 		<li>Removed the debug info that was printed whenever an object position was changed in the Slew window.
 	</ul>
-	
+
 </ul>
 
 <h3>Version 0.23 2002-11-22</h3>
 
 <ul>
 	<li>Sexagesimal fields after the first must be less than 60.
-	
+
 	<li>Changed rotator mount angle to be 0 up, + to the right, as requested by Russet; the sign matches the NA2 rotator (as seen by the operator and instrument); the 0 point is irrelevant so long as it makes sense.
-	
+
 	<li>Bug fix: the focal plane display was always right-handed; IImScale was being ignored, though all the hooks were in place.
 </ul>
 
@@ -1847,13 +1856,13 @@
 
 <ul>
 	<li>When running on the Mac platform, added standard key bindings for cmd-X (cut), cmd-C (copy), cmd-V (paste) and cmd-A (select all). The same module makes it very easy to add bindings for other platforms (though I assume the defaults are already fine on unix).
-	
+
 	<li>Implemented automatic enabling and disabling of the Slew button based on whether a valid slew position has been entered and whether the object has been slewed to. The button is disabled after a slew, to indicate you've already gone to this position. To re-enable the current object, select it from the history or change any field and change it back (the name field is handy for this).
-	
+
 	<li>Ditched the "Enable" button in the Slew widget. This is an experiment; all code for the button is still present, I am simply not painting it. With the automatic enabling of the slew button it didn't seem very useful.
-	
+
 	<li>Proposed position is now shown on the Telescope display (as a yellow X). I also hope to add display of likely azimuth wrap and at least an approximation of the rotation angle. However, rotation angle will take a lot of additional code.
-	
+
 	<li>Bug fix: if no rotator, could repeatedly ask for axis status.
 </ul>
 
@@ -1861,17 +1870,17 @@
 
 <ul>
 	<li>Commands that you send or refresh commands sent automatically are now reported to the log window. You can filter out refresh or all commands.
-	
+
 	<li>Command timeout is reported as an error.
-	
+
 	<li>Commands in Slew window have reasonable time limits. In particular, the slewing time limit is updated when the SlewDuration keyword is seen for that specific slew and no other.
-	
+
 	<li>Changed the orientation of the rotator wrap spiral to match the azimuth wrap spiral (0 down, + to the right) and made its appearance more similar.
-	
+
 	<li>The choice of rotation types is now properly restricted based on coordinate system. If the current rotation type is incompatible with the new coordinate system, the rotation type is set to None.
-	
+
 	<li>Added "N" and "E" labels to the sky widget.
-	
+
 	<li>Changed the axis labels in the FocalPlane widget to the standard data font. (Note: if you change the font the axis labels are updated but their positions are not; they will not be recalculated until you quit and restart the program.
 </ul>
 
@@ -1879,14 +1888,14 @@
 
 <ul>
 	<li>Window positions may now be saved.
-	
+
 	<li>Added the TCC menu (an Inst menu will follow in due
 	course).
-	
+
 	<li>You can now reopen any window you can close (using the TUI and TCC menus).
-	
+
 	<li>You can no longer close the Status window (formerly you could, but it killed TUI to do so). To quit TUI, select Quit from the TUI menu.
-	
+
 	<li>The Python script window is now hidden by default.
 </ul>
 
@@ -1894,15 +1903,15 @@
 
 <ul>
 	<li>Added partial preferences implementation. It handles colors and fonts, but not window positions.
-	
+
 	<li>Improve reliability of connecting and disconnecting.
-	
+
 	<li>Improve handling of the case of no instrument rotator.
-	
+
 	<li>Re-enabled active update of rotator limits (requires TCC 2.6 or later).
-	
+
 	<li>Added display of secondary and guide camera focus.
-	
+
 	<li>Various minor bug fixes (handles coordsys=None, handles	coordsys background color, rotator position not always displayed as soon as it could be...).
 </ul>
 
@@ -1922,11 +1931,11 @@
 
 <ul>
 	<li>Added axis status display.
-	
+
 	<li>Added a progress bar for slews.
-	
+
 	<li>Entering a command in the log window scrolls the log to the end (suggested by Russet).
-	
+
 	<li>The rotator wrap is now displayed for the maximum range of the NA2 rotator. This may not be the full range for all instruments, but is better than nothing. It will be fully correct once TCC 2.6 is available.
 </ul>
 
@@ -1934,15 +1943,15 @@
 
 <ul>
 	<li>Improved initial window placement.
-	
+
 	<li>Added remaining window titles.
-	
+
 	<li>Minor bug fix: LMST could be &gt;24.
-	
+
 	<li>Slew button comes up disabled.
-	
+
 	<li>Disabled rotator wrap display until TCC 2.6 released (it can be viewed when talking to tccdev with a bit of reconfiguration).
-	
+
 	<li>Known limitations updated based on feedback from Russet (2002-12-08?).
 </ul>
 
@@ -1950,18 +1959,18 @@
 
 <ul>
 	<li>Greatly improved the log window, including:
-	
+
 	<ul>
 		<li>Auto-scroll is disabled if the thumb is not at the bottom (so you can stare at something of interest while new data comes in)
-		
+
 		<li>You can now search for text
-		
+
 		<li>If the insertion cursor is in a particular location in the log window and you then show or hide categories of messages, the window scrolls to keep the cursor visible. Hence if you want to examine a particular error, you could hide informational messages (to make it easier to locate the error of interest), click in the error text, then click on the checkbox to show informational messages again. You will now see the error message in context, i.e. surrounded by its informational messages.
 	</ul>
-	
-	
+
+
 	<li>The script window and connection/log window now automatically put the focus in the right initial location
-	
+
 	<li>The Sky widget no longer displays debugging messages to the log window.
 </ul>
 
