@@ -59,6 +59,8 @@ History:
                     Updated to use modernized TestData.
 2014-02-05 ROwen    Added config widget.
 2014-03-14 ROwen    Added a Presets widget
+2016-04-12 CS       Fowler sample max value now the lesser of NFS_MAX keyword from ICC, or 8
+                    as requested by Bill Ketzeback.
 """
 import Tkinter
 import RO.Constants
@@ -69,6 +71,8 @@ import NICFPSModel
 
 _DataWidth = 8  # width of data columns
 _EnvWidth = 6 # width of environment value columns
+
+FOWLER_SAMPLE_MAX = 8 # requested by Bill Ketzeback
 
 class StatusConfigInputWdg(RO.Wdg.InputContFrame):
     InstName = "NICFPS"
@@ -94,16 +98,16 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         RO.Wdg.InputContFrame.__init__(self, master, stateTracker=stateTracker, **kargs)
         self.model = NICFPSModel.getModel()
         self.tuiModel = TUI.TUIModel.getModel()
-        
+
         self.settingCurrWin = False
-    
+
         gr = RO.Wdg.StatusConfigGridder(
             master = self,
             sticky = "w",
             numStatusCols = 3,
         )
         self.gridder = gr
-        
+
         # filter (plus blank label to maintain minimum width)
         blankLabel = Tkinter.Label(self, width=_DataWidth)
 
@@ -113,9 +117,9 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             helpText = "current filter",
             helpURL = self.HelpPrefix + "Filter",
         )
-        
+
         self.filterTimerWdg = RO.Wdg.TimeBar(master = self, valueFormat = "%3.0f")
-        
+
         self.filterUserWdg = RO.Wdg.OptionMenu(
             master = self,
             items=[],
@@ -159,7 +163,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             helpText = "is slit in or out of the beam?",
             helpURL = self.HelpPrefix + "SlitInBeam",
         )
-        
+
         self.slitTimerWdg = RO.Wdg.TimeBar(master = self, valueFormat = "%3.0f")
 
         self.slitOPathUserWdg = RO.Wdg.Checkbutton(
@@ -188,18 +192,18 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             sticky = "w",
         )
         self._showSlitTimer(False)
-        
+
         maxFocusWidth = max(
             [len("%s" % val) for val in self.model.slitFocusMinMaxConst]
         )
-        
+
         self.slitFocusCurrWdg = RO.Wdg.IntLabel(
             master = self,
             width = maxFocusWidth,
             helpText = "slit focus (steps)",
             helpURL = self.HelpPrefix + "SlitFocus",
         )
-        
+
         self.slitFocusUserWdg = RO.Wdg.IntEntry(
             master = self,
             helpText = "slit focus (steps)",
@@ -219,12 +223,12 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
 
         self.model.slitOPath.addIndexedCallback(self._updSlitOPath)
         self.model.slitTime.addIndexedCallback(self._updSlitTime)
-        
+
         self.model.slitFocus.addROWdg(self.slitFocusCurrWdg)
         self.model.slitFocus.addROWdg(self.slitFocusUserWdg, setDefault=True)
 
         # Fabry-Perot Etalon in or out of beam (optical path)
-        
+
         self.fpOPathCurrWdg = RO.Wdg.StrLabel(
             master = self,
             anchor = "w",
@@ -263,9 +267,9 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
 
         self.model.fpOPath.addIndexedCallback(self._updFPOPath)
         self.model.fpTime.addIndexedCallback(self._updFPTime)
-        
+
         # Fabry-Perot Etalon position and spacing
-        
+
         maxFPPosWidth = max(
             [len("%s" % val) for val in self.model.fpXYZLimConst]
         )
@@ -277,7 +281,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             anchor = "e",
             width = maxFPPosWidth,
         )
-        
+
         self.fpXUserWdg = RO.Wdg.IntEntry(
             master = self,
             helpText = "requested Etalon X parallelism",
@@ -300,7 +304,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
 
         self.model.fpX.addROWdg(self.fpXCurrWdg)
         self.model.fpX.addROWdg(self.fpXUserWdg, setDefault=True)
-        
+
         self.fpYCurrWdg = RO.Wdg.IntLabel(
             master = self,
             helpText = "current Etalon Y parallelism",
@@ -308,7 +312,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             anchor = "e",
             width = maxFPPosWidth,
         )
-        
+
         self.fpYUserWdg = RO.Wdg.IntEntry(
             master = self,
             helpText = "requested Etalon Y parallelism",
@@ -340,7 +344,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             anchor = "e",
             width = maxFPPosWidth,
         )
-        
+
         self.fpZUserWdg = RO.Wdg.FloatEntry(
             master = self,
             defFormat = "%.0f",
@@ -366,7 +370,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         self.model.fpZ.addROWdg(self.fpZUserWdg, setDefault=True)
 
         # Detector widgets
-        
+
         # detector image header; the label is a toggle button
         # for showing detector image info
         # grid that first as it is always displayed
@@ -382,7 +386,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         gr.gridWdg (
             label = self.showDetectWdg,
         )
-        
+
         # grid detector labels; these show/hide along with all other detector data
         detectLabelDict = {}
         for setName in ("data", "cfg"):
@@ -401,7 +405,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             cat = self.DetectCat,
             row = -1,
         )
-        
+
         # Detector window
 
         winDescr = (
@@ -419,7 +423,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             )
             for ii in range(4)
         ]
-        
+
         self.detWindowUserWdgSet = [
             RO.Wdg.IntEntry(
                 master = self,
@@ -477,13 +481,13 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             units = "pix",
             cat = self.DetectCat,
         )
-        
+
         self.fowlerSamplesCurrWdg = RO.Wdg.IntLabel(
             master = self,
             helpText = "current number of samples",
             helpURL = self.HelpPrefix + "FowlerSamples",
         )
-        
+
         self.fowlerSamplesUserWdg = RO.Wdg.IntEntry(
             master = self,
             helpText = "requested number of Fowler samples",
@@ -509,7 +513,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         self.model.fowlerSamplesMax.addIndexedCallback(self._updFowlerSamplesMax)
 
         # Temperature warning and individual temperatures
-        
+
         self.environShowHideWdg = RO.Wdg.Checkbutton(
             master = self,
             text = "Environment",
@@ -517,7 +521,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             helpURL = self.HelpPrefix + "Environment",
         )
         self._stateTracker.trackCheckbutton("showEnvironment", self.environShowHideWdg)
-        
+
         self.environStatusWdg = RO.Wdg.StrLabel(
             master = self,
             anchor = "w",
@@ -530,11 +534,11 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             dataWdg = self.environStatusWdg,
             colSpan = 2,
         )
-        
+
         # hidable frame showing current pressure and temperatures
 
         self.envFrameWdg = Tkinter.Frame(master=self, borderwidth=1, relief="solid")
-        
+
         # create header
         headStrSet = (
             "Sensor",
@@ -542,7 +546,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             "Min",
             "Max",
         )
-        
+
         for ind in range(len(headStrSet)):
             headLabel = RO.Wdg.Label(
                 master = self.envFrameWdg,
@@ -553,7 +557,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             headLabel.grid(row=0, column=ind, sticky="e")
 
         # create pressure widgets
-        
+
         pressHelpStrs = (
             "pressure",
             "current pressure",
@@ -602,13 +606,13 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             "minimum safe temperature",
             "maximum safe temperature",
         )
-        
+
         # create blank widgets to display temperatures
         # this set is indexed by row (sensor)
         # and then by column (name, current temp, min temp, max temp)
         self.tempWdgSet = []
         nextCol = gr.getNextCol()
-        
+
         gr.gridWdg (
             label = False,
             dataWdg = self.envFrameWdg,
@@ -618,9 +622,9 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             numStatusCols = None,
             cat = self.EnvironCat,
         )
-        
+
         self.columnconfigure(nextCol, weight=1)
-            
+
         # add callbacks that deal with multiple widgets
         self.model.filterNames.addCallback(self._updFilterNames)
         self.environShowHideWdg.addCallback(self._doShowHide, callNow = False)
@@ -632,7 +636,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         self.model.detWindow.addCallback(self._newCurrWindow)
         self._updEnviron()
         self._doShowHide()
-        
+
         eqFmtFunc = RO.InputCont.BasicFmt(
             nameSep="=",
         )
@@ -702,13 +706,13 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             "Presets",
             cfgWdg = self.configWdg,
         )
-        
+
         self.gridder.allGridded()
-        
+
         def repaint(evt):
             self.restoreDefault()
         self.bind('<Map>', repaint)
-    
+
     def _addTempWdgRow(self):
         """Add a row of temperature widgets"""
         rowInd = len(self.tempWdgSet) + 2
@@ -747,7 +751,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         showSlitFocus = self.slitOPathUserWdg.getBool()
         argDict = {self.EtalonCat: showEtalon, self.EnvironCat: showTemps, self.SlitCat: showSlitFocus}
         self.gridder.showHideWdg (**argDict)
-    
+
     def _showFilterTimer(self, doShow):
         """Show or hide the filter timer
         (and thus hide or show the current filter name).
@@ -758,7 +762,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         else:
             self.filterCurrWdg.grid()
             self.filterTimerWdg.grid_remove()
-        
+
     def _showFPTimer(self, doShow):
         """Show or hide the etalon in/out timer
         (and thus hide or show the current in/out state).
@@ -769,7 +773,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         else:
             self.fpOPathCurrWdg.grid()
             self.fpTimerWdg.grid_remove()
-        
+
     def _showSlitTimer(self, doShow):
         """Show or hide the slit in/out timer """
         #print "_showSlitTimer(%s)" % (doShow,)
@@ -779,7 +783,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         else:
             self.slitOPathCurrWdg.grid()
             self.slitTimerWdg.grid_remove()
-        
+
     def _updEnviron(self, *args, **kargs):
         # handle pressure
         isCurrent = True
@@ -796,7 +800,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         self.pressWdgSet[0].setSeverity(pressSev)
         self.pressWdgSet[1].set(press, isCurrent = pressCurr, severity = pressSev)
         self.pressWdgSet[3].set(pressMax, isCurrent = pressMaxCurr, severity = pressSev)
-        
+
         # handle temperatures
 
         tempNames, namesCurr = self.model.tempNames.get()
@@ -815,21 +819,21 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
                 for wdg in wdgSet:
                     wdg.setNotCurrent()
             return
-            
+
         tempSet = zip(tempNames, temps, tempMin, tempMax)
         isCurrSet = namesCurr, tempsCurr, minCurr, maxCurr
 
         # add new widgets if necessary
         for ind in range(len(self.tempWdgSet), len(tempSet)):
             self._addTempWdgRow()
-        
+
         # set widgets
         allTempsOK = True
         for ind in range(len(tempSet)):
             wdgSet = self.tempWdgSet[ind]
             infoSet = tempSet[ind]
             tName, tCurr, tMin, tMax = infoSet
-            
+
             okInd = None
             if tCurr is not None:
                 if tMin is not None and tCurr < tMin:
@@ -855,18 +859,18 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             )
         else:
             self.environStatusWdg.set(
-                "Bad", 
+                "Bad",
                 isCurrent = isCurrent,
                 severity = RO.Constants.sevError,
             )
-    
+
         # delete extra widgets, if any
         for ind in range(len(tempSet), len(self.tempWdgSet)):
             wdgSet = self.tempWdgSet.pop(ind)
             for wdg in wdgSet:
                 wdg.grid_forget()
                 del(wdg)
-        
+
     def _updFilter(self, filterName, isCurrent, keyVar=None):
         self._showFilterTimer(False)
         if filterName is not None and filterName.lower() == "unknown":
@@ -893,7 +897,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             return
 
         self.filterUserWdg.setItems(filterNames, isCurrent=isCurrent)
-        
+
         # set width of slit and filter widgets
         # setting both helps keep the widget from changing size
         # if one is replaced by a timer.
@@ -906,10 +910,10 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         if filterTime is None or not isCurrent:
             self._showFilterTimer(False)
             return
-        
+
         self._showFilterTimer(True)
         self.filterTimerWdg.start(filterTime, newMax = filterTime)
-    
+
     def _updFowlerSamples(self, fowlerSamples, isCurrent, keyVar=None):
         self.fowlerSamplesCurrWdg.set(fowlerSamples, isCurrent)
         if fowlerSamples is not None:
@@ -917,9 +921,12 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         else:
             strVal = None
         self.fowlerSamplesUserWdg.setDefault(strVal, isCurrent=isCurrent)
-    
+
     def _updFowlerSamplesMax(self, fowlerSamplesMax, isCurrent, keyVar=None):
-        self.fowlerSamplesUserWdg.setRange(0, fowlerSamplesMax)
+        # hack, to ignore fowler sample max
+        # self.fowlerSamplesUserWdg.setRange(0, fowlerSamplesMax)
+        fowerSamplesMax = FOWLER_SAMPLE_MAX if FOWLER_SAMPLE_MAX < fowlerSamplesMax else fowlerSamplesMax
+        self.fowlerSamplesUserWdg.setRange(0, fowerSamplesMax)
 
     def _updFPOPath(self, fpOPath, isCurrent, keyVar=None):
         self._showFPTimer(False)
@@ -927,18 +934,18 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             severity = RO.Constants.sevError
         else:
             severity = RO.Constants.sevNormal
-        
+
         self.fpOPathCurrWdg.set(fpOPath,
             isCurrent = isCurrent,
             severity = severity,
         )
         self.fpOPathUserWdg.setDefault(fpOPath, isCurrent)
-    
+
     def _updFPTime(self, fpTime, isCurrent, keyVar=None):
         if fpTime is None or not isCurrent:
             self._showFPTimer(False)
             return
-        
+
         self._showFPTimer(True)
         self.fpTimerWdg.start(fpTime, newMax = fpTime)
 
@@ -949,7 +956,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             severity = RO.Constants.sevError
         else:
             severity = RO.Constants.sevNormal
-        
+
         self.slitOPathCurrWdg.set(slitOPath,
             isCurrent = isCurrent,
             severity = severity,
@@ -960,7 +967,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         if slitTime is None or not isCurrent:
             self._showSlitTimer(False)
             return
-        
+
         self._showSlitTimer(True)
         self.slitTimerWdg.start(slitTime, newMax=slitTime)
 
@@ -983,7 +990,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
 
     def _newCurrWindow(self, window, isCurrent, **kargs):
         """Current window changed.
-        
+
         Update current window, default window and current image size.
         """
         try:
@@ -991,7 +998,7 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
             # to do nothing (it is called even though we're setting
             # default value not displayed value)
             self.settingCurrWin = True
-        
+
             for ind in range(4):
                 self.detWindowCurrWdgSet[ind].set(
                     window[ind],
@@ -1000,12 +1007,12 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
                 self.detWindowUserWdgSet[ind].setDefault(
                     window[ind],
                 )
-    
+
             try:
                 imageSize = [1 + window[ind+2] - window[ind] for ind in range(2)]
             except TypeError:
                 imageSize = (None, None)
-    
+
             for ind in range(2):
                 self.imageSizeCurrWdgSet[ind].set(
                     imageSize[ind],
@@ -1030,9 +1037,9 @@ if __name__ == '__main__':
 
     testFrame = StatusConfigInputWdg(root, stateTracker=stateTracker)
     testFrame.pack()
-    
+
     TestData.start()
-    
+
     testFrame.restoreDefault()
 
     def printCmds():
@@ -1047,7 +1054,7 @@ if __name__ == '__main__':
                 print cmd
         else:
             print "(no commands)"
-    
+
     bf = Tkinter.Frame(root)
     cfgWdg = RO.Wdg.Checkbutton(bf, text="Config", defValue=True)
     cfgWdg.pack(side="left")
@@ -1055,7 +1062,7 @@ if __name__ == '__main__':
     Tkinter.Button(bf, text='Current', command=testFrame.restoreDefault).pack(side='left')
     Tkinter.Button(bf, text='Demo', command=TestData.animate).pack(side='left')
     bf.pack()
-    
+
     testFrame.gridder.addShowHideControl(testFrame.ConfigCat, cfgWdg)
-    
+
     root.mainloop()

@@ -94,6 +94,7 @@ class _GCamInfo:
 _GCamInfoDict = {
     "dcam": _GCamInfo(
         imSize = (1024, 1024),
+        minExpTime = 0.3,
         isSlitViewer = True,
     ),
     "ecam": _GCamInfo(
