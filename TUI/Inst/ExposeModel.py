@@ -90,6 +90,7 @@ Notes:
 2015-08-11 CSayres  Added Arctic
 2015-09-22 ROwen    Renamed Arctic to ARCTIC
 2015-10-01 ROwen    Reduced ARCTIC min exposure time from 0.25 sec to 0.1 sec
+2016-04-19 ROwen    Remove GIFS info
 """
 __all__ = ['getModel', "GuiderActorNameDict"]
 
@@ -242,16 +243,6 @@ def _makeInstInfoDict():
             instName = "Echelle",
             imSize = (2048, 2048),
             guiderActor = "ecam",
-        ),
-        _InstInfo(
-            instName = "GIFS",
-            imSize = (1024, 1024),
-            minExpTime = 0.1,
-            canPauseExp = False,
-            canStopExp = False,
-            canAbortExp = False,
-            canImage = True,
-            guiderActor = "gcam",
         ),
         _InstInfo(
             instName = "NICFPS",
@@ -411,7 +402,7 @@ class Model(object):
             This keyword is only output when a file is saved.
             It is not output as a result of status.
 
-            The full path to a file is the concatenation of common root, program subdir, user subdir and file name.
+            The full file path is the concatenation of common root, program subdir, user subdir and file name.
             If a file in a multi-file instrument is not saved,
             the missing file name is omitted (but the comma remains).
             """,
@@ -429,7 +420,7 @@ class Model(object):
             - user subdirectory
             - file name(s)
 
-            The full path to a file is the concatenation of common root, program subdir, user subdir and file name.
+            The full file path is the concatenation of common root, program subdir, user subdir and file name.
             If a file in a multi-file instrument is not saved,
             the missing file name is omitted (but the comma remains).
             """,
