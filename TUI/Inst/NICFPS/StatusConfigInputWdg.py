@@ -923,10 +923,11 @@ class StatusConfigInputWdg(RO.Wdg.InputContFrame):
         self.fowlerSamplesUserWdg.setDefault(strVal, isCurrent=isCurrent)
 
     def _updFowlerSamplesMax(self, fowlerSamplesMax, isCurrent, keyVar=None):
+        if fowlerSamplesMax is None:
+            return
         # hack, to ignore fowler sample max
         # self.fowlerSamplesUserWdg.setRange(0, fowlerSamplesMax)
-        fowerSamplesMax = FOWLER_SAMPLE_MAX if FOWLER_SAMPLE_MAX < fowlerSamplesMax else fowlerSamplesMax
-        self.fowlerSamplesUserWdg.setRange(0, fowerSamplesMax)
+        self.fowlerSamplesUserWdg.setRange(0, min(FOWLER_SAMPLE_MAX, fowlerSamplesMax))
 
     def _updFPOPath(self, fpOPath, isCurrent, keyVar=None):
         self._showFPTimer(False)
