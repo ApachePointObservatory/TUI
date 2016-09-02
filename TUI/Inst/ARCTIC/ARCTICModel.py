@@ -5,6 +5,7 @@ History:
 2015-07-31 CS       Created
 2015-10-20 ROwen    Added filterState and switched to currFilter, cmdFilter.
 2016-01-25 CS       Altered maxCoord to always return an even number (for 3x3 binning w/ quad)
+2017-09-02 CS       Update for diffuser inclusion
 """
 import RO.CnvUtil
 import RO.Wdg

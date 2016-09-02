@@ -8,6 +8,7 @@ History:
 2015-10-21 ROwen    Display filter state in filter name area and remove the countdown timer.
 2015-10-29 ROwen    Improve display when a filter wheel move ends with cmdFilter != filterName.
 2016-01-25 CS       Add Full Frame button.
+2016-09-02 CS       Updated for diffuser inclusion.
 """
 import Tkinter
 import RO.Constants
