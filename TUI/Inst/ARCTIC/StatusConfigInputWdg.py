@@ -139,6 +139,32 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             colSpan = 3,
         )
 
+        # diffuser position
+        diffuserPositionCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            helpText = "current diffuser position",
+            helpURL = self.HelpPrefix + "Diffuser Position",
+            anchor = "w",
+        )
+        self.model.diffuserPosition.addROWdg(diffuserPositionCurrWdg)
+        self.diffuserPositionUserWdg = RO.Wdg.OptionMenu(
+            master = self,
+            items=[],
+            helpText = "requested diffuser position",
+            helpURL = self.HelpPrefix + "Diffuser Position",
+            defMenu = "Current",
+            autoIsCurrent = True,
+        )
+        gr.gridWdg (
+            label = "Diffuser Position",
+            dataWdg = diffuserPositionCurrWdg,
+            units = False,
+            cfgWdg = self.diffuserPositionUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
         # ccd widgets
 
         # store user-set window in unbinned pixels
@@ -330,6 +356,10 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.ampName.addCallback(self._updAmpName)
         self.model.readoutRateNames.addCallback(self.readoutRateNameUserWdg.setItems)
         self.model.readoutRateName.addIndexedCallback(self.readoutRateNameUserWdg.setDefault, 0)
+
+        self.model.diffuserPositions.addCallback(self.diffuserPositionUserWdg.setItems)
+        self.model.diffuserPosition.addIndexedCallback(self.diffuserPositionUserWdg.setDefault, 0)
+
         self.model.ccdUBWindow.addCallback(self._setCCDWindowWdgDef)
         self.model.ccdWindow.addCallback(self._updCurrImageSize)
 
@@ -350,6 +380,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 RO.InputCont.WdgCont (
                     name = "readout",
                     wdgs = self.readoutRateNameUserWdg,
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="="),
+                ),
+                RO.InputCont.WdgCont (
+                    name = "diffuser",
+                    wdgs = self.diffuserPositionUserWdg,
                     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
                 ),
                 RO.InputCont.WdgCont (

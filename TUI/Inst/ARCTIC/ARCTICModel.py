@@ -97,6 +97,17 @@ class _Model (object):
             description = "current readoutRate",
         )
 
+        self.diffuserPositions = keyVarFact(
+            keyword = "diffuserPositions",
+            nval = (1, None),
+            description = "list of diffuser positions",
+        )
+
+        self.diffuserPosition = keyVarFact(
+            keyword = "diffuserPosition",
+            description = "current diffuser position",
+        )
+
         self.shutter = keyVarFact(
             keyword = "shutter",
             nval = 1,
