@@ -109,6 +109,17 @@ class _Model (object):
             description = "current diffuser position",
         )
 
+        self.diffuserRotations = keyVarFact(
+            keyword = "rotateDiffuserChoices",
+            nval = (1, None),
+            description = "list of diffuser rotation toggles.",
+        )
+
+        self.diffuserRotation = keyVarFact(
+            keyword = "rotateDiffuserChoice",
+            description = "current diffuser rotation toggle.",
+        )
+
         self.shutter = keyVarFact(
             keyword = "shutter",
             nval = 1,

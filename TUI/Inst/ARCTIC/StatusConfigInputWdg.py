@@ -9,6 +9,7 @@ History:
 2015-10-29 ROwen    Improve display when a filter wheel move ends with cmdFilter != filterName.
 2016-01-25 CS       Add Full Frame button.
 2016-09-02 CS       Updated for diffuser inclusion.
+2016-09-19 CS       Add explicit rotate toggling for the diffuser.
 """
 import Tkinter
 import RO.Constants
@@ -161,6 +162,32 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             dataWdg = diffuserPositionCurrWdg,
             units = False,
             cfgWdg = self.diffuserPositionUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
+        # diffuser rotation
+        diffuserRotationCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            helpText = "Enable diffuser rotation",
+            helpURL = self.HelpPrefix + "Diffuser Rotation",
+            anchor = "w",
+        )
+        self.model.diffuserRotation.addROWdg(diffuserRotationCurrWdg)
+        self.diffuserRotationUserWdg = RO.Wdg.OptionMenu(
+            master = self,
+            items=[],
+            helpText = "requested diffuser rotation toggle.",
+            helpURL = self.HelpPrefix + "Diffuser Rotation",
+            defMenu = "Current",
+            autoIsCurrent = True,
+        )
+        gr.gridWdg (
+            label = "Diffuser Rotation",
+            dataWdg = diffuserRotationCurrWdg,
+            units = False,
+            cfgWdg = self.diffuserRotationUserWdg,
             sticky = "ew",
             cfgSticky = "w",
             colSpan = 3,
@@ -361,6 +388,9 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.diffuserPositions.addCallback(self.diffuserPositionUserWdg.setItems)
         self.model.diffuserPosition.addIndexedCallback(self.diffuserPositionUserWdg.setDefault, 0)
 
+        self.model.diffuserRotations.addCallback(self.diffuserRotationUserWdg.setItems)
+        self.model.diffuserRotation.addIndexedCallback(self.diffuserRotationUserWdg.setDefault, 0)
+
         self.model.ccdUBWindow.addCallback(self._setCCDWindowWdgDef)
         self.model.ccdWindow.addCallback(self._updCurrImageSize)
 
@@ -386,6 +416,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                 RO.InputCont.WdgCont (
                     name = "diffuser",
                     wdgs = self.diffuserPositionUserWdg,
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="="),
+                ),
+                RO.InputCont.WdgCont (
+                    name = "rotateDiffuser",
+                    wdgs = self.diffuserRotationUserWdg,
                     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
                 ),
                 RO.InputCont.WdgCont (
