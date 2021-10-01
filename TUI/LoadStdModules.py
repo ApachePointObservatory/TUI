@@ -19,6 +19,7 @@ import TUI.Inst.Echelle.EchelleWindow
 import TUI.Inst.NICFPS.NICFPSWindow
 import TUI.Inst.SPIcam.SPIcamWindow
 import TUI.Inst.ARCTIC.ARCTICWindow
+import TUI.Inst.Kosmos.KosmosWindow
 import TUI.Inst.TSpec.TSpecWindow
 import TUI.Misc.MessageWindow
 import TUI.Misc.TelMech.EnclosureWindow
@@ -55,6 +56,7 @@ def loadAll():
     TUI.Inst.NICFPS.NICFPSWindow.addWindow(tlSet)
     TUI.Inst.SPIcam.SPIcamWindow.addWindow(tlSet)
     TUI.Inst.ARCTIC.ARCTICWindow.addWindow(tlSet)
+    TUI.Inst.Kosmos.KosmosWindow.addWindow(tlSet)
     TUI.Inst.TSpec.TSpecWindow.addWindow(tlSet)
     TUI.Misc.MessageWindow.addWindow(tlSet)
     TUI.Misc.TelMech.EnclosureWindow.addWindow(tlSet)

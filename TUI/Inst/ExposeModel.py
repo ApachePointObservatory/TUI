@@ -273,6 +273,13 @@ def _makeInstInfoDict():
             guiderActor = "gcam",
         ),
         _InstInfo(
+            instName = "Kosmos",
+            minExpTime = 0.5,
+            imSize = (2048, 4096),
+            canImage = True,
+            guiderActor = "kcam",
+        ),
+        _InstInfo(
             instName = "TSpec",
             imSize = (2048, 1024),
             minExpTime = 0.75,
