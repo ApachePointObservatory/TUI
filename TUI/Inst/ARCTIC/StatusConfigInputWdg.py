@@ -62,6 +62,24 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.shutter.addROWdg(shutterCurrWdg)
         gr.gridWdg ("Shutter", shutterCurrWdg, sticky="ew", colSpan=3)
 
+        # cover state
+        coverStateCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            helpText = "current cover state",
+            helpURL = self.HelpPrefix + " Cover State",
+            anchor = "w",
+        )
+        self.model.coverState.addROWdg(coverStateCurrWdg)
+        gr.gridWdg (
+            label = "Cover state",
+            dataWdg = coverStateCurrWdg,
+            units = False,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
+
         self.filterNameCurrWdg = RO.Wdg.StrLabel(
             master = self,
             width = 9, # room for "Not Homed"
@@ -141,6 +159,11 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             colSpan = 3,
         )
 
+       
+
+
+     
+
         # diffuser position
         diffuserPositionCurrWdg = RO.Wdg.StrLabel(
             master = self,
@@ -162,6 +185,24 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             dataWdg = diffuserPositionCurrWdg,
             units = False,
             cfgWdg = self.diffuserPositionUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
+
+     # diffuser rotation RPM
+        diffuserAtRPMCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            helpText = "current RPM state",
+            helpURL = self.HelpPrefix + " RPM State",
+            anchor = "w",
+        )
+        self.model.diffuserRPMGood.addROWdg(diffuserAtRPMCurrWdg)
+        gr.gridWdg (
+            label = "Diffuser at RPM",
+            dataWdg = diffuserAtRPMCurrWdg,
+            units = False,
             sticky = "ew",
             cfgSticky = "w",
             colSpan = 3,

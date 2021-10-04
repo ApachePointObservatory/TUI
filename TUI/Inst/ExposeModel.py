@@ -306,6 +306,7 @@ GuiderActorNameDict = {
     "gcam": "NA2 Guider",
     "dcam": "DIS Slitviewer",
     "tcam": "TSpec Slitviewer",
+    "kcam": "Kosmos Slitviewer"
 }
 
 class _BoolPrefVarCont(object):

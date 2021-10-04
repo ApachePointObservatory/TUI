@@ -140,6 +140,7 @@ class ActorList(object):
             ecam = 3,
             gcam = 3,
             tcam = 3,
+            kcam = 3
         ).get(actor, 2)
     
     def __bool__(self):

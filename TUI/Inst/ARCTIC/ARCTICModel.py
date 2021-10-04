@@ -98,6 +98,11 @@ class _Model (object):
             description = "current readoutRate",
         )
 
+        self.coverState = keyVarFact(
+            keyword = "coverState",
+            description = "current cover state"
+        )
+
         self.diffuserPositions = keyVarFact(
             keyword = "diffuserPositions",
             nval = (1, None),
@@ -106,6 +111,11 @@ class _Model (object):
 
         self.diffuserPosition = keyVarFact(
             keyword = "diffuserPosition",
+            description = "current diffuser position",
+        )
+
+        self.diffuserRPMGood = keyVarFact(
+            keyword = "diffuserRPMGood",
             description = "current diffuser position",
         )
 

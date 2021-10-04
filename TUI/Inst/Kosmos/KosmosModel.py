@@ -156,6 +156,31 @@ class _Model (object):
             description = "number of columns",
         )
 
+        self.pxlCols = keyVarFact(
+            keyword = "neon",
+            description = "internal cal",
+        )
+
+        self.pxlCols = keyVarFact(
+            keyword = "argon",
+            description = "internal cal",
+        )
+
+        self.pxlCols = keyVarFact(
+            keyword = "krypton",
+            description = "internal cal",
+        )
+
+        self.pxlCols = keyVarFact(
+            keyword = "quartz",
+            description = "internal cal",
+        )
+
+        self.pxlCols = keyVarFact(
+            keyword = "detectorTemp1",
+            description = "CCD temperature",
+        )
+
         keyVarFact.setKeysRefreshCmd()
 
         # self.ccdWindow = keyVarFact(
