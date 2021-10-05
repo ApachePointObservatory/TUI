@@ -52,8 +52,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          git clone --depth 1 --single-branch --branch python2 https://github.com/sdss/opscore.git ../opscore
-          git clone --depth 1 --single-branch --branch apo https://github.com/sdss/actorkeys.git ../actorkeys
+          # git clone --depth 1 --single-branch --branch python2 https://github.com/sdss/opscore.git ../opscore
+          # git clone --depth 1 --single-branch --branch apo https://github.com/sdss/actorkeys.git ../actorkeys
           git clone --depth 1 --single-branch --branch master https://github.com/r-owen/RO.git ../RO
 
       - name: Restore environment
@@ -91,8 +91,8 @@ jobs:
           # DYLD_FRAMEWORK_PATH: /Library/Frameworks/Tk.framework:/Library/Frameworks/Tcl.framework:/Library/Frameworks
           PYTHONPATH: ${{github.workspace}}:${{github.workspace}}/../RO/python:${{github.workspace}}/../opscore/python:${{github.workspace}}/../actorkeys/python:${{github.workspace}}/BuildForMac/assets/external/python:${{github.workspace}}/BuildForMac/assets/plc/python
           RO_DIR: ${{github.workspace}}/../RO
-          OPSCORE_DIR: ${{github.workspace}}/../opscore
-          ACTORKEYS_DIR: ${{github.workspace}}/../actorkeys
+          # OPSCORE_DIR: ${{github.workspace}}/../opscore
+          # ACTORKEYS_DIR: ${{github.workspace}}/../actorkeys
 
       - name: Get release
         id: get_release
