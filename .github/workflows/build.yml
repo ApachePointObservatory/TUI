@@ -1,4 +1,3 @@
-on: [commit]
 
 name: Build
 
