@@ -55,58 +55,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.shutter.addROWdg(shutterCurrWdg)
         gr.gridWdg ("Shutter", shutterCurrWdg, sticky="ew", colSpan=3)
 
-        self.filter1NameCurrWdg = RO.Wdg.StrLabel(
-            master = self,
-            width = 9, # room for "Not Homed"
-            helpText = "current filter or status",
-            # helpURL = self.HelpPrefix + "Filter",
-            anchor = "w",
-        )
-        self.filter1NameUserWdg = RO.Wdg.OptionMenu(
-            self,
-            items = [],
-            noneDisplay = "?",
-            helpText = "requested filter",
-            # helpURL = self.HelpPrefix + "Filter",
-            defMenu = "Current",
-            autoIsCurrent = True,
-        )
-        gr.gridWdg (
-            label = "Filter1",
-            dataWdg = self.filter1NameCurrWdg,
-            units = False,
-            cfgWdg = self.filter1NameUserWdg,
-            sticky = "ew",
-            cfgSticky = "w",
-            colSpan = 3,
-        )
-
-        self.filter2NameCurrWdg = RO.Wdg.StrLabel(
-            master = self,
-            width = 9, # room for "Not Homed"
-            helpText = "current filter or status",
-            # helpURL = self.HelpPrefix + "Filter",
-            anchor = "w",
-        )
-        self.filter2NameUserWdg = RO.Wdg.OptionMenu(
-            self,
-            items = [],
-            noneDisplay = "?",
-            helpText = "requested filter",
-            # helpURL = self.HelpPrefix + "Filter",
-            defMenu = "Current",
-            autoIsCurrent = True,
-        )
-        gr.gridWdg (
-            label = "Filter2",
-            dataWdg = self.filter2NameCurrWdg,
-            units = False,
-            cfgWdg = self.filter2NameUserWdg,
-            sticky = "ew",
-            cfgSticky = "w",
-            colSpan = 3,
-        )
-
         self.disperserNameCurrWdg = RO.Wdg.StrLabel(
             master = self,
             width = 9, # room for "Not Homed"
@@ -159,6 +107,59 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             colSpan = 3,
         )
 
+
+        self.filter1NameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "current filter or status",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+        self.filter1NameUserWdg = RO.Wdg.OptionMenu(
+            self,
+            items = [],
+            noneDisplay = "?",
+            helpText = "requested filter",
+            # helpURL = self.HelpPrefix + "Filter",
+            defMenu = "Current",
+            autoIsCurrent = True,
+        )
+        gr.gridWdg (
+            label = "Filter1",
+            dataWdg = self.filter1NameCurrWdg,
+            units = False,
+            cfgWdg = self.filter1NameUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
+        self.filter2NameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "current filter or status",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+        self.filter2NameUserWdg = RO.Wdg.OptionMenu(
+            self,
+            items = [],
+            noneDisplay = "?",
+            helpText = "requested filter",
+            # helpURL = self.HelpPrefix + "Filter",
+            defMenu = "Current",
+            autoIsCurrent = True,
+        )
+        gr.gridWdg (
+            label = "Filter2",
+            dataWdg = self.filter2NameCurrWdg,
+            units = False,
+            cfgWdg = self.filter2NameUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
         self.calstageNameCurrWdg = RO.Wdg.StrLabel(
             master = self,
             width = 9, # room for "Not Homed"
@@ -176,64 +177,10 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             autoIsCurrent = True,
         )
         gr.gridWdg (
-            label = "calstage",
+            label = "calibration stage",
             dataWdg = self.calstageNameCurrWdg,
             units = False,
             cfgWdg = self.calstageNameUserWdg,
-            sticky = "ew",
-            cfgSticky = "w",
-            colSpan = 3,
-        )
-
-        self.gfocusNameCurrWdg = RO.Wdg.StrLabel(
-            master = self,
-            width = 9, # room for "Not Homed"
-            helpText = "current filter or status",
-            # helpURL = self.HelpPrefix + "Filter",
-            anchor = "w",
-        )
-
-        gr.gridWdg (
-            label = "gfocus",
-            dataWdg = self.gfocusNameCurrWdg,
-            units = False,
-            cfgWdg = None,
-            sticky = "ew",
-            cfgSticky = "w",
-            colSpan = 3,
-        )
-
-        self.camfocNameCurrWdg = RO.Wdg.StrLabel(
-            master = self,
-            width = 9, # room for "Not Homed"
-            helpText = "current filter or status",
-            # helpURL = self.HelpPrefix + "Filter",
-            anchor = "w",
-        )
-
-        gr.gridWdg (
-            label = "camfoc",
-            dataWdg = self.camfocNameCurrWdg,
-            units = False,
-            cfgWdg = None,
-            sticky = "ew",
-            cfgSticky = "w",
-            colSpan = 3,
-        )
-
-        self.colfocNameCurrWdg = RO.Wdg.StrLabel(
-            master = self,
-            width = 9, # room for "Not Homed"
-            helpText = "current filter or status",
-            # helpURL = self.HelpPrefix + "Filter",
-            anchor = "w",
-        )
-
-        gr.gridWdg (
-            label = "colfoc",
-            dataWdg = self.colfocNameCurrWdg,
-            units = False,
-            cfgWdg = None,
             sticky = "ew",
             cfgSticky = "w",
             colSpan = 3,
@@ -257,7 +204,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             autoIsCurrent = True,
         )
         gr.gridWdg (
-            label = "rowBin",
+            label = "row bin",
             dataWdg = self.rowBinNameCurrWdg,
             units = False,
             cfgWdg = self.rowBinNameUserWdg,
@@ -275,7 +222,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         )
         self.colBinNameUserWdg = RO.Wdg.OptionMenu(
             self,
-            items = ["1","2"],
+            items = ["1", "2"],
             noneDisplay = "?",
             helpText = "requested column bin",
             # helpURL = self.HelpPrefix + "Filter",
@@ -283,7 +230,7 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             autoIsCurrent = True,
         )
         gr.gridWdg (
-            label = "colBin",
+            label = "column bin",
             dataWdg = self.colBinNameCurrWdg,
             units = False,
             cfgWdg = self.colBinNameUserWdg,
@@ -292,184 +239,183 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             colSpan = 3,
         )
 
+        # lamps
+        self.neonCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "internal cal lamp",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+        self.neonUserWdg = RO.Wdg.OptionMenu(
+            self,
+            items = ["on", "off"],
+            noneDisplay = "?",
+            helpText = "internal cal lamp",
+            # helpURL = self.HelpPrefix + "Filter",
+            defMenu = "Current",
+            autoIsCurrent = True,
+        )
+        gr.gridWdg (
+            label = "neon lamp",
+            dataWdg = self.neonCurrWdg,
+            units = False,
+            cfgWdg = self.neonUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
 
-        # axisLabels = ("row", "col")
-        # ccdBinCurrWdgSet = [RO.Wdg.IntLabel(self,
-        #     width = 4,
-        #     helpText = "current bin factor in %s" % (axis,),
-            # helpURL=self.HelpPrefix + "Bin",
-        # )
-        #     for axis in axisLabels
-        # ]
-        # self.model.ccdBin.addROWdgSet(ccdBinCurrWdgSet)
+        self.kryptonCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "internal cal lamp",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+        self.kryptonUserWdg = RO.Wdg.OptionMenu(
+            self,
+            items = ["on", "off"],
+            noneDisplay = "?",
+            helpText = "internal cal lamp",
+            # helpURL = self.HelpPrefix + "Filter",
+            defMenu = "Current",
+            autoIsCurrent = True,
+        )
+        gr.gridWdg (
+            label = "krypton lamp",
+            dataWdg = self.kryptonCurrWdg,
+            units = False,
+            cfgWdg = self.kryptonUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
+        self.argonCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "internal cal lamp",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+        self.argonUserWdg = RO.Wdg.OptionMenu(
+            self,
+            items = ["on", "off"],
+            noneDisplay = "?",
+            helpText = "internal cal lamp",
+            # helpURL = self.HelpPrefix + "Filter",
+            defMenu = "Current",
+            autoIsCurrent = True,
+        )
+        gr.gridWdg (
+            label = "argon lamp",
+            dataWdg = self.argonCurrWdg,
+            units = False,
+            cfgWdg = self.argonUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
+        self.quartzCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "internal cal lamp",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+        self.quartzUserWdg = RO.Wdg.OptionMenu(
+            self,
+            items = ["on", "off"],
+            noneDisplay = "?",
+            helpText = "internal cal lamp",
+            # helpURL = self.HelpPrefix + "Filter",
+            defMenu = "Current",
+            autoIsCurrent = True,
+        )
+        gr.gridWdg (
+            label = "quartz lamp",
+            dataWdg = self.quartzCurrWdg,
+            units = False,
+            cfgWdg = self.quartzUserWdg,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
+        self.gfocusNameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "current filter or status",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+
+        gr.gridWdg (
+            label = "kcamera focus",
+            dataWdg = self.gfocusNameCurrWdg,
+            units = False,
+            cfgWdg = None,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
+
+        self.camfocNameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "current filter or status",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
+
+        gr.gridWdg (
+            label = "spectrograph focus",
+            dataWdg = self.camfocNameCurrWdg,
+            units = False,
+            cfgWdg = None,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
 
 
+        self.colfocNameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "current filter or status",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
 
-        # ccd widgets
+        gr.gridWdg (
+            label = "collimator focus",
+            dataWdg = self.colfocNameCurrWdg,
+            units = False,
+            cfgWdg = None,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
 
-        # store user-set window in unbinned pixels
-        # so the displayed binned value can be properly
-        # updated when the user changes the binning
-#         self.userCCDUBWindow = None
+        self.detectorTemp1NameCurrWdg = RO.Wdg.StrLabel(
+            master = self,
+            width = 9, # room for "Not Homed"
+            helpText = "current filter or status",
+            # helpURL = self.HelpPrefix + "Filter",
+            anchor = "w",
+        )
 
-#         # ccd image header; the label is a toggle button
-#         # for showing ccd image info
-#         # grid that first as it is always displayed
-#         self.showCCDWdg = RO.Wdg.Checkbutton(
-#             master = self,
-#             text = "CCD",
-#             defValue = False,
-#             helpText = "Show binning, etc.?",
-            # helpURL = self.HelpPrefix + "ShowCCD",
-#         )
-#         gr.addShowHideControl(self.CCDCat, self.showCCDWdg)
-#         self._stateTracker.trackCheckbutton("showCCD", self.showCCDWdg)
-#         gr.gridWdg (
-#             label = self.showCCDWdg,
-#         )
-
-#         self.fullFrameButton = RO.Wdg.Button(
-#             master = self,
-#             text = "Set Full Frame",
-#             command = self._setFullFrame,
-#             helpText = "set ccd window to full frame",
-            # helpURL = self.HelpPrefix + "Set Full Frame",
-#         )
-#         gr.gridWdg(
-#             cfgWdg = self.fullFrameButton,
-#             cat = self.CCDCat,
-#             row = -1,
-#             sticky = "e",
-#             colSpan = 2,
-#         )
-
-#         # grid ccd labels; these show/hide along with all other CCD data
-#         axisLabels = ("x", "y")
-#         ccdLabelDict = {}
-#         for setName in ("data", "cfg"):
-#             ccdLabelDict[setName] = [
-#                 Tkinter.Label(self,
-#                     text=axis,
-#                 )
-#                 for axis in axisLabels
-#             ]
-#         gr.gridWdg (
-#             label = None,
-#             dataWdg = ccdLabelDict["data"],
-#             cfgWdg = ccdLabelDict["cfg"],
-#             sticky = "e",
-#             cat = self.CCDCat,
-# #            row = -1,
-#         )
-
-#         ccdBinCurrWdgSet = [RO.Wdg.IntLabel(self,
-#             width = 4,
-#             helpText = "current bin factor in %s" % (axis,),
-            # helpURL=self.HelpPrefix + "Bin",
-        # )
-#             for axis in axisLabels
-#         ]
-#         self.model.ccdBin.addROWdgSet(ccdBinCurrWdgSet)
-
-#         self.ccdBinUserWdgSet = [
-#             RO.Wdg.IntEntry(
-#                 master = self,
-#                 minValue = 1,
-#                 maxValue = 99,
-#                 width = 2,
-#                 helpText = "requested bin factor in %s" % (axis,),
-                # helpURL = self.HelpPrefix + "Bin",
-#                 clearMenu = None,
-#                 defMenu = "Current",
-#                 callFunc = self._userBinChanged,
-#                 autoIsCurrent = True,
-#             )
-#             for axis in axisLabels
-#         ]
-#         self.model.ccdBin.addROWdgSet(self.ccdBinUserWdgSet, setDefault=True)
-#         gr.gridWdg (
-#             label = "Bin",
-#             dataWdg = ccdBinCurrWdgSet,
-#             cfgWdg = self.ccdBinUserWdgSet,
-#             cat = self.CCDCat,
-#         )
-
-        # CCD window
-
-#         winDescr = (
-#             "smallest x",
-#             "smallest y",
-#             "largest x",
-#             "largest y",
-#         )
-#         ccdWindowCurrWdgSet = [RO.Wdg.IntLabel(self,
-#             width = 4,
-#             helpText = "%s of current window (binned pix)" % winDescr[ii],
-            # helpURL = self.HelpPrefix + "Window",
-#         )
-#             for ii in range(4)
-#         ]
-#         self.model.ccdWindow.addROWdgSet(ccdWindowCurrWdgSet)
-
-#         self.ccdWindowUserWdgSet = [
-#             RO.Wdg.IntEntry(
-#                 master = self,
-#                 minValue = 1,
-#                 maxValue = (2048, 2048, 2048, 2048)[ii],
-#                 width = 4,
-#                 helpText = "%s of requested window (binned pix)" % winDescr[ii],
-                # helpURL = self.HelpPrefix + "Window",
-#                 clearMenu = None,
-#                 defMenu = "Current",
-#                 minMenu = ("Mininum", "Minimum", None, None)[ii],
-#                 maxMenu = (None, None, "Maximum", "Maximum")[ii],
-#                 callFunc = self._userWindowChanged,
-#                 autoIsCurrent = True,
-#                 isCurrent = False,
-#             ) for ii in range(4)
-#         ]
-# #       self.model.ccdUBWindow.addCallback(self._setCCDWindowWdgDef)
-#         gr.gridWdg (
-#             label = "Window",
-#             dataWdg = ccdWindowCurrWdgSet[0:2],
-#             cfgWdg = self.ccdWindowUserWdgSet[0:2],
-#             units = "LL bpix",
-#             cat = self.CCDCat,
-#         )
-#         gr.gridWdg (
-#             label = None,
-#             dataWdg = ccdWindowCurrWdgSet[2:4],
-#             cfgWdg = self.ccdWindowUserWdgSet[2:4],
-#             units = "UR bpix",
-#             cat = self.CCDCat,
-#         )
-
-#         # Image size, in binned pixels
-#         self.ccdImageSizeCurrWdgSet = [RO.Wdg.IntLabel(
-#             master = self,
-#             width = 4,
-#             helpText = "current %s size of image (binned pix)" % winDescr[ii],
-            # helpURL = self.HelpPrefix + "Window",
-#         )
-#             for ii in range(2)
-#         ]
-# #       self.model.ccdWindow.addCallback(self._updCurrImageSize)
-
-#         self.ccdImageSizeUserWdgSet = [
-#             RO.Wdg.IntLabel(
-#                 master = self,
-#                 width = 4,
-#                 helpText = "requested %s size of image (binned pix)" % ("x", "y")[ii],
-                # helpURL = self.HelpPrefix + "ImageSize",
-#             ) for ii in range(2)
-#         ]
-#         gr.gridWdg (
-#             label = "Image Size",
-#             dataWdg = self.ccdImageSizeCurrWdgSet,
-#             cfgWdg = self.ccdImageSizeUserWdgSet,
-#             units = "bpix",
-#             cat = self.CCDCat,
-#         )
+        gr.gridWdg (
+            label = "CCD Temp",
+            dataWdg = self.detectorTemp1NameCurrWdg,
+            units = False,
+            cfgWdg = None,
+            sticky = "ew",
+            cfgSticky = "w",
+            colSpan = 3,
+        )
 
         # set up format functions for the filter menu
         # this allows us to return index values instead of names
@@ -509,12 +455,14 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.model.calstageState.addIndexedCallback(self._updCalstageState)
         self.model.camfoc.addIndexedCallback(self._updCamfocState)
         self.model.colfoc.addIndexedCallback(self._updColfocState)
+        self.model.detectorTemp1.addIndexedCallback(self._updDetectorTemp1State)
         self.model.rowBin.addIndexedCallback(self._updRowBinName)
         self.model.colBin.addIndexedCallback(self._updColBinName)
+        self.model.quartz.addIndexedCallback(self._updQuartzName)
+        self.model.neon.addIndexedCallback(self._updNeonName)
+        self.model.argon.addIndexedCallback(self._updArgonName)
+        self.model.krypton.addIndexedCallback(self._updKryptonName)
 
-
-        # self.model.ccdUBWindow.addCallback(self._setCCDWindowWdgDef)
-        # self.model.ccdWindow.addCallback(self._updCurrImageSize)
 
         # set up the input container set; this is what formats the commands
         # and allows saving and recalling commands
@@ -544,50 +492,37 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
                     name = "calstage",
                     wdgs = self.calstageNameUserWdg,
                     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
-                    # formatFunc = indFormat(self.calstageNameUserWdg.index),
                 ),
                 RO.InputCont.WdgCont (
                     name = "rowBin",
                     wdgs = self.rowBinNameUserWdg,
                     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
-                    # formatFunc = indFormat(self.calstageNameUserWdg.index),
                 ),
                 RO.InputCont.WdgCont (
                     name = "colBin",
                     wdgs = self.colBinNameUserWdg,
                     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
-                    # formatFunc = indFormat(self.calstageNameUserWdg.index),
                 ),
-                # RO.InputCont.WdgCont (
-                #     name = "amp",
-                #     wdgs = self.ampNameUserWdg,
-                #     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
-                # ),
-                # RO.InputCont.WdgCont (
-                #     name = "readout",
-                #     wdgs = self.readoutRateNameUserWdg,
-                #     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
-                # ),
-                # RO.InputCont.WdgCont (
-                #     name = "diffuser",
-                #     wdgs = self.diffuserPositionUserWdg,
-                #     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
-                # ),
-                # RO.InputCont.WdgCont (
-                #     name = "rotateDiffuser",
-                #     wdgs = self.diffuserRotationUserWdg,
-                #     formatFunc = RO.InputCont.BasicFmt(nameSep="="),
-                # ),
-                # RO.InputCont.WdgCont (
-                #     name = "bin",
-                #     wdgs = self.ccdBinUserWdgSet,
-                #     formatFunc = RO.InputCont.BasicFmt(nameSep="=", valSep=","),
-                # ),
-                # RO.InputCont.WdgCont (
-                #     name = "window",
-                #     wdgs = self.ccdWindowUserWdgSet,
-                #     formatFunc = RO.InputCont.BasicFmt(nameSep="=", valSep=","),
-                # ),
+                RO.InputCont.WdgCont (
+                    name = "neon",
+                    wdgs = self.neonUserWdg,
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="="),
+                ),
+                RO.InputCont.WdgCont (
+                    name = "krypton",
+                    wdgs = self.kryptonUserWdg,
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="="),
+                ),
+                RO.InputCont.WdgCont (
+                    name = "argon",
+                    wdgs = self.argonUserWdg,
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="="),
+                ),
+                RO.InputCont.WdgCont (
+                    name = "quartz",
+                    wdgs = self.quartzUserWdg,
+                    formatFunc = RO.InputCont.BasicFmt(nameSep="="),
+                ),
             ],
         )
 
@@ -612,101 +547,6 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
             self.restoreDefault()
         self.bind("<Map>", repaint)
 
-    # def _setFullFrame(self, *args, **kwargs):
-    #     currBinList = [wdg.getNum() for wdg in self.ccdBinUserWdgSet]
-    #     maxCoordList = self.model.maxCoord(binFac=currBinList)
-    #     for i in range(2):
-    #         self.ccdWindowUserWdgSet[i].set(1)
-    #         self.ccdWindowUserWdgSet[i+2].set(maxCoordList[i])
-
-    # def _saveCCDUBWindow(self):
-    #     """Save user ccd window in unbinned pixels.
-    #     """
-    #     if self._freezeCCDUBWindow:
-    #         return
-
-    #     userWindow = [wdg.getNum() for wdg in self.ccdWindowUserWdgSet]
-    #     if 0 in userWindow:
-    #         return
-    #     userBinFac = self._getUserBinFac()
-    #     if 0 in userBinFac:
-    #         return
-    #     self.userCCDUBWindow = self.model.unbin(userWindow, userBinFac)
-
-#     def _setCCDWindowWdgDef(self, *args, **kargs):
-#         """Updates the default value of CCD window wdg.
-#         If this has the effect of changing the displayed values
-#         (only true if a box is blank) then update the saved unbinned window.
-#         """
-#         if self.userCCDUBWindow is None:
-#             currUBWindow, isCurrent = self.model.ccdUBWindow.get()
-#             if isCurrent:
-#                 self.userCCDUBWindow = currUBWindow
-
-#         initialUserCCDWindow = self._getUserCCDWindow()
-#         self._updUserCCDWindow(doCurrValue=False)
-#         if initialUserCCDWindow != self._getUserCCDWindow():
-# #           print "_setCCDWindowWdgDef; user value changed when default changed; save new unbinned value"
-#             self._saveCCDUBWindow()
-
-
-    # def _userBinChanged(self, *args, **kargs):
-    #     """User bin factor changed.
-    #     Update ccd window current values and default values.
-    #     """
-    #     self._updUserCCDWindow()
-
-
-    # def _userWindowChanged(self, *args, **kargs):
-    #     self._saveCCDUBWindow()
-
-    #     # update user ccd image size
-    #     actUserCCDWindow = self._getUserCCDWindow()
-    #     if 0 in actUserCCDWindow:
-    #         return
-    #     for ind in range(2):
-    #         imSize = 1 + actUserCCDWindow[ind+2] - actUserCCDWindow[ind]
-    #         self.ccdImageSizeUserWdgSet[ind].set(imSize)
-
-    # def _updCurrImageSize(self, *args, **kargs):
-    #     """Update current image size.
-    #     """
-    #     window, isCurrent = self.model.ccdWindow.get()
-    #     if not isCurrent:
-    #         return
-
-    #     try:
-    #         imageSize = [1 + window[ind+2] - window[ind] for ind in range(2)]
-    #     except TypeError:
-    #         imageSize = (None, None)
-    #     for ind in range(2):
-    #         self.ccdImageSizeCurrWdgSet[ind].set(imageSize[ind])
-
-    # def _updFilterNameOrState(self, *args, **kargs):
-    #     """Show current filter name, if stopped at a known position, else state
-    #     """
-    #     filterState, stateIsCurrent = self.model.filterState.getInd(0)
-    #     filterName, filterNameIsCurrent = self.model.currFilter.getInd(1)
-    #     cmdFilter, cmdFilterIsCurrent = self.model.cmdFilter.getInd(1)
-    #     isOK = True
-
-    #     if filterState is not None and filterState.lower() not in ("moving", "homing"):
-    #         if filterName != cmdFilter:
-    #             # filter wheel apparently didn't go where it was commanded to go;
-    #             # show current and filter widget in pink as a warning
-    #             # and set default user to None so any filter can be chosen
-    #             filterNameIsCurrent = False
-    #             isOK = False
-    #         self.filterNameCurrWdg.set(filterName, isCurrent=filterNameIsCurrent)
-    #     else:
-    #         self.filterNameCurrWdg.set(filterState, isCurrent=stateIsCurrent)
-    #     if not isOK:
-    #         self.filterNameUserWdg.setDefault(None, doCheck=False)
-    #         self.filterNameUserWdg.set(cmdFilter)
-    #     elif cmdFilter in (None, "?"):
-    #         self.filterNameUserWdg.setDefault(None, doCheck=False)
-    #     else:
-    #         self.filterNameUserWdg.setDefault(cmdFilter, doCheck=False)
 
     def _updFilter1Name(self, *args, **kargs):
         """Show current filter name, if stopped at a known position, else state
@@ -805,6 +645,12 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         colfoc, isCurrent = self.model.colfoc.getInd(0)
         self.colfocNameCurrWdg.set(colfoc)
 
+    def _updDetectorTemp1State(self, *args, **kargs):
+        """Show current filter name, if stopped at a known position, else state
+        """
+        detectorTemp1, isCurrent = self.model.detectorTemp1.getInd(0)
+        self.detectorTemp1NameCurrWdg.set(detectorTemp1)
+
     def _updRowBinName(self, *args, **kargs):
         """Show current filter name, if stopped at a known position, else state
         """
@@ -827,54 +673,50 @@ class StatusConfigInputWdg (RO.Wdg.InputContFrame):
         self.colBinNameCurrWdg.set(colBin, severity=RO.Constants.sevNormal)
         self.colBinNameUserWdg.setDefault(colBin, doCheck=False)
 
-    # def _updUserCCDWindow(self, doCurrValue = True):
-    #     """Update user-set ccd window.
+    def _updNeonName(self, *args, **kargs):
+        """Show current filter name, if stopped at a known position, else state
+        """
+        neon, isCurrent = self.model.neon.getInd(0)
+        if neon is None:
+            neon = "?"
+        else:
+            neon = str(neon)
+        self.neonCurrWdg.set(neon, severity=RO.Constants.sevNormal)
+        self.neonUserWdg.setDefault(neon, doCheck=False)
 
-    #     Inputs:
-    #     - doCurrValue: if True, set current value and default;
-    #         otherwise just set default.
+    def _updKryptonName(self, *args, **kargs):
+        """Show current filter name, if stopped at a known position, else state
+        """
+        krypton, isCurrent = self.model.krypton.getInd(0)
+        if krypton is None:
+            krypton = "?"
+        else:
+            krypton = str(krypton)
+        self.kryptonCurrWdg.set(krypton, severity=RO.Constants.sevNormal)
+        self.kryptonUserWdg.setDefault(krypton, doCheck=False)
 
-    #     The current value is set from the cached user's unbinned value
-    #     """
-    #     self._freezeCCDUBWindow = True
-    #     try:
-    #         if doCurrValue and self.userCCDUBWindow is None:
-    #             return
-    #         userBinFac = self._getUserBinFac()
-    #         if 0 in userBinFac:
-    #             return
+    def _updQuartzName(self, *args, **kargs):
+        """Show current filter name, if stopped at a known position, else state
+        """
+        quartz, isCurrent = self.model.quartz.getInd(0)
+        if quartz is None:
+            quartz = "?"
+        else:
+            quartz = str(quartz)
+        self.quartzCurrWdg.set(quartz, severity=RO.Constants.sevNormal)
+        self.quartzUserWdg.setDefault(quartz, doCheck=False)
 
-    #         # update user ccd window displayed value, default valud and limits
-    #         if doCurrValue:
-    #             userWindow = self.model.bin(self.userCCDUBWindow, userBinFac)
-    #         currUBWindow, isCurrent = self.model.ccdUBWindow.get()
-    #         if isCurrent:
-    #             currWindow = self.model.bin(currUBWindow, userBinFac)
-    #         else:
-    #             currWindow = (None,)*4
-    #         minWindowXYXY = self.model.minCoord(userBinFac)*2
-    #         maxWindowXYXY = self.model.maxCoord(userBinFac)*2
-    #         for ind in range(4):
-    #             wdg = self.ccdWindowUserWdgSet[ind]
-    #             # disable limits
-    #             wdg.setRange(
-    #                 minValue = None,
-    #                 maxValue = None,
-    #             )
 
-    #             # set displayed and default value
-    #             if doCurrValue:
-    #                 wdg.set(userWindow[ind], isCurrent)
-    #             wdg.setDefault(currWindow[ind], isCurrent)
-
-    #             # set correct range for this bin factor
-    #             wdg.setRange(
-    #                 minValue = minWindowXYXY[ind],
-    #                 maxValue = maxWindowXYXY[ind],
-    #             )
-
-    #     finally:
-    #         self._freezeCCDUBWindow = False
+    def _updArgonName(self, *args, **kargs):
+        """Show current filter name, if stopped at a known position, else state
+        """
+        argon, isCurrent = self.model.argon.getInd(0)
+        if argon is None:
+            argon = "?"
+        else:
+            argon = str(argon)
+        self.argonCurrWdg.set(argon, severity=RO.Constants.sevNormal)
+        self.argonUserWdg.setDefault(argon, doCheck=False)
 
     def _getUserBinFac(self):
         """Return the current user-set bin factor in x and y.

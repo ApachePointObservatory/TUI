@@ -156,27 +156,27 @@ class _Model (object):
             description = "number of columns",
         )
 
-        self.pxlCols = keyVarFact(
+        self.neon = keyVarFact(
             keyword = "neon",
             description = "internal cal",
         )
 
-        self.pxlCols = keyVarFact(
+        self.argon = keyVarFact(
             keyword = "argon",
             description = "internal cal",
         )
 
-        self.pxlCols = keyVarFact(
+        self.krypton = keyVarFact(
             keyword = "krypton",
             description = "internal cal",
         )
 
-        self.pxlCols = keyVarFact(
+        self.quartz = keyVarFact(
             keyword = "quartz",
             description = "internal cal",
         )
 
-        self.pxlCols = keyVarFact(
+        self.detectorTemp1 = keyVarFact(
             keyword = "detectorTemp1",
             description = "CCD temperature",
         )
