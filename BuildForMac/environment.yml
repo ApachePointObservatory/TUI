@@ -62,4 +62,5 @@ dependencies:
     - typing==3.7.4.3
     - zipp==1.2.0
     - zope-interface==5.1.0
+    - RO==3.6.9
 prefix: /Users/albireo/.pyenv/versions/miniconda3-latest/envs/STUI

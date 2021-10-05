@@ -27,18 +27,18 @@ jobs:
         with:
           auto-update-conda: false
 
-      - name: Install dependencies
-        run: |
-          git clone --depth 1 --single-branch --branch python2 https://github.com/sdss/opscore.git ../opscore
-          git clone --depth 1 --single-branch --branch apo https://github.com/sdss/actorkeys.git ../actorkeys
-          git clone --depth 1 --single-branch --branch master https://github.com/r-owen/RO.git ../RO
+      # - name: Install dependencies
+      #   run: |
+      #     #git clone --depth 1 --single-branch --branch python2 https://github.com/sdss/opscore.git ../opscore
+      #     #git clone --depth 1 --single-branch --branch apo https://github.com/sdss/actorkeys.git ../actorkeys
+      #     #git clone --depth 1 --single-branch --branch master https://github.com/r-owen/RO.git ../RO
 
       - name: Restore environment
         run: |
           conda create --name TUI --file BuildForMac/environment.txt
           conda activate TUI
           pip install numpy==1.10.1
-          pip install py2app==0.22 matplotlib==2.2.5 pyfits==3.5 pyds9==1.8.1 twisted==20.3.0 pygame==1.9.6
+          pip install py2app==0.22 matplotlib==2.2.5 pyfits==3.5 pyds9==1.8.1 twisted==20.3.0 pygame==1.9.6 RO==3.6.9
         shell: bash -l {0}
 
       - name: Build Imaging
