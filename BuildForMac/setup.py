@@ -115,7 +115,8 @@ setup(
 
 # Delete Tcl/Tk documentation
 tclFrameworkDir = os.path.join(contentsDir, "Frameworks", "Tcl.framework")
-tclDocDir = os.path.join(tclFrameworkDir, "Resources", "English.lproj", "ActiveTcl-8.4")
+# tclDocDir = os.path.join(tclFrameworkDir, "Resources", "English.lproj", "ActiveTcl-8.4")
+tclDocDir = os.path.join(tclFrameworkDir, "Resources", "English.lproj", "ActiveTcl-8.5")
 if os.path.isdir(tclFrameworkDir):
     print "*** Tcl/Tk Framework is part of the application package ***"
     if os.path.isdir(tclDocDir):
@@ -124,6 +125,12 @@ if os.path.isdir(tclFrameworkDir):
         shutil.rmtree(tclDocDir)
 else:
     print "*** WARNING: Tcl/Tk Framework is NOT part of the application package ***"
+
+
+# This doesn't seem to be needed in 10.15 or 11.0
+for asset in glob.glob('assets/*.dylib'):
+    print('*** Adding {} asset ***'.format(os.path.basename(asset)))
+    shutil.copy(asset, os.path.join(contentsDir, 'Frameworks'))
 
 print "*** Creating disk image ***"
 appName = "%s_%s_Mac" % (appName, shortVersStr)
