@@ -100,6 +100,7 @@ class _Model (object):
                 loginExtra = loginExtraStr,
             )
 
+
         # keyword dispatcher
         self.dispatcher = RO.KeyDispatcher.KeyDispatcher(
             connection = connection,
