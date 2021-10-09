@@ -57,6 +57,7 @@ History:
 2015-11-10 ROwen    Added "FileDialog" back to inclModules; the current py2app requires it.
 """
 import os
+import glob
 from plistlib import Plist
 import shutil
 import subprocess
