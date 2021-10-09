@@ -113,6 +113,8 @@ if sys.platform == "darwin":
     print "Building Mac version"
     macBuildDir = os.path.join(exportPath, "BuildForMac")
     status = subprocess.call(["python", "setup.py", "-q", "py2app"], cwd=macBuildDir)
+    print "build output"
+    print status
     if status != 0:
         print "Mac build failed!"
     else:

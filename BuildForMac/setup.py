@@ -85,6 +85,8 @@ inclPackages = (
     "TUI",
     "RO",
     "matplotlib", # py2app already does this, but it doesn't hurt to insist
+    "pygame",
+    "Tkinter"
 )
 
 plist = Plist(
