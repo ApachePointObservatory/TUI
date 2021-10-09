@@ -14,6 +14,7 @@ import re
 import shutil
 import sys
 import subprocess
+from subprocess import Popen, PIPE
 
 roPath = os.environ.get("RO_DIR")
 if not roPath:
@@ -112,8 +113,10 @@ if sys.platform == "darwin":
 
     print "Building Mac version"
     macBuildDir = os.path.join(exportPath, "BuildForMac")
-    status = subprocess.call(["python", "setup.py", "-q", "py2app"], cwd=macBuildDir)
-    print "build output"
+    # status = subprocess.call(["python", "setup.py", "-q", "py2app"], cwd=macBuildDir)
+    # print "build output"
+    status = Popen(["python", "setup.py", "-q", "py2app"], stdout=PIPE, stderr=PIPE, cwd=macBuildDir)
+    print "Popen output"
     print status
     if status != 0:
         print "Mac build failed!"
