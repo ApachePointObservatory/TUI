@@ -116,7 +116,11 @@ if sys.platform == "darwin":
     # status = subprocess.call(["python", "setup.py", "-q", "py2app"], cwd=macBuildDir)
     # print "build output"
     status = Popen(["python", "setup.py", "-q", "py2app"], stdout=PIPE, stderr=PIPE, cwd=macBuildDir)
+    stdout, stderr = status.communicate()
     print "Popen output"
+    print stdout
+    print "Popen err"
+    print stderr
     print status
     if status != 0:
         print "Mac build failed!"
